@@ -12,7 +12,7 @@ namespace VoxelSpace {
         Matrix viewMat;
         Matrix projMat;
         Effect effect;
-        OrbitCamera camera;
+        FlyingFPSCamera camera;
 
         VoxelVolume volume;
         VoxelVolumeRenderer renderer;
@@ -52,7 +52,8 @@ namespace VoxelSpace {
 
             // camera
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
-            camera = new OrbitCamera((g.surfaceLevel + g.maxHeight) * 2, center);
+            var pos = new Vector3(0, g.surfaceLevel + g.maxHeight, 0);
+            camera = new FlyingFPSCamera(pos, center);
 
             // renderer
             renderer = new VoxelVolumeRenderer(effect);
