@@ -4,14 +4,25 @@ float4x4 proj;
 
 float3 lightDirection;
 
+texture tex;
+sampler2D texSampler = sampler_state {
+    Texture = (tex);
+    MagFilter = Point;
+    MinFilter = Point;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
 struct a2v {
     float4 position : POSITION;
     float4 normal : NORMAL;
+    float2 uv : TEXCOORD;
 };
 
 struct v2f {
     float4 position : POSITION;
-    float diff : TEXCOORD0;
+    float2 uv : TEXCOORD0;
+    float diff : TEXCOORD1;
 };
 
 v2f vert(a2v a) {
@@ -20,11 +31,14 @@ v2f vert(a2v a) {
     o.position = mul(mul(world, view), proj);
     float4 worldNormal = mul(model, a.normal);
     o.diff = abs(dot(worldNormal.xyz, lightDirection));
+    o.uv = a.uv;
     return o;
 }
 
 float4 frag(v2f v) : COLOR {
-    return v.diff;
+    float4 color = tex2D(texSampler, v.uv);
+    color.a = 1;
+    return v.diff * color;
 }
 
 technique Terrain {

@@ -36,6 +36,8 @@ namespace VoxelSpace {
             var light = new Vector3(1, -2, 3);
             light.Normalize();
             effect.Parameters["lightDirection"].SetValue(light);
+            var grass = Content.Load<Texture2D>("texture/grass");
+            effect.Parameters["tex"].SetValue(grass);
 
             // camera
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
@@ -44,8 +46,8 @@ namespace VoxelSpace {
             // the terrain itself
             volume = new VoxelVolume();
             var generator  = new PlanetTerrainGenerator();
-            generator.surfaceLevel = 128;
-            generator.maxHeight = 32;
+            generator.surfaceLevel = 64;
+            generator.maxHeight = 16;
             generator.GenerateVolume(volume);
             volume.UpdateAllChunkMeshes(GraphicsDevice);
 
