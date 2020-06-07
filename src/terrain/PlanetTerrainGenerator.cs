@@ -17,7 +17,9 @@ namespace VoxelSpace {
         ConcurrentQueue<VoxelChunk> chunkQueue;
         int remainingChunkCount;
 
-        protected override void Generate(VoxelVolume volume) {
+        public PlanetTerrainGenerator(VoxelVolume volume) : base(volume) { }
+
+        protected override void PreStart() {
             chunkQueue = new ConcurrentQueue<VoxelChunk>();
             remainingChunkCount = 0;
             float radius = surfaceLevel + maxHeight;
@@ -31,21 +33,19 @@ namespace VoxelSpace {
                     }
                 }
             }
-            for (int i = 0; i < 8; i ++) {
-                new Thread(() => {
-                    while (chunkQueue.TryDequeue(out var chunk)) {
-                        GenerateChunk(chunk);
-                        Interlocked.Decrement(ref remainingChunkCount);
-                    }
-                }).Start();
+        }
+
+        protected override void Worker() {
+            while (chunkQueue.TryDequeue(out var chunk)) {
+                GenerateChunk(chunk);
+                Interlocked.Decrement(ref remainingChunkCount);
             }
         }
 
-        public override void Update() {
+        protected override void OnUpdate() {
             if (remainingChunkCount == 0) {
-                GenerationFinished();
+                Finish();
             }
-            base.Update();
         }
 
         void GenerateChunk(VoxelChunk chunk) {
@@ -97,6 +97,7 @@ namespace VoxelSpace {
             return max + VoxelChunk.chunkSize / 2f < surfaceLevel;
         }
 
+        
     }
 
 }

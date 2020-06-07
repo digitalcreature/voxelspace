@@ -45,13 +45,13 @@ namespace VoxelSpace {
             
             // the terrain itself
             volume = new VoxelVolume();
-            generator  = new PlanetTerrainGenerator();
-            generator.surfaceLevel = 256;
-            generator.maxHeight = 32;
-            generator.GenerateVolume(volume);
+            generator  = new PlanetTerrainGenerator(volume);
+            generator.surfaceLevel = 64;
+            generator.maxHeight = 16;
+            generator.Start(8);
 
             // mesh generation
-            meshGenerator = new VoxelVolumeMeshGenerator(volume);
+            meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice, volume);
 
             // camera
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
@@ -70,9 +70,11 @@ namespace VoxelSpace {
                 camera.Update(deltaTime);
             }
             generator.Update();
-            if (generator.isFinished) {
-                meshGenerator.GenerateChunkMeshes();
-                meshGenerator.Update(GraphicsDevice);
+            if (generator.hasCompleted) {
+                if (!meshGenerator.hasCompleted) {
+                    meshGenerator.Start(8);
+                }
+                meshGenerator.Update();
             }
         }
 

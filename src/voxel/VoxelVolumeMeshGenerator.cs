@@ -7,62 +7,48 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
     
-    public class VoxelVolumeMeshGenerator {
+    public class VoxelVolumeMeshGenerator : MultithreadedTask {
 
         public VoxelVolume volume { get; private set; }
-
-        public bool isGenerating { get; private set; }
-        public bool isFinished { get; private set; }
 
         ConcurrentQueue<VoxelChunk> chunkQueue;
         ConcurrentQueue<VoxelChunkMeshGenerator> generatorQueue;
         int chunksRemainingCount;
 
-        Stopwatch stopwatch;
+        GraphicsDevice graphics;
 
-        public VoxelVolumeMeshGenerator(VoxelVolume volume) {
-            isFinished = false;
-            isGenerating = false;
+        public VoxelVolumeMeshGenerator(GraphicsDevice graphics, VoxelVolume volume) {
+            this.graphics = graphics;
             this.volume = volume;
-            chunkQueue = new ConcurrentQueue<VoxelChunk>();
-            generatorQueue = new ConcurrentQueue<VoxelChunkMeshGenerator>();
         }
 
-        public void GenerateChunkMeshes() {
-            if (!isFinished && !isGenerating) {
-                stopwatch = Stopwatch.StartNew();
-                chunksRemainingCount = 0;
-                isGenerating = true;
-                isFinished = false;
-                foreach (var chunk in volume) {
-                    chunkQueue.Enqueue(chunk);
-                    chunksRemainingCount ++;
-                }
-                for (int i = 0; i < 8; i ++) {
-                    new Thread(() => {
-                        while (chunkQueue.TryDequeue(out var chunk)) {
-                            var generator = new VoxelChunkMeshGenerator(chunk);
-                            generator.Generate();
-                            generatorQueue.Enqueue(generator);
-                            Interlocked.Decrement(ref chunksRemainingCount);
-                        }
-                    }).Start();
-                }
+        protected override void PreStart() {
+            chunkQueue = new ConcurrentQueue<VoxelChunk>();
+            generatorQueue = new ConcurrentQueue<VoxelChunkMeshGenerator>();
+            chunksRemainingCount = 0;
+            foreach (var chunk in volume) {
+                chunkQueue.Enqueue(chunk);
+                chunksRemainingCount ++;
             }
         }
 
-        public void Update(GraphicsDevice graphics) {
-            if (isGenerating) {
-                while (generatorQueue.TryDequeue(out var generator)) {
-                    var mesh = generator.ToVoxelChunkMesh(graphics);
-                    var chunk = generator.chunk;
-                    chunk.UpdateMesh(mesh);
-                }
-                if (chunksRemainingCount == 0) {
-                    isFinished = true;
-                    isGenerating = false;
-                    Console.WriteLine(string.Format("Generated {0} chunk meshes in {1}s", volume.chunkCount, stopwatch.ElapsedMilliseconds / 1000f));
-                }
+        protected override void Worker() {
+            while (chunkQueue.TryDequeue(out var chunk)) {
+                var generator = new VoxelChunkMeshGenerator(chunk);
+                generator.Generate();
+                generatorQueue.Enqueue(generator);
+                Interlocked.Decrement(ref chunksRemainingCount);
+            }
+        }
+
+        protected override void OnUpdate() {
+            while (generatorQueue.TryDequeue(out var generator)) {
+                var mesh = generator.ToVoxelChunkMesh(graphics);
+                var chunk = generator.chunk;
+                chunk.UpdateMesh(mesh);
+            }
+            if (chunksRemainingCount == 0) {
+                Finish(string.Format("Generated {0} chunk meshes", volume.chunkCount));
             }
         }
 
