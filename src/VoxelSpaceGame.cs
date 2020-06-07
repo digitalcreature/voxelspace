@@ -16,8 +16,7 @@ namespace VoxelSpace {
 
         VoxelVolume volume;
         VoxelVolumeRenderer renderer;
-        PlanetTerrainGenerator generator;
-        VoxelVolumeMeshGenerator meshGenerator;
+        VoxelVolumeGenerationManager<PlanetTerrainGenerator> manager;
 
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
@@ -45,17 +44,15 @@ namespace VoxelSpace {
             
             // the terrain itself
             volume = new VoxelVolume();
-            generator  = new PlanetTerrainGenerator(volume);
-            generator.surfaceLevel = 64;
-            generator.maxHeight = 16;
-            generator.Start(8);
-
-            // mesh generation
-            meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice, volume);
+            manager = new VoxelVolumeGenerationManager<PlanetTerrainGenerator>(GraphicsDevice, volume);
+            var g = manager.volumeGenerator;
+            g.surfaceLevel = 64;
+            g.maxHeight = 16;
+            manager.Start();
 
             // camera
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
-            camera = new OrbitCamera((generator.surfaceLevel + generator.maxHeight) * 2, center);
+            camera = new OrbitCamera((g.surfaceLevel + g.maxHeight) * 2, center);
 
             // renderer
             renderer = new VoxelVolumeRenderer(effect);
@@ -69,13 +66,8 @@ namespace VoxelSpace {
             if (IsActive) {
                 camera.Update(deltaTime);
             }
-            generator.Update();
-            if (generator.hasCompleted) {
-                if (!meshGenerator.hasCompleted) {
-                    meshGenerator.Start(8);
-                }
-                meshGenerator.Update();
-            }
+            manager.Update();
+         
         }
 
         protected override void Draw(GameTime gameTime) {
