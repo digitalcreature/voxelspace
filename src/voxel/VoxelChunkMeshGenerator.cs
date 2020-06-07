@@ -7,7 +7,6 @@ namespace VoxelSpace {
 
     public class VoxelChunkMeshGenerator {
 
-
         VoxelChunk chunk;
 
         List<VoxelVertex> verts;

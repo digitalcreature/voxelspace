@@ -14,7 +14,6 @@ namespace VoxelSpace {
         Effect effect;
         OrbitCamera camera;
         VoxelChunk chunk;
-        VoxelChunkMesh mesh;
 
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
@@ -55,10 +54,7 @@ namespace VoxelSpace {
                     }
                 }
             }
-            // the chunk mesh
-            var meshGenerator = new VoxelChunkMeshGenerator(chunk);
-            meshGenerator.Generate();
-            mesh = meshGenerator.ToVoxelChunkMesh(GraphicsDevice);
+            chunk.UpdateMesh(GraphicsDevice);
         }
 
         protected override void Update(GameTime gameTime) {
@@ -74,7 +70,7 @@ namespace VoxelSpace {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             effect.Parameters["view"].SetValue(camera.viewMatrix);
             effect.CurrentTechnique.Passes[0].Apply();
-            mesh.Draw();
+            chunk.mesh.Draw();
         }
     }
 }
