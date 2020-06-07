@@ -6,13 +6,10 @@ namespace VoxelSpace {
 
     public class VoxelChunkMesh : IDisposable {
 
-        public GraphicsDevice graphics { get; private set; }
-
         VertexBuffer verts;
         IndexBuffer tris;
 
         public VoxelChunkMesh(GraphicsDevice graphics, VoxelVertex[] verts, uint[] tris) {
-            this.graphics = graphics;
             this.verts = new VertexBuffer(graphics, VoxelVertex.declaration, verts.Length, BufferUsage.None);
             this.tris = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, tris.Length, BufferUsage.None);
             this.verts.SetData(0, verts, 0, verts.Length, 0);
@@ -24,7 +21,7 @@ namespace VoxelSpace {
             tris.Dispose();
         }
 
-        public void Draw() {
+        public void Draw(GraphicsDevice graphics) {
             graphics.SetVertexBuffer(verts);
             graphics.Indices = tris;
             graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, tris.IndexCount/3);

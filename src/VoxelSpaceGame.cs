@@ -13,7 +13,9 @@ namespace VoxelSpace {
         Matrix projMat;
         Effect effect;
         OrbitCamera camera;
-        VoxelChunk chunk;
+
+        VoxelVolume volume;
+        VoxelVolumeRenderer renderer;
 
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
@@ -30,7 +32,6 @@ namespace VoxelSpace {
         protected override void LoadContent() {
             // terrain shader
             effect = Content.Load<Effect>("shader/terrain");
-            effect.Parameters["model"].SetValue(modelMat);
             effect.Parameters["proj"].SetValue(projMat);
             var light = new Vector3(1, -2, 3);
             light.Normalize();
@@ -41,20 +42,16 @@ namespace VoxelSpace {
             camera = new OrbitCamera(VoxelChunk.chunkSize, center);
             
             // the terrain itself
-            chunk = new VoxelChunk(Coords.zero);
-            var rng = new System.Random();
-            for (var i = 0; i < VoxelChunk.chunkSize; i ++) {
-                for (var j = 0; j < VoxelChunk.chunkSize; j ++) {
-                    for (var k = 0; k < VoxelChunk.chunkSize; k ++) {
-                        var pos = new Vector3(i, j, k) + Vector3.One * 100;
-                        pos *= 0.05f;
-                        var sample = Perlin.Noise(pos);
-                        sample = (sample + 1) / 2;
-                        chunk[i, j, k] = new Voxel() { isSolid = sample < 0.5f };
-                    }
-                }
-            }
-            chunk.UpdateMesh(GraphicsDevice);
+            volume = new VoxelVolume();
+            var generator  = new PlanetTerrainGenerator();
+            generator.surfaceLevel = 128;
+            generator.maxHeight = 32;
+            generator.GenerateVolume(volume);
+            volume.UpdateAllChunkMeshes(GraphicsDevice);
+
+            // renderer
+            renderer = new VoxelVolumeRenderer(effect);
+
         }
 
         protected override void Update(GameTime gameTime) {
@@ -70,7 +67,7 @@ namespace VoxelSpace {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             effect.Parameters["view"].SetValue(camera.viewMatrix);
             effect.CurrentTechnique.Passes[0].Apply();
-            chunk.mesh.Draw();
+            renderer.Render(GraphicsDevice, volume);
         }
     }
 }

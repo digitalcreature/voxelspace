@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
-    public class VoxelChunk {
+    public class VoxelChunk : IDisposable {
 
         public const int chunkSize = 32;
         Voxel[,,] voxels;
@@ -31,6 +31,15 @@ namespace VoxelSpace {
             this.mesh = generator.ToVoxelChunkMesh(graphics);
         }
 
+        public void Dispose() {
+            if (mesh != null) {
+                mesh.Dispose();
+            }
+        }
+
+        public Coords LocalToVolume(Coords c) {
+            return coords * chunkSize + c;
+        }
 
     }
 }
