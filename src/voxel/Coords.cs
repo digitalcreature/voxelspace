@@ -31,8 +31,13 @@ namespace VoxelSpace {
 
         public static Coords operator *(Coords a, int b)
             => new Coords(a.x * b, a.y * b, a.z * b);
-
         public static Coords operator *(int a, Coords b) => b * a;
+        public static Coords operator /(Coords a, int b)
+            => new Coords(a.x / b, a.y / b, a.z / b);
+        public static Coords operator /(int a, Coords b) => b / a;
+
+        public static Coords operator %(Coords a, int b)
+            => new Coords(a.x % b, a.y % b, a.z % b);
 
         public override int GetHashCode() {
             return x ^ (y << 4) ^ (z << 8);
@@ -49,6 +54,8 @@ namespace VoxelSpace {
 
         public static implicit operator Vector3(Coords a)
             => new Vector3(a.x, a.y, a.z);
+        public static explicit operator Coords(Vector3 a)
+            => new Coords((int) MathF.Floor(a.X), (int) MathF.Floor(a.Y), (int) MathF.Floor(a.Z));
 
     }
 

@@ -22,6 +22,8 @@ namespace VoxelSpace {
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            graphics.PreferredBackBufferWidth = 1280;
+            graphics.PreferredBackBufferHeight = 720;
         }
 
         protected override void Initialize() {
@@ -44,8 +46,8 @@ namespace VoxelSpace {
             // the terrain itself
             volume = new VoxelVolume();
             generator  = new PlanetTerrainGenerator();
-            generator.surfaceLevel = 64;
-            generator.maxHeight = 16;
+            generator.surfaceLevel = 256;
+            generator.maxHeight = 32;
             generator.GenerateVolume(volume);
 
             // mesh generation

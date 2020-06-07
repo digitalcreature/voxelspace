@@ -38,7 +38,7 @@ namespace VoxelSpace {
                     chunkQueue.Enqueue(chunk);
                     chunksRemainingCount ++;
                 }
-                for (int i = 0; i < 4; i ++) {
+                for (int i = 0; i < 8; i ++) {
                     new Thread(() => {
                         while (chunkQueue.TryDequeue(out var chunk)) {
                             var generator = new VoxelChunkMeshGenerator(chunk);

@@ -17,7 +17,7 @@ namespace VoxelSpace {
         }
 
         public VoxelChunk AddChunk(Coords coords) {
-            var chunk = new VoxelChunk(coords);
+            var chunk = new VoxelChunk(this, coords);
             chunks.Add(coords, chunk);
             return chunk;
         }
@@ -37,6 +37,19 @@ namespace VoxelSpace {
         public void Dispose() {
             foreach (var chunk in chunks.Values) {
                 chunk.Dispose();
+            }
+        }
+
+        // return the chunk containing the voxel at a set of coords
+        public VoxelChunk GetChunkForVoxelCoords(Coords c) {
+            Vector3 v = c;
+            v /= VoxelChunk.chunkSize;
+            c = (Coords) v;
+            if (chunks.ContainsKey(c)) {
+                return chunks[c];
+            }
+            else {
+                return null;
             }
         }
 

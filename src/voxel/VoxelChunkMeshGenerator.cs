@@ -27,6 +27,31 @@ namespace VoxelSpace {
             }
         }
 
+        // get a voxel based on local coordinates to this chunk, while also checking
+        // other chunks in the volume if this is out of bounds
+        Voxel GetVoxelIncludingNeighbors(int i, int j, int k) {
+            if (i >= 0 && i < VoxelChunk.chunkSize &&
+                j >= 0 && j < VoxelChunk.chunkSize &&
+                k >= 0 && k < VoxelChunk.chunkSize) {
+                    return chunk[i, j, k];
+            }
+            else {
+                if (chunk.volume != null) {
+                    var c = chunk.LocalToVolume(new Coords(i, j, k));
+                    var neighbor = chunk.volume.GetChunkForVoxelCoords(c);
+                    if (neighbor != null) {
+                        return neighbor[neighbor.VolumeToLocal(c)];
+                    }
+                    else {
+                        return Voxel.empty;
+                    }
+                }
+                else {
+                    return Voxel.empty;
+                }
+            }
+        }
+
         public void Generate() {
             var size = VoxelChunk.chunkSize;
             for (int i = 0; i < size; i ++) {
@@ -34,7 +59,7 @@ namespace VoxelSpace {
                     for (int k = 0; k < size; k ++) {
                         if (chunk[i,j,k].isMeshable) {
                             // -x face
-                            if (i == 0 || !chunk[i - 1, j, k].isMeshable) {
+                            if (!GetVoxelIncludingNeighbors(i - 1, j, k).isMeshable) {
                                 AddVoxelFace(
                                     new Vector3(i, j + 1, k),
                                     new Vector3(i, j + 1, k + 1),
@@ -44,7 +69,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +x face
-                            if (i == (size - 1) || !chunk[i + 1, j, k].isMeshable) {
+                            if (!GetVoxelIncludingNeighbors(i + 1, j, k).isMeshable) {
                                 AddVoxelFace(
                                     new Vector3(i + 1, j + 1, k + 1),
                                     new Vector3(i + 1, j + 1, k),
@@ -54,7 +79,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // -y face
-                            if (j == 0 || !chunk[i, j - 1, k].isMeshable) {
+                            if (!GetVoxelIncludingNeighbors(i, j - 1, k).isMeshable) {
                                 AddVoxelFace(
                                     new Vector3(i + 1, j, k),
                                     new Vector3(i, j, k),
@@ -64,7 +89,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +y face
-                            if (j == (size - 1) || !chunk[i, j + 1, k].isMeshable) {
+                            if (!GetVoxelIncludingNeighbors(i, j + 1, k).isMeshable) {
                                 AddVoxelFace(
                                     new Vector3(i, j + 1, k),
                                     new Vector3(i + 1, j + 1, k),
@@ -74,7 +99,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // -z face
-                            if (k == 0 || !chunk[i, j, k - 1].isMeshable) {
+                            if (!GetVoxelIncludingNeighbors(i, j, k - 1).isMeshable) {
                                 AddVoxelFace(
                                     new Vector3(i + 1, j + 1, k),
                                     new Vector3(i, j + 1, k),
@@ -84,7 +109,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +z face
-                            if (k == (size - 1) || !chunk[i, j, k + 1].isMeshable) {
+                            if (!GetVoxelIncludingNeighbors(i, j, k + 1).isMeshable) {
                                 AddVoxelFace(
                                     new Vector3(i, j + 1, k + 1),
                                     new Vector3(i + 1, j + 1, k + 1),
