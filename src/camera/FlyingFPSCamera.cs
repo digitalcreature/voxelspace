@@ -6,7 +6,7 @@ namespace VoxelSpace {
 
     public class FlyingFPSCamera {
 
-        public Vector3 position;
+        public Transform transform;
 
         public float moveSpeed = 5;
         public float moveSpeedIncrement = 1.5f;
@@ -17,11 +17,11 @@ namespace VoxelSpace {
 
         public Matrix viewMatrix =>
             Matrix.Invert(
-                camera.rotation * Matrix.CreateTranslation(position)
+                camera.rotation * transform.localToWorld
             );
 
         public FlyingFPSCamera(Vector3 position, Point screenCenter) {
-            this.position = position;
+            transform = new Transform(position);
             camera = new FPSCamera(screenCenter);
             scroll = Mouse.GetState().ScrollWheelValue;
         }
@@ -48,7 +48,7 @@ namespace VoxelSpace {
             }
             targetInput *= deltaTime * moveSpeed;
             input = Vector3.Lerp(input, targetInput, deltaTime * smoothFactor);
-            position += Vector3.TransformNormal(input, camera.rotation);
+            transform.position += Vector3.TransformNormal(input, camera.rotation);
         }
 
     }
