@@ -1,6 +1,9 @@
 using System;
+using System.Threading;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
@@ -11,17 +14,38 @@ namespace VoxelSpace {
         public float surfaceLevel = 64;
         public float maxHeight = 16;
 
+        ConcurrentQueue<VoxelChunk> chunkQueue;
+        int remainingChunkCount;
+
         protected override void Generate(VoxelVolume volume) {
+            chunkQueue = new ConcurrentQueue<VoxelChunk>();
+            remainingChunkCount = 0;
             float radius = surfaceLevel + maxHeight;
             int chunkRadius = (int) MathF.Ceiling(radius / VoxelChunk.chunkSize);
             for (int i = -chunkRadius; i < chunkRadius; i ++) {
                 for (int j = -chunkRadius; j < chunkRadius; j ++) {
                     for (int k = -chunkRadius; k < chunkRadius; k ++) {
                         var chunk = volume.AddChunk(new Coords(i, j, k));
-                        GenerateChunk(chunk);
+                        chunkQueue.Enqueue(chunk);
+                        Interlocked.Increment(ref remainingChunkCount);
                     }
                 }
             }
+            for (int i = 0; i < 4; i ++) {
+                new Thread(() => {
+                    while (chunkQueue.TryDequeue(out var chunk)) {
+                        GenerateChunk(chunk);
+                        Interlocked.Decrement(ref remainingChunkCount);
+                    }
+                }).Start();
+            }
+        }
+
+        public override void Update() {
+            if (remainingChunkCount == 0) {
+                GenerationFinished();
+            }
+            base.Update();
         }
 
         void GenerateChunk(VoxelChunk chunk) {
@@ -56,7 +80,7 @@ namespace VoxelSpace {
                     }
                 }
             }
-            Console.WriteLine(string.Format("generated chunk {0} in {1}s", chunk.coords, sw.ElapsedMilliseconds / 1000f));
+            // Console.WriteLine(string.Format("generated chunk {0} in {1}s", chunk.coords, sw.ElapsedMilliseconds / 1000f));
         }
 
         // return true if chunk is below the heightmapped surface, meaning it is completely

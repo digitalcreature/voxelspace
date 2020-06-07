@@ -14,9 +14,11 @@ namespace VoxelSpace {
 
         public void Render(GraphicsDevice graphics, VoxelVolume volume, Matrix modelMat) {
             foreach (var chunk in volume) {
-                terrainEffect.Parameters["model"].SetValue(Matrix.CreateTranslation(chunk.coords * VoxelChunk.chunkSize) * modelMat);
-                terrainEffect.CurrentTechnique.Passes[0].Apply();
-                chunk.mesh.Draw(graphics);
+                if (chunk.mesh != null) {
+                    terrainEffect.Parameters["model"].SetValue(Matrix.CreateTranslation(chunk.coords * VoxelChunk.chunkSize) * modelMat);
+                    terrainEffect.CurrentTechnique.Passes[0].Apply();
+                    chunk.mesh.Draw(graphics);
+                }
             }
         }
         public void Render(GraphicsDevice graphics, VoxelVolume volume) => Render(graphics, volume, Matrix.Identity);

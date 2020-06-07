@@ -22,13 +22,11 @@ namespace VoxelSpace {
             this.coords = coords;
         }
 
-        public void UpdateMesh(GraphicsDevice graphics) {
-            if (mesh != null) {
-                mesh.Dispose();
+        public void UpdateMesh(VoxelChunkMesh mesh) {
+            if (this.mesh != null) {
+                this.mesh.Dispose();
             }
-            var generator = new VoxelChunkMeshGenerator(this);
-            generator.Generate();
-            this.mesh = generator.ToVoxelChunkMesh(graphics);
+            this.mesh = mesh;
         }
 
         public void Dispose() {

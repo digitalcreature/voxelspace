@@ -7,7 +7,7 @@ namespace VoxelSpace {
 
     public class VoxelChunkMeshGenerator {
 
-        VoxelChunk chunk;
+        public VoxelChunk chunk { get; private set; }
 
         List<VoxelVertex> verts;
         List<uint> tris;
@@ -19,7 +19,12 @@ namespace VoxelSpace {
         }
 
         public VoxelChunkMesh ToVoxelChunkMesh(GraphicsDevice graphics) {
-            return new VoxelChunkMesh(graphics, verts.ToArray(), tris.ToArray());
+            if (verts.Count == 0) {
+                return null;
+            }
+            else {
+                return new VoxelChunkMesh(graphics, verts.ToArray(), tris.ToArray());
+            }
         }
 
         public void Generate() {

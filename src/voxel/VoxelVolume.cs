@@ -10,6 +10,7 @@ namespace VoxelSpace {
     public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk> {
 
         Dictionary<Coords, VoxelChunk> chunks;
+        public int chunkCount => chunks.Count;
 
         public VoxelVolume() {
             chunks = new Dictionary<Coords, VoxelChunk>();
@@ -31,14 +32,6 @@ namespace VoxelSpace {
             else {
                 return false;
             }
-        }
-
-        public void UpdateAllChunkMeshes(GraphicsDevice graphics) {
-            var sw = Stopwatch.StartNew();
-            foreach (var chunk in chunks.Values) {
-                chunk.UpdateMesh(graphics);
-            }
-            Console.WriteLine(string.Format("updated {0} chunk meshes in {1}s", chunks.Count, sw.ElapsedMilliseconds / 1000f));
         }
 
         public void Dispose() {

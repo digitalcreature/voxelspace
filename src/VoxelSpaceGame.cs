@@ -16,6 +16,8 @@ namespace VoxelSpace {
 
         VoxelVolume volume;
         VoxelVolumeRenderer renderer;
+        PlanetTerrainGenerator generator;
+        VoxelVolumeMeshGenerator meshGenerator;
 
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
@@ -38,18 +40,20 @@ namespace VoxelSpace {
             effect.Parameters["lightDirection"].SetValue(light);
             var grass = Content.Load<Texture2D>("texture/grass");
             effect.Parameters["tex"].SetValue(grass);
-
-            // camera
-            var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
-            camera = new OrbitCamera(VoxelChunk.chunkSize, center);
             
             // the terrain itself
             volume = new VoxelVolume();
-            var generator  = new PlanetTerrainGenerator();
+            generator  = new PlanetTerrainGenerator();
             generator.surfaceLevel = 64;
             generator.maxHeight = 16;
             generator.GenerateVolume(volume);
-            volume.UpdateAllChunkMeshes(GraphicsDevice);
+
+            // mesh generation
+            meshGenerator = new VoxelVolumeMeshGenerator(volume);
+
+            // camera
+            var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
+            camera = new OrbitCamera((generator.surfaceLevel + generator.maxHeight) * 2, center);
 
             // renderer
             renderer = new VoxelVolumeRenderer(effect);
@@ -62,6 +66,11 @@ namespace VoxelSpace {
             IsMouseVisible = !IsActive;
             if (IsActive) {
                 camera.Update(deltaTime);
+            }
+            generator.Update();
+            if (generator.isFinished) {
+                meshGenerator.GenerateChunkMeshes();
+                meshGenerator.Update(GraphicsDevice);
             }
         }
 
