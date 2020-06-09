@@ -65,7 +65,6 @@ namespace VoxelSpace {
             if (IsActive) {
                 camera.Update(deltaTime);
                 planet.gravity.AlignToGravity(camera.transform);
-                Console.WriteLine(camera.transform.up);
             }
             planet.Update();
         }

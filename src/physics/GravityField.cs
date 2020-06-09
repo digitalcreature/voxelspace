@@ -11,12 +11,8 @@ namespace VoxelSpace {
 
         public void AlignToGravity(Transform t) {
             var g = GetGravity(t.position);
-            var up = -t.up;
-            if (up != g) {
-                var axis = Vector3.Cross(up, g);
-                var angle = g.AngleTo(up);
-                t.Rotate(Quaternion.CreateFromAxisAngle(axis, angle));
-            }
+            var f = t.forward.ProjectPlane(g);
+            t.rotation = Quaternion.CreateFromRotationMatrix(f.CreateLookMatrix(-g));
         }
 
     }

@@ -28,6 +28,7 @@ namespace VoxelSpace {
             return angle;
         }
 
+        // theres something wrong with Matrix.CreateLookAt(), so heres one i actually know how it works
         public static Matrix CreateLookMatrix(this Vector3 f, Vector3 u) {
             var r = Vector3.Cross(f, u);
             f = -f;
