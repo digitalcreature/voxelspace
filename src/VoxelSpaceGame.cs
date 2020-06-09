@@ -8,15 +8,16 @@ namespace VoxelSpace {
     public class VoxelSpaceGame : Game {
         
         GraphicsDeviceManager graphics;
-        Matrix modelMat;
-        Matrix viewMat;
+
         Matrix projMat;
+
         Effect effect;
+
         FlyingFPSCamera camera;
 
-        VoxelVolume volume;
-        VoxelVolumeRenderer renderer;
-        VoxelVolumeGenerationManager<PlanetTerrainGenerator> manager;
+        Planet planet;
+
+        DebugDraw debugDraw;
 
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
@@ -26,8 +27,6 @@ namespace VoxelSpace {
         }
 
         protected override void Initialize() {
-            modelMat = Matrix.CreateTranslation(Vector3.One * -VoxelChunk.chunkSize / 2);
-            viewMat = Matrix.CreateLookAt(Vector3.One * 3, Vector3.Zero, Vector3.Up);
             projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), GraphicsDevice.Viewport.AspectRatio, 0.01f, 1000);
             base.Initialize();
         }
@@ -42,22 +41,21 @@ namespace VoxelSpace {
             var grass = Content.Load<Texture2D>("texture/grass");
             effect.Parameters["tex"].SetValue(grass);
             
-            // the terrain itself
-            volume = new VoxelVolume();
-            manager = new VoxelVolumeGenerationManager<PlanetTerrainGenerator>(GraphicsDevice, volume);
-            var g = manager.volumeGenerator;
-            g.surfaceLevel = 64;
+            planet = new Planet(GraphicsDevice, 64);
+
+            var g = planet.volumeGenerationManager.volumeGenerator;
             g.maxHeight = 16;
-            manager.Start();
 
             // camera
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, g.surfaceLevel + g.maxHeight, 0);
             camera = new FlyingFPSCamera(pos, center);
 
-            // renderer
-            renderer = new VoxelVolumeRenderer(effect);
-
+            planet.terrainEffect = effect;
+            planet.StartGeneration();
+            
+            // debug draw
+            debugDraw = new DebugDraw(GraphicsDevice);
         }
 
         protected override void Update(GameTime gameTime) {
@@ -66,16 +64,20 @@ namespace VoxelSpace {
             IsMouseVisible = !IsActive;
             if (IsActive) {
                 camera.Update(deltaTime);
+                planet.gravity.AlignToGravity(camera.transform);
+                Console.WriteLine(camera.transform.up);
             }
-            manager.Update();
-         
+            planet.Update();
         }
 
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             effect.Parameters["view"].SetValue(camera.viewMatrix);
             effect.CurrentTechnique.Passes[0].Apply();
-            renderer.Render(GraphicsDevice, volume);
+            planet.Render(GraphicsDevice);
+            debugDraw.SetMatrices(Matrix.Identity, camera.viewMatrix, projMat);
+            var orig = camera.transform.position - camera.transform.up;
+            debugDraw.Ray(orig, camera.transform.forward);
         }
     }
 }

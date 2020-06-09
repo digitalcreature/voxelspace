@@ -7,7 +7,7 @@ namespace VoxelSpace {
 
     public class VoxelVolumeGenerationManager<T> where T : VoxelVolumeGenerator {
 
-        public int workerCount = 8;
+        public int workerCount = MultithreadedTask.defaultWorkerCount;
         public VoxelVolume volume { get; private set; }
         public T volumeGenerator;
         public VoxelVolumeMeshGenerator meshGenerator;
@@ -19,7 +19,8 @@ namespace VoxelSpace {
             this.workerCount = workerCount;
         }
 
-        public void Start() {
+        public void Start(int workerCount = MultithreadedTask.defaultWorkerCount) {
+            this.workerCount = workerCount;
             volumeGenerator.Start(workerCount);
         }
 
@@ -27,7 +28,7 @@ namespace VoxelSpace {
             volumeGenerator.Update();
             if (volumeGenerator.hasCompleted) {
                 if (!meshGenerator.hasCompleted) {
-                    meshGenerator.Start(8);
+                    meshGenerator.Start(workerCount);
                 }
                 meshGenerator.Update();
             }

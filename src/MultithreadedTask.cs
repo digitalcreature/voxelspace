@@ -7,6 +7,8 @@ namespace VoxelSpace {
 
     public abstract class MultithreadedTask {
 
+        public const int defaultWorkerCount = 8;
+
         public bool hasCompleted { get; private set; }
         public bool isRunning { get; private set; }
 
@@ -20,7 +22,7 @@ namespace VoxelSpace {
             isRunning = false;
         }
 
-        public void Start(int workerCount) {
+        public void Start(int workerCount = defaultWorkerCount) {
             if (!isRunning) {
                 isRunning = true;
                 hasCompleted = false;

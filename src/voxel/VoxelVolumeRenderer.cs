@@ -6,17 +6,17 @@ namespace VoxelSpace {
 
     public class VoxelVolumeRenderer : IDisposable {
         
-        Effect terrainEffect;
+        public Effect effect;
 
         public VoxelVolumeRenderer(Effect terrainEffect) {
-            this.terrainEffect = terrainEffect;
+            this.effect = terrainEffect;
         }
 
         public void Render(GraphicsDevice graphics, VoxelVolume volume, Matrix modelMat) {
             foreach (var chunk in volume) {
                 if (chunk.mesh != null) {
-                    terrainEffect.Parameters["model"].SetValue(Matrix.CreateTranslation(chunk.coords * VoxelChunk.chunkSize) * modelMat);
-                    terrainEffect.CurrentTechnique.Passes[0].Apply();
+                    effect.Parameters["model"].SetValue(Matrix.CreateTranslation(chunk.coords * VoxelChunk.chunkSize) * modelMat);
+                    effect.CurrentTechnique.Passes[0].Apply();
                     chunk.mesh.Draw(graphics);
                 }
             }
