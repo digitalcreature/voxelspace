@@ -8,6 +8,8 @@ namespace VoxelSpace {
 
         public Transform transform;
 
+        Bounds bounds;
+
         public float moveSpeed = 5;
         public float moveSpeedIncrement = 1.5f;
         public float smoothFactor = 10;
@@ -18,6 +20,8 @@ namespace VoxelSpace {
         int scroll;
         float yLook;
 
+        ICollisionGrid grid;
+
         public Matrix viewMatrix =>
             Matrix.Invert(
                 viewRotationMatrix * Matrix.CreateTranslation(transform.position)
@@ -26,12 +30,14 @@ namespace VoxelSpace {
         Matrix viewRotationMatrix =>
             Matrix.CreateRotationX(MathHelper.ToRadians(-yLook)) * transform.rotationMatrix;
 
-        public FlyingFPSCamera(Vector3 position, Point screenCenter) {
+        public FlyingFPSCamera(Vector3 position, Point screenCenter, ICollisionGrid grid) {
             this.screenCenter = screenCenter;
             Mouse.SetPosition(screenCenter.X, screenCenter.Y);
-            transform = new Transform(position);//, Quaternion.CreateFromYawPitchRoll(0, 0, MathHelper.ToRadians(45)));
-            // transform.rotation = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(45),, 0);
+            transform = new Transform(position);
+            bounds = new Bounds(Vector3.One * 1.5f);
+            bounds.center = position;
             scroll = Mouse.GetState().ScrollWheelValue;
+            this.grid = grid;
         }
 
         Vector3 input = Vector3.Zero;
@@ -44,10 +50,10 @@ namespace VoxelSpace {
             this.scroll = scroll;
             var point = m.Position;
             point -= screenCenter;
-            var delta = point.ToVector2();
-            delta *= deltaTime * sensitivity;
-            transform.Rotate(Quaternion.CreateFromAxisAngle(transform.up, MathHelper.ToRadians(-delta.X)));
-            yLook += delta.Y;
+            var lookDelta = point.ToVector2();
+            lookDelta *= deltaTime * sensitivity;
+            transform.Rotate(Quaternion.CreateFromAxisAngle(transform.up, MathHelper.ToRadians(-lookDelta.X)));
+            yLook += lookDelta.Y;
             yLook = MathHelper.Clamp(yLook, -90, 90);
             Mouse.SetPosition(screenCenter.X, screenCenter.Y);
             var targetInput = Vector3.Zero;
@@ -63,7 +69,9 @@ namespace VoxelSpace {
             }
             targetInput *= deltaTime * moveSpeed;
             input = Vector3.Lerp(input, targetInput, deltaTime * smoothFactor);
-            transform.position += Vector3.TransformNormal(input, viewRotationMatrix);
+            var moveDelta = Vector3.TransformNormal(input, viewRotationMatrix);
+            bounds.MoveInCollisionGrid(moveDelta, grid);
+            transform.position = bounds.center;
         }
 
     }

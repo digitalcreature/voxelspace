@@ -37,10 +37,10 @@ namespace VoxelSpace {
             }
             else {
                 if (chunk.volume != null) {
-                    var c = chunk.LocalToVolume(new Coords(i, j, k));
-                    var neighbor = chunk.volume.GetChunkForVoxelCoords(c);
+                    var c = chunk.LocalToGlobalCoords(new Coords(i, j, k));
+                    var neighbor = chunk.volume.GetChunkContainingGlobalCoords(c);
                     if (neighbor != null) {
-                        return neighbor[neighbor.VolumeToLocal(c)];
+                        return neighbor[neighbor.GlobalToLocalCoords(c)];
                     }
                     else {
                         return Voxel.empty;

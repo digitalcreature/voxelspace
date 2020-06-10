@@ -22,6 +22,7 @@ namespace VoxelSpace {
             volume = new VoxelVolume();
             volumeRenderer = new VoxelVolumeRenderer(null);
             gravity = new CubicGravityField(25);
+            this.radius = radius;
         }
 
         public void Render(GraphicsDevice graphics) {

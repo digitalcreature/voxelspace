@@ -53,8 +53,8 @@ namespace VoxelSpace {
 
             // camera
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
-            var pos = new Vector3(0, generator.surfaceLevel + generator.maxHeight, 0);
-            camera = new FlyingFPSCamera(pos, center);
+            var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
+            camera = new FlyingFPSCamera(pos, center, planet.volume);
 
             planet.terrainEffect = effect;
             planetGenerator.StartTask(planet);

@@ -21,6 +21,7 @@ namespace VoxelSpace {
         public void StartTask(Planet planet) {
             if (!this.HasStarted()) {
                 this.planet = planet;
+                terrainGenerator.surfaceLevel = planet.radius;
                 terrainGenerator.StartTask(planet.volume);
             }
         }

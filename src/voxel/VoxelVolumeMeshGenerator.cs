@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,7 +28,7 @@ namespace VoxelSpace {
         public void StartTask(VoxelVolume volume) {
             if (!this.HasStarted()) {
                 this.volume = volume;
-                chunkWorkerGroup.StartTask(volume);
+                chunkWorkerGroup.StartTask(volume.GetDirtyChunks());
             }
         }
 

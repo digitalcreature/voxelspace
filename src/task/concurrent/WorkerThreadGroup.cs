@@ -10,7 +10,7 @@ namespace VoxelSpace {
 
     public class WorkerThreadGroup<T, R> : IMultiFrameTask<IEnumerable<T>>, IEnumerable<R> {
 
-        public const int defaultWorkerCount = 8;
+        public const int defaultWorkerCount = 4;
 
         public bool hasCompleted { get; private set; }
         public bool isRunning { get; private set; }

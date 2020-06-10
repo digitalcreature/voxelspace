@@ -55,12 +55,15 @@ namespace VoxelSpace {
                         }
                     }
                 }
+                lock (volume) {
+                    volume.SetChunkClean(chunk);
+                }
             }
             else {
                 for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
                     for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
                         for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
-                            var vc = chunk.LocalToVolume(new Coords(i, j, k));
+                            var vc = chunk.LocalToGlobalCoords(new Coords(i, j, k));
                             var vpos = vc + Vector3.One * 0.5f;
                             var vposMag = new Vector3(
                                 MathF.Abs(vpos.X),
@@ -75,6 +78,9 @@ namespace VoxelSpace {
                             chunk[i, j, k] = new Voxel() { isSolid = max < height };
                         }
                     }
+                }
+                lock (volume) {
+                    volume.SetChunkDirty(chunk);
                 }
             }
             // Console.WriteLine(string.Format("generated chunk {0} in {1}s", chunk.coords, sw.ElapsedMilliseconds / 1000f));

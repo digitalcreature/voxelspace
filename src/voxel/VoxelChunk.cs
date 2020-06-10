@@ -14,7 +14,6 @@ namespace VoxelSpace {
 
         Voxel[,,] voxels;
 
-
         public Voxel this[int x, int y, int z] {
             get => voxels[x,y,z];
             set => voxels[x, y, z] = value;
@@ -44,11 +43,11 @@ namespace VoxelSpace {
             }
         }
 
-        public Coords LocalToVolume(Coords c) {
+        public Coords LocalToGlobalCoords(Coords c) {
             return coords * chunkSize + c;
         }
 
-        public Coords VolumeToLocal(Coords c) {
+        public Coords GlobalToLocalCoords(Coords c) {
             return c - coords * chunkSize;
         }
 
