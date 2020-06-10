@@ -14,38 +14,35 @@ namespace VoxelSpace {
         public float surfaceLevel = 64;
         public float maxHeight = 16;
 
-        ConcurrentQueue<VoxelChunk> chunkQueue;
-        int remainingChunkCount;
+        WorkerThreadGroup<VoxelChunk> chunkWorkerGroup;
 
-        public PlanetTerrainGenerator(VoxelVolume volume) : base(volume) { }
+        public override bool isRunning => chunkWorkerGroup.isRunning;
+        public override bool hasCompleted => chunkWorkerGroup.hasCompleted;
+        public override float progress => chunkWorkerGroup.progress;
 
-        protected override void PreStart() {
-            chunkQueue = new ConcurrentQueue<VoxelChunk>();
-            remainingChunkCount = 0;
+        public PlanetTerrainGenerator() {
+            chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk>(GenerateChunk);
+        }
+
+        protected override void StartGeneration() {
             float radius = surfaceLevel + maxHeight;
             int chunkRadius = (int) MathF.Ceiling(radius / VoxelChunk.chunkSize);
             for (int i = -chunkRadius; i < chunkRadius; i ++) {
                 for (int j = -chunkRadius; j < chunkRadius; j ++) {
                     for (int k = -chunkRadius; k < chunkRadius; k ++) {
                         var chunk = volume.AddChunk(new Coords(i, j, k));
-                        chunkQueue.Enqueue(chunk);
-                        Interlocked.Increment(ref remainingChunkCount);
                     }
                 }
             }
+            chunkWorkerGroup.StartTask(volume);
         }
 
-        protected override void Worker() {
-            while (chunkQueue.TryDequeue(out var chunk)) {
-                GenerateChunk(chunk);
-                Interlocked.Decrement(ref remainingChunkCount);
+        protected override bool UpdateGeneration() {
+            bool isDone = chunkWorkerGroup.UpdateTask();
+            if (isDone) {
+                Console.WriteLine(chunkWorkerGroup.GetCompletionMessage(this, "Generated {0} chunks"));
             }
-        }
-
-        protected override void OnUpdate() {
-            if (remainingChunkCount == 0) {
-                Finish();
-            }
+            return isDone;
         }
 
         void GenerateChunk(VoxelChunk chunk) {
@@ -96,8 +93,6 @@ namespace VoxelSpace {
             );
             return max + VoxelChunk.chunkSize / 2f < surfaceLevel;
         }
-
-        
     }
 
 }

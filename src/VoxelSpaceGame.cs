@@ -17,6 +17,9 @@ namespace VoxelSpace {
 
         Planet planet;
 
+        PlanetGenerator planetGenerator;
+        VoxelVolumeMeshGenerator meshGenerator;
+
         DebugDraw debugDraw;
 
         public VoxelSpaceGame() {
@@ -42,17 +45,19 @@ namespace VoxelSpace {
             effect.Parameters["tex"].SetValue(grass);
             
             planet = new Planet(GraphicsDevice, 64);
-
-            var g = planet.volumeGenerationManager.volumeGenerator;
-            g.maxHeight = 16;
+            var generator = new PlanetTerrainGenerator();
+            planetGenerator = new PlanetGenerator(generator);
+            meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
+            
+            generator.maxHeight = 16;
 
             // camera
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
-            var pos = new Vector3(0, g.surfaceLevel + g.maxHeight, 0);
+            var pos = new Vector3(0, generator.surfaceLevel + generator.maxHeight, 0);
             camera = new FlyingFPSCamera(pos, center);
 
             planet.terrainEffect = effect;
-            planet.StartGeneration();
+            planetGenerator.StartTask(planet);
             
             // debug draw
             debugDraw = new DebugDraw(GraphicsDevice);
@@ -66,7 +71,10 @@ namespace VoxelSpace {
                 camera.Update(deltaTime);
                 planet.gravity.AlignToGravity(camera.transform);
             }
-            planet.Update();
+            if (planetGenerator.UpdateTask()) {
+                meshGenerator.StartTask(planet.volume);
+            }
+            meshGenerator.UpdateTask();
         }
 
         protected override void Draw(GameTime gameTime) {
@@ -74,9 +82,6 @@ namespace VoxelSpace {
             effect.Parameters["view"].SetValue(camera.viewMatrix);
             effect.CurrentTechnique.Passes[0].Apply();
             planet.Render(GraphicsDevice);
-            debugDraw.SetMatrices(Matrix.Identity, camera.viewMatrix, projMat);
-            var orig = camera.transform.position - camera.transform.up;
-            debugDraw.Ray(orig, camera.transform.forward);
         }
     }
 }

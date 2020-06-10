@@ -5,13 +5,14 @@ using Microsoft.Xna.Framework;
 
 namespace VoxelSpace {
 
-    public abstract class VoxelVolumeGenerator : MultithreadedTask {
+    public abstract class VoxelVolumeGenerator : IMultiFrameTask<VoxelVolume> {
 
         public VoxelVolume volume { get; private set; }
 
-        public VoxelVolumeGenerator(VoxelVolume volume) {
-            this.volume = volume;
-        }
+        public abstract bool isRunning { get; }
+        public abstract bool hasCompleted { get; }
+
+        public abstract float progress { get; }
 
         // create a new instance of a volume of a given type
         public static T CreateNew<T>(VoxelVolume volume) where T : VoxelVolumeGenerator {
@@ -19,8 +20,23 @@ namespace VoxelSpace {
             return constructor.Invoke(new[] {volume} ) as T;
         }
 
-        protected override string finishMessage => string.Format("Generated {0} chunks", volume.chunkCount);
+        public void StartTask(VoxelVolume volume) {
+            if (!this.HasStarted()) {
+                this.volume = volume;
+                StartGeneration();
+            }
+        }
 
+        protected abstract void StartGeneration();
+
+        public bool UpdateTask() {
+            if (isRunning) {
+                return UpdateGeneration();
+            }
+            return false;
+        }
+
+        protected abstract bool UpdateGeneration();
     }
 
 }
