@@ -40,7 +40,7 @@ namespace VoxelSpace {
         protected override bool UpdateGeneration() {
             bool isDone = chunkWorkerGroup.UpdateTask();
             if (isDone) {
-                Console.WriteLine(chunkWorkerGroup.GetCompletionMessage(this, "Generated {0} chunks"));
+                Logger.Info(this, chunkWorkerGroup.GetCompletionMessage("Generated {0} chunks"));
             }
             return isDone;
         }

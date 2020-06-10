@@ -28,7 +28,7 @@ namespace VoxelSpace {
         public bool UpdateTask() {
             var isDone = terrainGenerator.UpdateTask();
             if (isDone) {
-                Console.WriteLine("Generated Planet");
+                Logger.Info(this, "Generated Planet");
             }
             return isDone;
         }

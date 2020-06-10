@@ -59,9 +59,9 @@ namespace VoxelSpace {
             }
         }
 
-        public string GetCompletionMessage(object user, string format) {
+        public string GetCompletionMessage(string format) {
             var message = string.Format(format, dataCount);
-            return string.Format("[{0}] {1} ({2} threads in {3}s)", user.GetType().Name, message, workerCount, completionTime);
+            return string.Format("{0} ({1} threads in {2}s)", message, workerCount, completionTime);
         }
 
         public bool UpdateTask() => UpdateTask(null);

@@ -34,7 +34,7 @@ namespace VoxelSpace {
         public bool UpdateTask() {
             bool isDone = chunkWorkerGroup.UpdateTask(ApplyGeneratedMesh);
             if (isDone) {
-                Console.WriteLine(chunkWorkerGroup.GetCompletionMessage(this, "Generated {0} chunk meshes"));
+                Logger.Info(this, chunkWorkerGroup.GetCompletionMessage("Generated {0} chunk meshes"));
             }
             return isDone;
         }
