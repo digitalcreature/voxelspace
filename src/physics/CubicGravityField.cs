@@ -8,11 +8,14 @@ namespace VoxelSpace {
 
         public float radius = 1;
 
-        public CubicGravityField(float radius) {
+        public float gravityStrength;
+
+        public CubicGravityField(float radius, float gravityStrength) {
             this.radius = radius;
+            this.gravityStrength = gravityStrength;
         }
 
-        public override Vector3 GetGravity(Vector3 p) {
+        public override Vector3 GetGravityDirection(Vector3 p) {
             if (p.LengthSquared() < (radius * radius)) {
                 p.Normalize();
                 return -p;
@@ -34,6 +37,10 @@ namespace VoxelSpace {
             dir = -p;
             dir.Normalize();
             return dir;
+        }
+
+        public override float GetGravityStrength(Vector3 position) {
+            return gravityStrength;
         }
 
     }

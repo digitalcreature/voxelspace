@@ -13,6 +13,10 @@ namespace VoxelSpace {
             return a - a.Project(norm);
         }
 
+        public static float ProjectScalar(this Vector3 a, Vector3 b) {
+            return (Vector3.Dot(a, b) / b.Length());
+        }
+
         public static float AngleTo(this Vector3 a, Vector3 b) {
             a.Normalize();
             b.Normalize();

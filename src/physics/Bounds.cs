@@ -41,8 +41,10 @@ namespace VoxelSpace {
         }
 
         // move the bounds by a certain position delta, checking for and solving collisions withing a collision grid
-        public void MoveInCollisionGrid(Vector3 delta, ICollisionGrid grid) {
+        // returns the actual change in position
+        public Vector3 MoveInCollisionGrid(Vector3 delta, ICollisionGrid grid) {
             float inc;
+            var start = this.position;
             while (delta.X != 0 || delta.Y != 0 || delta.Z != 0) {
                 if (delta.X != 0) {
                     inc = MathF.Abs(delta.X) < 1 ? delta.X : MathF.Sign(delta.X);
@@ -99,6 +101,7 @@ namespace VoxelSpace {
                     }
                 }
             }
+            return position - start;
         }
 
     }

@@ -9,7 +9,8 @@ namespace VoxelSpace {
 
         public VoxelVolume volume { get; private set; }
         public VoxelVolumeRenderer volumeRenderer { get; private set; }
-        public GravityField gravity;
+        public GravityField gravity { get; private set; }
+        public PhysicsDomain domain { get; private set; }
 
         public float radius { get; private set; }
 
@@ -18,11 +19,16 @@ namespace VoxelSpace {
             set => volumeRenderer.effect = value;
         }
 
-        public Planet(GraphicsDevice graphics, float radius) {
+        public Planet(GraphicsDevice graphics, float radius, float gravityStrength) {
             volume = new VoxelVolume();
             volumeRenderer = new VoxelVolumeRenderer(null);
-            gravity = new CubicGravityField(25);
+            gravity = new CubicGravityField(3, gravityStrength);
+            domain = new PhysicsDomain(gravity, volume);
             this.radius = radius;
+        }
+
+        public void Update(GameTime time) {
+            domain.UpdateBodies(time);
         }
 
         public void Render(GraphicsDevice graphics) {

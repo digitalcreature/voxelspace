@@ -13,12 +13,11 @@ namespace VoxelSpace {
 
         Effect effect;
 
-        FlyingFPSCamera camera;
-
         Planet planet;
 
         PlanetGenerator planetGenerator;
         VoxelVolumeMeshGenerator meshGenerator;
+        PlayerEntity player;
 
         DebugDraw debugDraw;
 
@@ -44,21 +43,23 @@ namespace VoxelSpace {
             var grass = Content.Load<Texture2D>("texture/grass");
             effect.Parameters["tex"].SetValue(grass);
             
-            planet = new Planet(GraphicsDevice, 64);
+            planet = new Planet(GraphicsDevice, 64, 20);
             var generator = new PlanetTerrainGenerator();
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
             
             generator.maxHeight = 16;
 
-            // camera
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
-            camera = new FlyingFPSCamera(pos, center, planet.volume);
+            player = new PlayerEntity(pos, new MouseLook(center));
+            planet.domain.AddBody(player);
+            player.Freeze();
 
             planet.terrainEffect = effect;
             planetGenerator.StartTask(planet);
             
+
             // debug draw
             debugDraw = new DebugDraw(GraphicsDevice);
         }
@@ -68,18 +69,20 @@ namespace VoxelSpace {
             var deltaTime = gameTime.ElapsedGameTime.Milliseconds / 1000f;
             IsMouseVisible = !IsActive;
             if (IsActive) {
-                camera.Update(deltaTime);
-                planet.gravity.AlignToGravity(camera.transform);
+                planet.Update(gameTime);
+                // planet.gravity.AlignToGravity(camera.transform);
             }
             if (planetGenerator.UpdateTask()) {
                 meshGenerator.StartTask(planet.volume);
             }
-            meshGenerator.UpdateTask();
+            if (meshGenerator.UpdateTask()) {
+                player.UnFreeze();
+            }
         }
 
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            effect.Parameters["view"].SetValue(camera.viewMatrix);
+            effect.Parameters["view"].SetValue(player.viewMatrix);
             effect.CurrentTechnique.Passes[0].Apply();
             planet.Render(GraphicsDevice);
         }

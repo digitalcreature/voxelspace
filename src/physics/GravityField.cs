@@ -7,10 +7,16 @@ namespace VoxelSpace {
 
     public abstract class GravityField {
 
-        public abstract Vector3 GetGravity(Vector3 position);
+        public Vector3 GetGravity(Vector3 position) {
+            return GetGravityDirection(position) * GetGravityStrength(position);
+        }
+
+        public abstract Vector3 GetGravityDirection(Vector3 position);
+
+        public abstract float GetGravityStrength(Vector3 position);
 
         public void AlignToGravity(Transform t) {
-            var g = GetGravity(t.position);
+            var g = GetGravityDirection(t.position);
             var f = t.forward.ProjectPlane(g);
             t.rotation = Quaternion.CreateFromRotationMatrix(f.CreateLookMatrix(-g));
         }
