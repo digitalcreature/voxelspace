@@ -14,6 +14,10 @@ namespace VoxelSpace {
         public float surfaceLevel = 64;
         public float maxHeight = 16;
 
+        public Vector3 caveNoiseOffset = new Vector3(54.1f, -53.5f, -5043.2f);
+        public float caveNoiseFrequency = 0.1f;
+        public float caveNoiseThreshold = 0.4f;
+
         WorkerThreadGroup<VoxelChunk> chunkWorkerGroup;
 
         public override bool isRunning => chunkWorkerGroup.isRunning;
@@ -51,12 +55,14 @@ namespace VoxelSpace {
                 for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
                     for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
                         for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
-                            chunk[i, j, k] = new Voxel() { isSolid = true };
+                            if (IsInCave(chunk.LocalToGlobalCoords(new Coords(i, j, k)))) {
+                                chunk[i, j, k] = Voxel.empty;
+                            }
+                            else {
+                                chunk[i, j, k] = Voxel.solid;
+                            }
                         }
                     }
-                }
-                lock (volume) {
-                    volume.SetChunkClean(chunk);
                 }
             }
             else {
@@ -64,26 +70,37 @@ namespace VoxelSpace {
                     for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
                         for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
                             var vc = chunk.LocalToGlobalCoords(new Coords(i, j, k));
-                            var vpos = vc + Vector3.One * 0.5f;
-                            var vposMag = new Vector3(
-                                MathF.Abs(vpos.X),
-                                MathF.Abs(vpos.Y),
-                                MathF.Abs(vpos.Z)
-                            );
-                            var max = MathF.Max(vposMag.X, MathF.Max(vposMag.Y, vposMag.Z));
-                            vpos.Normalize();
-                            var noise = Perlin.Noise(vpos * surfaceLevel * noiseFrequency);
-                            noise = (noise + 1) / 2f;
-                            float height = surfaceLevel + noise * maxHeight;
-                            chunk[i, j, k] = new Voxel() { isSolid = max < height };
+                            if (IsInCave(vc)) {
+                                chunk[i, j, k] = Voxel.empty;
+                            }
+                            else {
+                                var vpos = vc + Vector3.One * 0.5f;
+                                var vposMag = new Vector3(
+                                    MathF.Abs(vpos.X),
+                                    MathF.Abs(vpos.Y),
+                                    MathF.Abs(vpos.Z)
+                                );
+                                var max = MathF.Max(vposMag.X, MathF.Max(vposMag.Y, vposMag.Z));
+                                vpos.Normalize();
+                                var noise = Perlin.Noise(vpos * surfaceLevel * noiseFrequency);
+                                noise = (noise + 1) / 2f;
+                                float height = surfaceLevel + noise * maxHeight;
+                                chunk[i, j, k] = new Voxel() { isSolid = max < height };
+                            }
                         }
                     }
                 }
-                lock (volume) {
-                    volume.SetChunkDirty(chunk);
-                }
             }
-            // Console.WriteLine(string.Format("generated chunk {0} in {1}s", chunk.coords, sw.ElapsedMilliseconds / 1000f));
+            lock (volume) {
+                volume.SetChunkDirty(chunk);
+            }
+        }
+
+        // return true of a set of global coords are inside the empty space of a cave
+        bool IsInCave(Coords c) {
+            var noise = Perlin.Noise((Vector3) c * caveNoiseFrequency);
+            noise = (noise + 1 ) / 2;
+            return noise < caveNoiseThreshold;
         }
 
         // return true if chunk is below the heightmapped surface, meaning it is completely

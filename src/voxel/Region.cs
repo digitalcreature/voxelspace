@@ -13,5 +13,22 @@ namespace VoxelSpace {
             this.max = max;
         }
 
+        public override bool Equals(object obj) {
+            return obj is Region && this == (Region) obj;
+        }
+
+        public static bool operator==(Region a, Region b)
+            => a.min == b.min && a.max == b.max;
+        public static bool operator!=(Region a, Region b)
+            => !(a == b);
+
+        public bool Contains(Coords c) {
+            return c >= min && c < max;
+        }
+
+        public override int GetHashCode() {
+            return min.GetHashCode() ^ max.GetHashCode();
+        }
+
     }
 }

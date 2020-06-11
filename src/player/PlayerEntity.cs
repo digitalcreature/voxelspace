@@ -107,13 +107,8 @@ namespace VoxelSpace {
         }
 
         void UpdateOrientation() {
-            bool nudge = false;
             var gDir = domain.gravity.GetGravityDirection(transform.position);
-            var newOrientation = (-gDir).ToOrientation();
-            if (newOrientation != orientation) {
-                nudge = true;
-            }
-            orientation = newOrientation;
+            orientation = (-gDir).ToOrientation();;
             orientationNormal = orientation.ToNormal();
             bounds.size = Vector3.One * playerWidth;
             switch(orientation) {
@@ -131,11 +126,6 @@ namespace VoxelSpace {
                     break;
             }
             bounds.center = transform.position + orientationNormal * (playerHeight - playerWidth) / 2;
-            if (nudge) {
-                // nudge by a tiny bit when we switch over
-                // this greatly reduces the chance of collision errors
-                bounds.center += orientationNormal * 0.01f;
-            }
         }
 
         void UpdateTransformFromBounds() {

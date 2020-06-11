@@ -7,6 +7,7 @@ namespace VoxelSpace {
     public struct Voxel {
 
         public static readonly Voxel empty = new Voxel() { isSolid = false };
+        public static readonly Voxel solid = new Voxel() { isSolid = true };
 
         public bool isSolid;
 

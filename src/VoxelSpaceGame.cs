@@ -40,6 +40,8 @@ namespace VoxelSpace {
             var light = new Vector3(1, -2, 3);
             light.Normalize();
             effect.Parameters["lightDirection"].SetValue(light);
+            effect.Parameters["lightIntensity"].SetValue(0.5f);
+            effect.Parameters["lightAmbient"].SetValue(0.3f);
             var grass = Content.Load<Texture2D>("texture/grass");
             effect.Parameters["tex"].SetValue(grass);
             

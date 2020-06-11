@@ -3,6 +3,8 @@ float4x4 view;
 float4x4 proj;
 
 float3 lightDirection;
+float lightIntensity;
+float lightAmbient;
 
 texture tex;
 sampler2D texSampler = sampler_state {
@@ -30,7 +32,7 @@ v2f vert(a2v a) {
     float4 world = mul(a.position, model);
     o.position = mul(mul(world, view), proj);
     float4 worldNormal = mul(model, a.normal);
-    o.diff = abs(dot(worldNormal.xyz, lightDirection));
+    o.diff = abs(dot(worldNormal.xyz, lightDirection)) * lightIntensity + lightAmbient;
     o.uv = a.uv;
     return o;
 }

@@ -51,6 +51,15 @@ namespace VoxelSpace {
             => a.x == b.x && a.y == b.y && a.z == b.z;
         public static bool operator !=(Coords a, Coords b)
             => !(a == b);
+        
+        public static bool operator >(Coords a, Coords b)
+            => a.x > b.x && a.y > b.y & a.z > b.z;
+        public static bool operator <(Coords a, Coords b)
+            => a.x < b.x && a.y < b.y & a.z < b.z;
+        public static bool operator >=(Coords a, Coords b)
+            => a.x >= b.x && a.y >= b.y & a.z >= b.z;
+        public static bool operator <=(Coords a, Coords b)
+            => a.x <= b.x && a.y <= b.y & a.z <= b.z;
 
         public static implicit operator Vector3(Coords a)
             => new Vector3(a.x, a.y, a.z);
