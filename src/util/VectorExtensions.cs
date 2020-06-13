@@ -47,6 +47,13 @@ namespace VoxelSpace {
             );
         }
 
+        // create a matrix that aligns to a specific up vector, while keeping the forward vector in the same direction
+        // the forward vector is projected to the plane specified by the up vector
+        public static Matrix CreateAlignmentMatrix(this Vector3 f, Vector3 u) {
+            f = f.ProjectPlane(u);
+            return f.CreateLookMatrix(u);
+        }
+
     }
 
 }

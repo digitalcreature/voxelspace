@@ -67,7 +67,14 @@ namespace VoxelSpace {
                     moveH.Normalize();
                 }
                 moveH *= walkSpeed;
-                moveH = Vector3.TransformNormal(moveH, transform.rotationMatrix);
+                Matrix alignMatrix;
+                if (isGrounded) {
+                    alignMatrix = transform.forward.CreateAlignmentMatrix(orientationNormal);
+                }
+                else {
+                    alignMatrix = transform.rotationMatrix;
+                }
+                moveH = Vector3.TransformNormal(moveH, alignMatrix);
                 moveH *= deltaTime;
                 bounds.MoveInCollisionGrid(moveH, domain.collisionGrid);
                 // update vertical speed and move vertically
