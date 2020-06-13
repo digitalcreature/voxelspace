@@ -43,13 +43,15 @@ namespace VoxelSpace {
             }
         }
 
-        public Coords LocalToGlobalCoords(Coords c) {
-            return coords * chunkSize + c;
-        }
-
-        public Coords GlobalToLocalCoords(Coords c) {
-            return c - coords * chunkSize;
-        }
+        public Coords LocalToGlobalCoords(Coords c) 
+            => coords * chunkSize + c;
+        public Coords GlobalToLocalCoords(Coords c)
+            => c - coords * chunkSize;
+        public Vector3 LocalToGlobalVector(Vector3 c) 
+            => coords * chunkSize + c;
+        public Vector3 GlobalToLocalVector(Vector3 c)
+            => c - (coords * chunkSize);
+        
 
     }
 }

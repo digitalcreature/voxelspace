@@ -5,6 +5,12 @@ namespace VoxelSpace {
 
     public static class VectorExtensions {
 
+        public static Vector3 Normalized(this Vector3 a) {
+            var b = a;
+            b.Normalize();
+            return b;
+        }
+
         public static Vector3 Project(this Vector3 a, Vector3 b) {
             return (Vector3.Dot(a, b) / Vector3.Dot(b, b)) * b;
         }
@@ -31,6 +37,27 @@ namespace VoxelSpace {
             }
             return angle;
         }
+
+        public static Vector3 Abs(this Vector3 a) {
+            return new Vector3(
+                MathF.Abs(a.X),
+                MathF.Abs(a.Y),
+                MathF.Abs(a.Z)
+            );
+        }
+
+        public static Vector3 Sign(this Vector3 a) {
+            return new Vector3(
+                MathF.Sign(a.X),
+                MathF.Sign(a.Y),
+                MathF.Sign(a.Z)
+            );
+        }
+
+        public static float Max(this Vector3 a) 
+            => MathF.Max(a.X, MathF.Max(a.Y, a.Z));
+        public static float Min(this Vector3 a) 
+            => MathF.Min(a.X, MathF.Min(a.Y, a.Z));
 
         // theres something wrong with Matrix.CreateLookAt(), so heres one i actually know how it works
         public static Matrix CreateLookMatrix(this Vector3 f, Vector3 u) {

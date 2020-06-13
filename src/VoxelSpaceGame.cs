@@ -19,7 +19,7 @@ namespace VoxelSpace {
         VoxelVolumeMeshGenerator meshGenerator;
         PlayerEntity player;
 
-        DebugDraw debugDraw;
+        SelectionWireframe selectionWireframe;
 
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
@@ -45,7 +45,7 @@ namespace VoxelSpace {
             var grass = Content.Load<Texture2D>("texture/grass");
             effect.Parameters["tex"].SetValue(grass);
             
-            planet = new Planet(GraphicsDevice, 64, 20);
+            planet = new Planet(64, 20, new VoxelVolumeRenderer(effect));
             var generator = new PlanetTerrainGenerator();
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
@@ -55,15 +55,16 @@ namespace VoxelSpace {
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
             player = new PlayerEntity(pos, new MouseLook(center));
-            planet.domain.AddBody(player);
+            planet.AddEntity(player);
             player.Freeze();
 
-            planet.terrainEffect = effect;
             planetGenerator.StartTask(planet);
             
+            selectionWireframe = new SelectionWireframe(new BasicEffect(GraphicsDevice));
+            selectionWireframe.effect.DiffuseColor = Vector3.Zero;
+            selectionWireframe.effect.Projection = projMat;
 
-            // debug draw
-            debugDraw = new DebugDraw(GraphicsDevice);
+            new VoxelVolumeMeshUpdater(GraphicsDevice).RegisterCallbacks(planet.volume);
         }
 
         protected override void Update(GameTime gameTime) {
@@ -87,6 +88,10 @@ namespace VoxelSpace {
             effect.Parameters["view"].SetValue(player.viewMatrix);
             effect.CurrentTechnique.Passes[0].Apply();
             planet.Render(GraphicsDevice);
+            if (player.isAimValid) {
+                selectionWireframe.effect.View = player.viewMatrix;
+                selectionWireframe.Draw(player.aimedVoxel.coords, GraphicsDevice);
+            }
         }
     }
 }

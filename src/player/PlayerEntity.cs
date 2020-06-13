@@ -4,9 +4,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace VoxelSpace {
 
-    public class PlayerEntity : IPhysicsBody {
+    public class PlayerEntity : IEntity {
 
-        public PhysicsDomain domain { get; private set; }
+        public VoxelWorld world { get; private set; }
 
         public Transform transform { get; private set; }
         public MouseLook mouseLook { get; private set; }
@@ -18,6 +18,9 @@ namespace VoxelSpace {
         // which direction is up?
         public Orientation orientation { get; private set; }
         public Vector3 orientationNormal { get; private set; }
+
+        public VoxelRaycastResult aimedVoxel { get; private set; }
+        public bool isAimValid { get; private set; }
 
         const float playerWidth = 0.9f;
         const float playerHeight = 1.8f;
@@ -39,6 +42,14 @@ namespace VoxelSpace {
                 transform.rotationMatrix *
                 Matrix.CreateTranslation(transform.position)
             );
+        
+        public Vector3 headPosition =>
+            transform.position + transform.up * (cameraHeight - (playerWidth / 2));
+        public Vector3 aimDirection =>
+            Vector3.TransformNormal(Vector3.Forward, 
+                Matrix.CreateRotationX(MathHelper.ToRadians(-mouseLook.look.Y)) *
+                transform.rotationMatrix
+            );
 
         public PlayerEntity(Vector3 position, MouseLook mouseLook) {
             transform = new Transform(position);
@@ -49,10 +60,10 @@ namespace VoxelSpace {
 
         public void Update(GameTime time) {
             input.Update();
-            var g = domain.gravity.GetGravityStrength(transform.position);
-            var gDir = domain.gravity.GetGravityDirection(transform.position);
+            var g = world.gravity.GetGravityStrength(transform.position);
+            var gDir = world.gravity.GetGravityDirection(transform.position);
             UpdateOrientation();
-            domain.gravity.AlignToGravity(transform);
+            world.gravity.AlignToGravity(transform);
             var deltaTime = time.ElapsedGameTime.Milliseconds / 1000f;
             var lookDelta = mouseLook.Update(deltaTime);
             transform.Rotate(Quaternion.CreateFromAxisAngle(transform.up, MathHelper.ToRadians(-lookDelta.X)));
@@ -76,7 +87,7 @@ namespace VoxelSpace {
                 }
                 moveH = Vector3.TransformNormal(moveH, alignMatrix);
                 moveH *= deltaTime;
-                bounds.MoveInCollisionGrid(moveH, domain.collisionGrid);
+                bounds.MoveInCollisionGrid(moveH, world.volume);
                 // update vertical speed and move vertically
                 if (isGrounded && input.IsKeyDown(Keys.Space)) {
                     // jump height depends on gravity direction
@@ -89,12 +100,25 @@ namespace VoxelSpace {
                 MoveVertical(moveV);
             }
             UpdateTransformFromBounds();
+            if (world.volume.Raycast(headPosition, aimDirection, 5, (v) => v.isSolid, out var result)) {
+                isAimValid = true;
+                aimedVoxel = result;
+                if (input.WasMouseButtonPressed(MouseButton.Left)) {
+                    world.volume.SetVoxel(aimedVoxel.coords, Voxel.empty);
+                }
+                else if (input.WasMouseButtonPressed(MouseButton.Right) && aimedVoxel.normal != Vector3.Zero) {
+                    world.volume.SetVoxel(aimedVoxel.coords + (Coords) aimedVoxel.normal, Voxel.solid);
+                }
+            }
+            else {
+                isAimValid = false;
+            }
         }
 
         void MoveVertical(Vector3 delta) {
             // first move along orientation axis
             var vDelta = delta.Project(orientationNormal);
-            var actualMove = bounds.MoveInCollisionGrid(vDelta, domain.collisionGrid);
+            var actualMove = bounds.MoveInCollisionGrid(vDelta, world.volume);
             if (actualMove.ProjectScalarOrientation(orientation) == 0) {
                 if (vSpeed < 0) {
                     // if we were moving down, we are grounded now
@@ -109,12 +133,12 @@ namespace VoxelSpace {
                 // move horizontally
                 // we only do this if we aren't grounded so we dont slide around
                 var hDelta = delta - vDelta;
-                bounds.MoveInCollisionGrid(hDelta, domain.collisionGrid);
+                bounds.MoveInCollisionGrid(hDelta, world.volume);
             }
         }
 
         void UpdateOrientation() {
-            var gDir = domain.gravity.GetGravityDirection(transform.position);
+            var gDir = world.gravity.GetGravityDirection(transform.position);
             orientation = (-gDir).ToOrientation();;
             orientationNormal = orientation.ToNormal();
             bounds.size = Vector3.One * playerWidth;
@@ -147,8 +171,8 @@ namespace VoxelSpace {
             isFrozen = false;
         }
 
-        public void _SetPhysicsDomain(PhysicsDomain domain) {
-            this.domain = domain;
+        public void _SetVoxelWorld(VoxelWorld world) {
+            this.world = world;
         }
     }
 
