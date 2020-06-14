@@ -64,11 +64,15 @@ namespace VoxelSpace {
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
             generator.maxHeight = 16;
+            generator.grass = assetManager.GetAsset<VoxelType>("core.grass");
+            generator.stone = assetManager.GetAsset<VoxelType>("core.stone");
+            generator.dirt = assetManager.GetAsset<VoxelType>("core.dirt");
 
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
             player = new PlayerEntity(pos, new MouseLook(center));
+            player.voxelTypeToPlace = assetManager.GetAsset<VoxelType>("core.dirt");
             planet.AddEntity(player);
             player.Freeze();
 

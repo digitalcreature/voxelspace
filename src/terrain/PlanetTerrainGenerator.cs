@@ -24,6 +24,10 @@ namespace VoxelSpace {
         public override bool hasCompleted => chunkWorkerGroup.hasCompleted;
         public override float progress => chunkWorkerGroup.progress;
 
+        public IVoxelType stone;
+        public IVoxelType dirt;
+        public IVoxelType grass;
+
         public PlanetTerrainGenerator() {
             chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk>(GenerateChunk);
         }
@@ -59,7 +63,7 @@ namespace VoxelSpace {
                                 chunk[i, j, k] = Voxel.empty;
                             }
                             else {
-                                chunk[i, j, k] = Voxel.solid;
+                                chunk[i, j, k] = new Voxel(stone);
                             }
                         }
                     }
@@ -85,7 +89,21 @@ namespace VoxelSpace {
                                 var noise = Perlin.Noise(vpos * surfaceLevel * noiseFrequency);
                                 noise = (noise + 1) / 2f;
                                 float height = surfaceLevel + noise * maxHeight;
-                                chunk[i, j, k] = new Voxel() { isSolid = max < height };
+                                int stack = (int) MathF.Ceiling(height) - (int) MathF.Ceiling(max);
+                                IVoxelType type;
+                                if (stack < 0) {
+                                    type = null;
+                                }
+                                else if (stack == 0) {
+                                    type = grass;
+                                }
+                                else if (stack < 3) {
+                                    type = dirt;
+                                }
+                                else {
+                                    type = stone;
+                                }
+                                chunk[i,j,k] = new Voxel(type);
                             }
                         }
                     }

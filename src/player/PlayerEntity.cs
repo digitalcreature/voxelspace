@@ -15,6 +15,8 @@ namespace VoxelSpace {
 
         Bounds bounds;
 
+        public IVoxelType voxelTypeToPlace;
+
         // which direction is up?
         public Orientation orientation { get; private set; }
         public Vector3 orientationNormal { get; private set; }
@@ -107,7 +109,7 @@ namespace VoxelSpace {
                     world.volume.SetVoxel(aimedVoxel.coords, Voxel.empty);
                 }
                 else if (input.WasMouseButtonPressed(MouseButton.Right) && aimedVoxel.normal != Vector3.Zero) {
-                    world.volume.SetVoxel(aimedVoxel.coords + (Coords) aimedVoxel.normal, Voxel.solid);
+                    world.volume.SetVoxel(aimedVoxel.coords + (Coords) aimedVoxel.normal, new Voxel(voxelTypeToPlace));
                 }
             }
             else {

@@ -6,12 +6,16 @@ namespace VoxelSpace {
     // representation of data stored for each voxel, including voxel type, small data, and references to voxelentity data
     public struct Voxel {
 
-        public static readonly Voxel empty = new Voxel() { isSolid = false };
-        public static readonly Voxel solid = new Voxel() { isSolid = true };
+        public static readonly Voxel empty = new Voxel(null);
 
-        public bool isSolid;
+        public IVoxelType type;
 
-        public bool isMeshable => isSolid;
+        public Voxel(IVoxelType type) {
+            this.type = type;
+        }
+
+        public bool isMeshable => type != null && type.isMeshable;
+        public bool isSolid => type != null && type.isSolid;
 
     }
 

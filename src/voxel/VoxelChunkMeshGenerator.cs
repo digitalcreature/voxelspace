@@ -57,10 +57,12 @@ namespace VoxelSpace {
             for (int i = 0; i < size; i ++) {
                 for (int j = 0; j < size; j ++) {
                     for (int k = 0; k < size; k ++) {
-                        if (chunk[i,j,k].isMeshable) {
+                        var voxel = chunk[i,j,k];
+                        if (voxel.isMeshable) {
                             // -x face
                             if (!GetVoxelIncludingNeighbors(i - 1, j, k).isMeshable) {
                                 AddVoxelFace(
+                                    voxel,
                                     new Vector3(i, j + 1, k),
                                     new Vector3(i, j + 1, k + 1),
                                     new Vector3(i, j, k),
@@ -71,6 +73,7 @@ namespace VoxelSpace {
                             // +x face
                             if (!GetVoxelIncludingNeighbors(i + 1, j, k).isMeshable) {
                                 AddVoxelFace(
+                                    voxel,
                                     new Vector3(i + 1, j + 1, k + 1),
                                     new Vector3(i + 1, j + 1, k),
                                     new Vector3(i + 1, j, k + 1),
@@ -81,6 +84,7 @@ namespace VoxelSpace {
                             // -y face
                             if (!GetVoxelIncludingNeighbors(i, j - 1, k).isMeshable) {
                                 AddVoxelFace(
+                                    voxel,
                                     new Vector3(i + 1, j, k),
                                     new Vector3(i, j, k),
                                     new Vector3(i + 1, j, k + 1),
@@ -91,6 +95,7 @@ namespace VoxelSpace {
                             // +y face
                             if (!GetVoxelIncludingNeighbors(i, j + 1, k).isMeshable) {
                                 AddVoxelFace(
+                                    voxel,
                                     new Vector3(i, j + 1, k),
                                     new Vector3(i + 1, j + 1, k),
                                     new Vector3(i, j + 1, k + 1),
@@ -101,6 +106,7 @@ namespace VoxelSpace {
                             // -z face
                             if (!GetVoxelIncludingNeighbors(i, j, k - 1).isMeshable) {
                                 AddVoxelFace(
+                                    voxel,
                                     new Vector3(i + 1, j + 1, k),
                                     new Vector3(i, j + 1, k),
                                     new Vector3(i + 1, j, k),
@@ -111,6 +117,7 @@ namespace VoxelSpace {
                             // +z face
                             if (!GetVoxelIncludingNeighbors(i, j, k + 1).isMeshable) {
                                 AddVoxelFace(
+                                    voxel,
                                     new Vector3(i, j + 1, k + 1),
                                     new Vector3(i + 1, j + 1, k + 1),
                                     new Vector3(i, j, k + 1),
@@ -133,12 +140,13 @@ namespace VoxelSpace {
         //      | /   |
         //      c --- d
         // 
-        void AddVoxelFace(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 normal) {
+        void AddVoxelFace(Voxel voxel, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 normal) {
             uint i = (uint) verts.Count;
-            verts.Add(new VoxelVertex(a, normal, new Vector2(0, 0)));
-            verts.Add(new VoxelVertex(b, normal, new Vector2(1, 0)));
-            verts.Add(new VoxelVertex(c, normal, new Vector2(0, 1)));
-            verts.Add(new VoxelVertex(d, normal, new Vector2(1, 1)));
+            voxel.type.GetTextureCoordinates(out var uv00, out var uv01, out var uv10, out var uv11);
+            verts.Add(new VoxelVertex(a, normal, uv00));
+            verts.Add(new VoxelVertex(b, normal, uv01));
+            verts.Add(new VoxelVertex(c, normal, uv10));
+            verts.Add(new VoxelVertex(d, normal, uv11));
             // tri a b c
             tris.Add(i);
             tris.Add(i + 1);

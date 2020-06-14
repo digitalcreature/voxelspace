@@ -49,7 +49,7 @@ namespace VoxelSpace {
             var atlasData = new Color[atlasPixelWidth * atlasPixelWidth];
             var tileData = new Color[tilePixelWidth * tilePixelWidth];
             int tileIndex = 0;
-            tileUVWidth = 1 / atlasTileWidth;
+            tileUVWidth = 1f / atlasTileWidth;
             foreach (var pair in textures) {
                 int ti = tileIndex % atlasTileWidth;
                 int tj = tileIndex / atlasTileWidth;
