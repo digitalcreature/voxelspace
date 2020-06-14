@@ -8,6 +8,7 @@ namespace VoxelSpace {
     public class VoxelSpaceGame : Game {
         
         GraphicsDeviceManager graphics;
+        AssetManager assetManager;
 
         Matrix projMat;
 
@@ -23,6 +24,7 @@ namespace VoxelSpace {
 
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
+            assetManager = new AssetManager(true);
             Content.RootDirectory = "Content";
             graphics.PreferredBackBufferWidth = 1280;
             graphics.PreferredBackBufferHeight = 720;
@@ -34,6 +36,17 @@ namespace VoxelSpace {
         }
 
         protected override void LoadContent() {
+            // load assets
+            var coreModule = new CoreAssetModule();
+            assetManager.AddModule(coreModule);
+            assetManager.LoadModules(Content);
+
+            var atlas = new VoxelTextureAtlas();
+            foreach (var texture in assetManager.GetAssets<VoxelTexture>()) {
+                atlas.AddTexture(texture);
+            }
+            atlas.CreateAtlasTexture(GraphicsDevice);
+            
             // terrain shader
             effect = Content.Load<Effect>("shader/terrain");
             effect.Parameters["proj"].SetValue(projMat);
@@ -43,15 +56,16 @@ namespace VoxelSpace {
             effect.Parameters["lightIntensity"].SetValue(0.5f);
             effect.Parameters["lightAmbient"].SetValue(0.3f);
             var grass = Content.Load<Texture2D>("texture/grass");
-            effect.Parameters["tex"].SetValue(grass);
+            effect.Parameters["tex"].SetValue(atlas.atlasTexture);
             
+            // planet
             planet = new Planet(64, 20, new VoxelVolumeRenderer(effect));
             var generator = new PlanetTerrainGenerator();
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
-            
             generator.maxHeight = 16;
 
+            // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
             player = new PlayerEntity(pos, new MouseLook(center));
@@ -60,6 +74,7 @@ namespace VoxelSpace {
 
             planetGenerator.StartTask(planet);
             
+            // selection wireframe
             selectionWireframe = new SelectionWireframe(new BasicEffect(GraphicsDevice));
             selectionWireframe.effect.DiffuseColor = Vector3.Zero;
             selectionWireframe.effect.Projection = projMat;
