@@ -51,7 +51,10 @@ namespace VoxelSpace {
         public void Resolve(AssetManager assets) {
             this.asset = assets.GetAsset<T>(qualifiedName);
             if (this.asset == null) {
-                Logger.ErrorFormat(this, "Could not resolve external asset reference {0} {1}!", typeof(T).Name, qualifiedName);
+                Logger.ErrorFormat(this, "Could not resolve asset reference {0} {1}!", typeof(T).Name, qualifiedName);
+            }
+            else {
+                Logger.InfoFormat(this, "Resolved asset reference {0} {1}", typeof(T).Name, qualifiedName);
             }
         }
 

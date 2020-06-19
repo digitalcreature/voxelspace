@@ -33,7 +33,7 @@ namespace VoxelSpace {
             }
             Logger.Info(this, "Resolving Asset References");
             foreach (var module in modules.Values) {
-                module.ResolveExternalReferences(this);
+                module.ResolveReferences(this);
             }
         }
 
@@ -57,7 +57,12 @@ namespace VoxelSpace {
 
         public static (string, string) SplitQualifiedAssetName(string qualifiedName) {
             var m = qualifiedNamePattern.Match(qualifiedName);
-            return (m.Groups[1].Value, m.Groups[2].Value);
+            if (m.Success) {
+                return (m.Groups[1].Value, m.Groups[2].Value);
+            }
+            else {
+                return (null, qualifiedName);
+            }
         }
 
 

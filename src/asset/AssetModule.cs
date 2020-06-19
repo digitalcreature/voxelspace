@@ -11,11 +11,11 @@ namespace VoxelSpace {
         public abstract string name { get; }
 
         Dictionary<Type, Dictionary<string, IAsset>> assets;
-        List<IAssetReference> externalReferences;
+        List<IAssetReference> references;
 
         public AssetModule() {
             assets = new Dictionary<Type, Dictionary<string, IAsset>>();
-            externalReferences = new List<IAssetReference>();
+            references = new List<IAssetReference>();
         }
 
         public T GetAsset<T>(string name) where T : Asset<T> {
@@ -38,15 +38,8 @@ namespace VoxelSpace {
             }
         }
 
-        // register an external asset reference
-        protected AssetReference<T> External<T>(string qualifiedName) where T: Asset<T> {
-            var r = new AssetReference<T>(qualifiedName);
-            externalReferences.Add(r);
-            Logger.InfoFormat(this, "Registered external reference {0} {1}", typeof(T).Name, qualifiedName);
-            return r;
-        }
-
         // register a local asset
+        // use this to write your own asset registration methods for additional assets
         protected T Register<T>(T asset) where T : Asset<T> {
             var type = asset.GetType();
             if (!assets.ContainsKey(type)) {
@@ -63,17 +56,32 @@ namespace VoxelSpace {
             return asset;
         }
 
-        protected VoxelTexture RegisterVoxelTexture(string name) {
-            var texture = new VoxelTexture(this, name);
+
+        // registration methods for various included asset types
+        // note: sub assets will not be automatically registered, only referenced. 
+        //      e.g.: RegisterVoxelType: <textureName> refers to a VoxelTexture. the texture
+        //      must be registered manually. see CoreAssetModule for examples
+
+        // register a voxel texture
+        protected TileTextureAsset RegisterTileTexture(string name) {
+            var texture = new TileTextureAsset(this, name);
             return Register(texture);
         }
 
-        protected VoxelType RegisterVoxelType(string name, bool isSolid, IAssetReference<VoxelTexture> texture) {
-            var voxelType = new VoxelType(this, name, isSolid, texture);
+        // register a voxel type
+        protected VoxelType RegisterVoxelType(string name, bool isSolid, string textureName) {
+            var texRef = Reference<TileTextureAsset>(textureName);
+            var voxelType = new VoxelType(this, name, isSolid, texRef);
             return Register(voxelType);
         }
-        protected VoxelType RegisterVoxelType(string name, bool isSolid, string texture) {
-            return RegisterVoxelType(name, isSolid, RegisterVoxelTexture(texture));
+
+        // used for getting a reference to an asset in this module or any other.
+        protected AssetReference<T> Reference<T>(string qualifiedName) where T : Asset<T> {
+            var (module, name) = AssetManager.SplitQualifiedAssetName(qualifiedName);
+            if (module == null) module = this.name;
+            var reference = new AssetReference<T>(module, name);
+            references.Add(reference);
+            return reference;
         }
 
         public void LoadContentAssets(AssetManager manager, ContentManager content) {
@@ -89,8 +97,8 @@ namespace VoxelSpace {
             }
         }
 
-        public void ResolveExternalReferences(AssetManager assets) {
-            foreach (var reference in externalReferences) {
+        public void ResolveReferences(AssetManager assets) {
+            foreach (var reference in references) {
                 reference.Resolve(assets);
             }
         }

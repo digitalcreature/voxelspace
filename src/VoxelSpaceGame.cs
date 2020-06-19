@@ -41,9 +41,9 @@ namespace VoxelSpace {
             assetManager.AddModule(coreModule);
             assetManager.LoadModules(Content);
 
-            var atlas = new VoxelTextureAtlas();
-            foreach (var texture in assetManager.GetAssets<VoxelTexture>()) {
-                atlas.AddTexture(texture);
+            var atlas = new TextureAtlas();
+            foreach (var tile in assetManager.GetAssets<TileTextureAsset>()) {
+                atlas.AddTileTexture(tile.tileTexture);
             }
             atlas.CreateAtlasTexture(GraphicsDevice);
             

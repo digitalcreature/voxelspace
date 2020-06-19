@@ -5,9 +5,9 @@ using Microsoft.Xna.Framework.Content;
 
 namespace VoxelSpace {
 
-    public class VoxelTexture : ContentAsset<VoxelTexture>, IDisposable {
+    public class TileTexture : IDisposable {
 
-        public VoxelTextureAtlas atlas { get; private set; }
+        public TextureAtlas atlas { get; private set; }
         public Texture2D texture { get; private set; }
 
         public Vector2 uv00 { get; private set; }
@@ -15,17 +15,11 @@ namespace VoxelSpace {
         public Vector2 uv10 { get; private set; }
         public Vector2 uv11 { get; private set; }
 
-        public override string filePath => "voxel";
-
-        public VoxelTexture(AssetModule module, string name)
-            : base(module, name) {
+        public TileTexture(Texture2D texture) {
+            this.texture = texture;
         }
 
-        public override void Load(ContentManager content) {
-            texture = content.Load<Texture2D>(contentFileName);
-        }
-
-        public void AddToAtlas(VoxelTextureAtlas atlas, Vector2 uv) {
+        public void AddToAtlas(TextureAtlas atlas, Vector2 uv) {
             this.atlas = atlas;
             var uv00 = uv;
             var uv01 = uv;

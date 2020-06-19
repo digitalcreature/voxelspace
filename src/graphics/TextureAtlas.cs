@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace VoxelSpace {
 
-    public class VoxelTextureAtlas : IDisposable {
+    public class TextureAtlas : IDisposable {
 
         public Texture2D atlasTexture { get; private set; }
         // what is the pixel width of each tile?
@@ -17,32 +17,32 @@ namespace VoxelSpace {
         // how many tiles wide is the atlas?
         public int atlasTileWidth { get; private set; }
 
-        Dictionary<string, VoxelTexture> textures;
+        Dictionary<string, TileTexture> tiles;
 
-        public VoxelTextureAtlas() {
-            textures = new Dictionary<string, VoxelTexture>();
+        public TextureAtlas() {
+            tiles = new Dictionary<string, TileTexture>();
             tilePixelWidth = -1;
         }
 
-        public void AddTexture(VoxelTexture texture) {
-            var t = texture.texture;
+        public void AddTileTexture(TileTexture tile) {
+            var t = tile.texture;
             if (t.Width != t.Height) {
-                Logger.ErrorFormat(this, "Can't add texture {0} to atlas: Not square {1}x{2}", texture.qualifiedName, t.Width, t.Height);
+                Logger.ErrorFormat(this, "Can't add texture {0} to atlas: Not square {1}x{2}", t.Name, t.Width, t.Height);
                 return;
             }
             if (tilePixelWidth == -1) {
                 tilePixelWidth = t.Width;
             }
             else if (tilePixelWidth != t.Width) {
-                Logger.ErrorFormat(this, "Can't add texture {0} to atlas: Width {1} is not expected {2}", texture.qualifiedName, t.Width, tilePixelWidth);
+                Logger.ErrorFormat(this, "Can't add texture {0} to atlas: Width {1} is not expected {2}", t.Name, t.Width, tilePixelWidth);
                 return;
             }
-            textures.Add(texture.qualifiedName, texture);
+            tiles.Add(t.Name, tile);
         }
 
         public Texture2D CreateAtlasTexture(GraphicsDevice graphics) {
             if (atlasTexture != null) atlasTexture.Dispose();
-            int tileCount = textures.Count;
+            int tileCount = tiles.Count;
             int atlasTileWidth = (int) MathF.Ceiling(MathF.Sqrt(tileCount));
             int atlasPixelWidth = atlasTileWidth * tilePixelWidth;
             atlasTexture = new Texture2D(graphics, atlasPixelWidth, atlasPixelWidth, false, SurfaceFormat.Color);
@@ -50,12 +50,12 @@ namespace VoxelSpace {
             var tileData = new Color[tilePixelWidth * tilePixelWidth];
             int tileIndex = 0;
             tileUVWidth = 1f / atlasTileWidth;
-            foreach (var pair in textures) {
+            foreach (var tile in tiles.Values) {
                 int ti = tileIndex % atlasTileWidth;
                 int tj = tileIndex / atlasTileWidth;
-                pair.Value.texture.GetData<Color>(tileData);
+                tile.texture.GetData<Color>(tileData);
                 var tileUV = new Vector2(ti * tileUVWidth, tj * tileUVWidth);
-                pair.Value.AddToAtlas(this, tileUV);
+                tile.AddToAtlas(this, tileUV);
                 for (int i = 0; i < tilePixelWidth; i ++) {
                     for (int j = 0; j < tilePixelWidth; j ++) {
                         int ai = ti * tilePixelWidth + i;
