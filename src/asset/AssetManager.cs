@@ -3,54 +3,83 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
     public class AssetManager {
 
-        public bool loadGraphics { get; private set; }
-
         Dictionary<string, AssetModule> modules;
 
-        public AssetManager(bool loadGraphics = true) {
-            this.loadGraphics = loadGraphics;
+        public AssetManager() {
             modules = new Dictionary<string, AssetModule>();
         }
 
         public void AddModule(AssetModule module) {
-            modules[module.name] = module;
-        }
-
-        public void LoadModules(ContentManager content) {
-            Logger.Info(this, "Registering Modules");
-            foreach (var module in modules.Values) {
-                module.RegisterAssets(this);
+            if (modules.ContainsKey(module.name)) {
+                throw new AssetException(this, "Cannot add module with duplicate name {0}.", module.name);
             }
-            Logger.Info(this, "Loading Module Content");
-            foreach (var module in modules.Values) {
-                module.LoadContentAssets(this, content);
-            }
-            Logger.Info(this, "Resolving Asset References");
-            foreach (var module in modules.Values) {
-                module.ResolveReferences(this);
+            else {
+                modules[module.name] = module;
             }
         }
 
-        public T GetAsset<T>(string qualifiedName) where T : Asset<T> {
-            var (moduleName, name) = SplitQualifiedAssetName(qualifiedName);
-            if (modules.ContainsKey(moduleName)) {
-                return modules[moduleName].GetAsset<T>(name);
+        public AssetModule GetModule(string name) {
+            if (modules.ContainsKey(name)) {
+                return modules[name];
             }
             return null;
         }
 
-        public IEnumerable<T> GetAssets<T>() where T : Asset<T> {
+        public T GetAsset<T>(string qualifiedName) where T : IAsset {
+            var (modName, name) = SplitQualifiedAssetName(qualifiedName);
+            if (modName == null) {
+                throw new ArgumentException(
+                    string.Format("Must supply fully qualified name for asset search. '{0}' is missing a module name.", qualifiedName));
+            }
+            else {
+                var module = GetModule(modName);
+                if (module != null) {
+                    return module.GetAsset<T>(name);
+                }
+            }
+            return default(T);
+        }
+
+        public IEnumerable<T> GetAssets<T>() where T : IAsset {
             foreach (var module in modules.Values) {
                 foreach (var asset in module.GetAssets<T>()) {
                     yield return asset;
                 }
             }
+        }
+
+
+        public void LoadModules(ContentManager content) {
+            foreach (var module in modules.Values) {
+                if (!module.isLoaded) {
+                    LoadModule(module, content);
+                }
+            }
+            foreach (var module in modules.Values) {
+                module.LoadContent(content);
+                Logger.InfoFormat(this, "Loaded asset module content {0} ({1} content)", module.name, module.contentAssetCount);
+            }
+        }
+
+        void LoadModule(AssetModule module, ContentManager content) {
+            foreach (var depName in module.dependencies) {
+                if (modules.ContainsKey(depName)) {
+                    var depMod = modules[depName];
+                    if (!depMod.isLoaded) {
+                        LoadModule(depMod, content);
+                    }
+                }
+                else {
+                    throw new AssetException(this, "Asset module dependency unsatisfied! {0} depends on {1} (missing)", module.name, depName);
+                }
+            }
+            module.LoadAssets(this, content);
+            Logger.InfoFormat(this, "Loaded asset module {0} ({1} assets)", module.name, module.assetCount);
         }
 
         static readonly Regex qualifiedNamePattern = new Regex(@"(\w+)\.(.+)");
@@ -64,7 +93,6 @@ namespace VoxelSpace {
                 return (null, qualifiedName);
             }
         }
-
 
     }
 

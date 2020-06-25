@@ -24,7 +24,7 @@ namespace VoxelSpace {
 
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
-            assetManager = new AssetManager(true);
+            assetManager = new AssetManager();
             Content.RootDirectory = "Content";
             graphics.PreferredBackBufferWidth = 1280;
             graphics.PreferredBackBufferHeight = 720;
@@ -64,15 +64,15 @@ namespace VoxelSpace {
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
             generator.maxHeight = 16;
-            generator.grass = assetManager.GetAsset<VoxelType>("core.grass");
-            generator.stone = assetManager.GetAsset<VoxelType>("core.stone");
-            generator.dirt = assetManager.GetAsset<VoxelType>("core.dirt");
+            generator.grass = assetManager.GetAsset<VoxelTypeAsset>("core.grass");
+            generator.stone = assetManager.GetAsset<VoxelTypeAsset>("core.stone");
+            generator.dirt = assetManager.GetAsset<VoxelTypeAsset>("core.dirt");
 
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
             player = new PlayerEntity(pos, new MouseLook(center));
-            player.voxelTypeToPlace = assetManager.GetAsset<VoxelType>("core.dirt");
+            player.voxelTypeToPlace = assetManager.GetAsset<VoxelTypeAsset>("core.dirt");
             planet.AddEntity(player);
             player.Freeze();
 

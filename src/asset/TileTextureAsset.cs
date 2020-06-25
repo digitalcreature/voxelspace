@@ -5,18 +5,14 @@ using Microsoft.Xna.Framework.Content;
 
 namespace VoxelSpace {
 
-    public class TileTextureAsset : ContentAsset<TileTextureAsset> {
+    public class TileTextureAsset : ContentAsset {
 
-        public override string filePath => "voxel";
-        public TileTexture tileTexture;
+        public TileTexture tileTexture { get; private set; }
 
+        public TileTextureAsset(AssetModule module, string name, string directory) 
+            : base(module, name, directory) {}
 
-        public TileTextureAsset(AssetModule module, string name) 
-            : base(module, name) {
-
-        }
-
-        public override void Load(ContentManager content) {
+        protected override void OnLoadContent(ContentManager content) {
             tileTexture = new TileTexture(content.Load<Texture2D>(contentFileName));
         }
     }

@@ -2,17 +2,13 @@ using System;
 
 namespace VoxelSpace {
 
-    public class CoreAssetModule : AssetModule 
-    {
+    public class CoreAssetModule : AssetModule {
         public override string name => "core";
 
-        public override void RegisterAssets(AssetManager assets) {
-            RegisterTileTexture("grass");
-            RegisterTileTexture("stone");
-            RegisterTileTexture("dirt");
-            RegisterVoxelType("grass", true, "grass");
-            RegisterVoxelType("stone", true, "stone");
-            RegisterVoxelType("dirt", true, "dirt");
+        protected override void OnLoadAssets() {
+            LoadVoxelType("grass", true, LoadVoxelTexture("grass"));
+            LoadVoxelType("stone", true, LoadVoxelTexture("stone"));
+            LoadVoxelType("dirt", true, LoadVoxelTexture("dirt"));
         }
     }
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 
 namespace VoxelSpace {
@@ -10,100 +9,116 @@ namespace VoxelSpace {
 
         public abstract string name { get; }
 
+        public virtual IEnumerable<string> dependencies {
+            get {
+                yield break;
+            }
+        }
+
+        public bool isLoaded { get; private set; }
+        public bool isContentLoaded { get; private set; }
+
+        public AssetManager manager { get; private set; }
+        public ContentManager content { get; private set; }
+        public int assetCount {
+            get {
+                var count = 0;
+                foreach (var typeAssets in assets.Values) {
+                    count += typeAssets.Count;
+                }
+                return count;
+            }
+        }
+        public int contentAssetCount => contentAssets.Count;
+
         Dictionary<Type, Dictionary<string, IAsset>> assets;
-        List<IAssetReference> references;
+        HashSet<ContentAsset> contentAssets;
 
         public AssetModule() {
             assets = new Dictionary<Type, Dictionary<string, IAsset>>();
-            references = new List<IAssetReference>();
+            contentAssets = new HashSet<ContentAsset>();
         }
 
-        public T GetAsset<T>(string name) where T : Asset<T> {
-            var type = typeof(T);
-            if (assets.ContainsKey(type)) {
-                var typeAssets = assets[type];
+        public T GetAsset<T>(string name) where T : IAsset {
+            if (assets.ContainsKey(typeof(T))) {
+                var typeAssets = assets[typeof(T)];
                 if (typeAssets.ContainsKey(name)) {
                     return (T) typeAssets[name];
                 }
             }
-            return null;
+            return default(T);
         }
 
-        public IEnumerable<T> GetAssets<T>() where T : Asset<T> {
-            var type = typeof(T);
-            if (assets.ContainsKey(type)) {
-                foreach (var asset in assets[type].Values) {
+        public IEnumerable<T> GetAssets<T>() where T : IAsset {
+            if (assets.ContainsKey(typeof(T))) {
+                var typeAssets = assets[typeof(T)];
+                foreach (var asset in typeAssets.Values) {
                     yield return (T) asset;
                 }
             }
         }
 
-        // register a local asset
-        // use this to write your own asset registration methods for additional assets
-        protected T Register<T>(T asset) where T : Asset<T> {
-            var type = asset.GetType();
-            if (!assets.ContainsKey(type)) {
-                assets[type] = new Dictionary<string, IAsset>();
-            }
-            var typeAssets = assets[type];
-            if (typeAssets.ContainsKey(asset.name)) {
-                Logger.ErrorFormat(this, "Error registering {0} {1}: name already taken",
-                    asset.GetType().Name, asset.qualifiedName);
-                return null;
-            }
-            typeAssets[asset.name] = asset;
-            Logger.InfoFormat(this, "Registered asset {0} {1}", asset.GetType().Name, asset.qualifiedName);
-            return asset;
-        }
-
-
-        // registration methods for various included asset types
-        // note: sub assets will not be automatically registered, only referenced. 
-        //      e.g.: RegisterVoxelType: <textureName> refers to a VoxelTexture. the texture
-        //      must be registered manually. see CoreAssetModule for examples
-
-        // register a voxel texture
-        protected TileTextureAsset RegisterTileTexture(string name) {
-            var texture = new TileTextureAsset(this, name);
-            return Register(texture);
-        }
-
-        // register a voxel type
-        protected VoxelType RegisterVoxelType(string name, bool isSolid, string textureName) {
-            var texRef = Reference<TileTextureAsset>(textureName);
-            var voxelType = new VoxelType(this, name, isSolid, texRef);
-            return Register(voxelType);
-        }
-
-        // used for getting a reference to an asset in this module or any other.
-        protected AssetReference<T> Reference<T>(string qualifiedName) where T : Asset<T> {
-            var (module, name) = AssetManager.SplitQualifiedAssetName(qualifiedName);
-            if (module == null) module = this.name;
-            var reference = new AssetReference<T>(module, name);
-            references.Add(reference);
-            return reference;
-        }
-
-        public void LoadContentAssets(AssetManager manager, ContentManager content) {
-            foreach (var typeAssets in assets.Values) {
-                foreach (var asset in typeAssets.Values) {
-                    if (asset is IContentAsset) {
-                        var contentAsset = (IContentAsset) asset;
-                        if (manager.loadGraphics || !(contentAsset is IGraphicalAsset)) {
-                            contentAsset.Load(content);
-                        }
+        protected T AddAsset<T>(T asset) where T : IAsset {
+            if (asset.module == this) {
+                Dictionary<string, IAsset> typeAssets;
+                if (assets.ContainsKey(asset.GetType())) {
+                    typeAssets = assets[asset.GetType()];
+                }
+                else {
+                    typeAssets = new Dictionary<string, IAsset>();
+                    assets[asset.GetType()] = typeAssets;
+                }
+                if (typeAssets.ContainsKey(asset.name)) {
+                    throw new AssetException(this, "Duplicate asset name {0} for type {1}!", asset.qualifiedName, asset.GetType().Name);
+                }
+                else {
+                    typeAssets[asset.name] = asset;
+                    if (asset is ContentAsset) {
+                        contentAssets.Add(asset as ContentAsset);
                     }
                 }
             }
-        }
-
-        public void ResolveReferences(AssetManager assets) {
-            foreach (var reference in references) {
-                reference.Resolve(assets);
+            else {
+                throw new AssetException(this,
+                    "Mismatched module on asset {0}, expected module {1}. This shouldn't happen. check your module code ({2})",
+                    asset.qualifiedName, this.name, this.GetType().Name);
             }
+            return asset;
         }
 
-        public abstract void RegisterAssets(AssetManager assets);
+        protected TileTexture LoadTileTexture(string name, string directory) {
+            var asset = AddAsset(new TileTextureAsset(this, name, directory));
+            asset.LoadContent(content);
+            return asset.tileTexture;
+        }
+
+        protected TileTexture LoadVoxelTexture(string name) => LoadTileTexture(name, "voxel");
+
+        protected VoxelTypeAsset LoadVoxelType(string name, bool isSolid, TileTexture texture) {
+            return AddAsset(new VoxelTypeAsset(this, name, isSolid, texture));
+        }
+
+        public void LoadAssets(AssetManager manager, ContentManager content) {
+            this.manager = manager;
+            this.content = content;
+            OnLoadAssets();
+            this.isLoaded = true;
+        }
+
+        protected abstract void OnLoadAssets();
+
+        public void LoadContent(ContentManager content) {
+            foreach (var asset in contentAssets) {
+                if (!asset.isLoaded) {
+                    asset.LoadContent(content);
+                    Logger.InfoFormat(this, "Loaded content for {0} asset {1}", asset.GetType().Name, asset.qualifiedName);
+                }
+                else {
+                    Logger.InfoFormat(this, "Skipping content for {0} asset {1}: already loaded", asset.GetType().Name, asset.qualifiedName);
+                }
+            }
+            this.isContentLoaded = true;
+        }
 
     }
 

@@ -55,7 +55,7 @@ namespace VoxelSpace {
                 int tj = tileIndex / atlasTileWidth;
                 tile.texture.GetData<Color>(tileData);
                 var tileUV = new Vector2(ti * tileUVWidth, tj * tileUVWidth);
-                tile.AddToAtlas(this, tileUV);
+                tile.AddToAtlas(this, new QuadUVs(tileUV, tileUV + Vector2.One * tileUVWidth));
                 for (int i = 0; i < tilePixelWidth; i ++) {
                     for (int j = 0; j < tilePixelWidth; j ++) {
                         int ai = ti * tilePixelWidth + i;

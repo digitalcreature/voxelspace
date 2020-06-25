@@ -131,6 +131,31 @@ namespace VoxelSpace {
             }
         }
 
+        // add a quad
+        // verts in order:
+        // 
+        //      a --- b
+        //      |   / |
+        //      |  /  |
+        //      | /   |
+        //      c --- d
+        // 
+        public void AddQuad(VoxelVertex a, VoxelVertex b, VoxelVertex c, VoxelVertex d) {
+            uint i = (uint) verts.Count;
+            verts.Add(a);
+            verts.Add(b);
+            verts.Add(c);
+            verts.Add(d);
+            // tri a b c
+            tris.Add(i);
+            tris.Add(i + 1);
+            tris.Add(i + 2);
+            // tri b d c
+            tris.Add(i + 1);
+            tris.Add(i + 3);
+            tris.Add(i + 2);
+        }
+
         // add a square
         // verts in order:
         // 
@@ -141,20 +166,13 @@ namespace VoxelSpace {
         //      c --- d
         // 
         void AddVoxelFace(Voxel voxel, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 normal) {
-            uint i = (uint) verts.Count;
-            voxel.type.GetTextureCoordinates(out var uv00, out var uv01, out var uv10, out var uv11);
-            verts.Add(new VoxelVertex(a, normal, uv00));
-            verts.Add(new VoxelVertex(b, normal, uv01));
-            verts.Add(new VoxelVertex(c, normal, uv10));
-            verts.Add(new VoxelVertex(d, normal, uv11));
-            // tri a b c
-            tris.Add(i);
-            tris.Add(i + 1);
-            tris.Add(i + 2);
-            // tri b d c
-            tris.Add(i + 1);
-            tris.Add(i + 3);
-            tris.Add(i + 2);
+            var uv = voxel.type.texture.uv;
+            AddQuad(
+                new VoxelVertex(a, normal, uv.a),
+                new VoxelVertex(b, normal, uv.b),
+                new VoxelVertex(c, normal, uv.c),
+                new VoxelVertex(d, normal, uv.d)
+            );
         }
 
     }
