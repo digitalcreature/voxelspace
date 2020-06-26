@@ -37,10 +37,10 @@ namespace VoxelSpace {
             }
             else {
                 if (chunk.volume != null) {
-                    var c = chunk.LocalToGlobalCoords(new Coords(i, j, k));
+                    var c = chunk.LocalToVolumeCoords(new Coords(i, j, k));
                     var neighbor = chunk.volume.GetChunkContainingGlobalCoords(c);
                     if (neighbor != null) {
-                        return neighbor[neighbor.GlobalToLocalCoords(c)];
+                        return neighbor[neighbor.VolumeToLocalCoords(c)];
                     }
                     else {
                         return Voxel.empty;
@@ -59,7 +59,8 @@ namespace VoxelSpace {
                     for (int k = 0; k < size; k ++) {
                         var voxel = chunk[i,j,k];
                         if (voxel.isMeshable) {
-                            var orientation = chunk.volume.GetVoxelOrientation(new Coords(i, j, k));
+                            var c = new Coords(i, j, k);
+                            var orientation = chunk.volume.GetVoxelOrientation(chunk.LocalToVolumeCoords(c));
                             // -x face
                             if (!GetVoxelIncludingNeighbors(i - 1, j, k).isMeshable) {
                                 AddVoxelFace(

@@ -17,7 +17,7 @@ namespace VoxelSpace {
         }
 
         void OnModifyVoxel(VoxelVolume volume, VoxelChunk chunk, Coords global, Voxel voxel) {
-            var local = chunk.GlobalToLocalCoords(global);
+            var local = chunk.VolumeToLocalCoords(global);
             UpdateChunkMesh(chunk);
             if (local.x == 0) {
                 var neighbor = volume[chunk.coords + new Coords(-1, 0, 0)];

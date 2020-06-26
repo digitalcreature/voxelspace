@@ -10,6 +10,36 @@ namespace VoxelSpace {
 
     public static class OrientationExtensions {
 
+        public static Orientation Inverse(this Orientation orientation) {
+            switch (orientation) {
+                case Orientation.Zero: return Orientation.Zero;
+                case Orientation.Xp: return Orientation.Xn;
+                case Orientation.Xn: return Orientation.Xp;
+                case Orientation.Yp: return Orientation.Yn;
+                case Orientation.Yn: return Orientation.Yp;
+                case Orientation.Zp: return Orientation.Zn;
+                case Orientation.Zn: return Orientation.Zp;
+                default:
+                    var normal = orientation.ToNormal();
+                    normal = -normal;
+                    return normal.ToOrientation();
+
+            }
+        }
+
+        public static bool IsAxisAligned(this Orientation orientation) {
+            switch (orientation) {
+                case Orientation.Zero: return true;
+                case Orientation.Xp: return true;
+                case Orientation.Xn: return true;
+                case Orientation.Yp: return true;
+                case Orientation.Yn: return true;
+                case Orientation.Zp: return true;
+                case Orientation.Zn: return true;
+                default: return false;
+            }
+        }
+
         public static Vector3 ToNormal(this Orientation orientation) {
             switch (orientation) {
                 case Orientation.Zero: return Vector3.Zero;
@@ -33,13 +63,9 @@ namespace VoxelSpace {
             throw new ArgumentException();
         }
 
-        public static Orientation ToOrientation(this Vector3 normal) {
-            var abs = new Vector3(
-                MathF.Abs(normal.X),
-                MathF.Abs(normal.Y),
-                MathF.Abs(normal.Z)
-            );
-            var max = MathF.Max(abs.X, MathF.Max(abs.Y, abs.Z));
+        public static Orientation ToAxisAlignedOrientation(this Vector3 normal) {
+            var abs = normal.Abs();
+            var max = abs.Max();
             if (max == abs.X) {
                 return normal.X > 0 ? Orientation.Xp : Orientation.Xn;
             }
@@ -50,6 +76,15 @@ namespace VoxelSpace {
                 return normal.Z > 0 ? Orientation.Zp : Orientation.Zn;
             }
             return Orientation.Zero;
+        }
+
+        public static Orientation ToOrientation(this Vector3 normal) {
+            var abs = normal.Abs();
+            var o = Orientation.Zero;
+            if (abs.X > 0) o |= (normal.X > 0 ? Orientation.Xp : Orientation.Xn);
+            if (abs.Y > 0) o |= (normal.Y > 0 ? Orientation.Yp : Orientation.Yn);
+            if (abs.Z > 0) o |= (normal.Z > 0 ? Orientation.Zp : Orientation.Zn);
+            return o;
         }
 
         // return the signed scalar projection from normal onto the axis defined by the orientation

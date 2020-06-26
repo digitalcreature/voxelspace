@@ -29,9 +29,28 @@ namespace VoxelSpace {
             this.cornerTexture = cornerTexture;
         }
 
-        public QuadUVs GetFaceUVs(Voxel voxel, Orientation voxelOrientation, Orientation faceNormal) {
-            // hoooo boy this'll be fun
-            return topTexture.uv;
+        // convenience for types that use the same texture on top and bottom (a lot of natural materials, for example)
+        public TBSCVoxelSkin(TileTexture topBottomTexture, TileTexture sideTexture, TileTexture cornerTexture) {
+            this.topTexture = topBottomTexture;
+            this.bottomTexture = topBottomTexture;
+            this.sideTexture = sideTexture;
+            this.cornerTexture = cornerTexture;
+        }
+
+        public QuadUVs GetFaceUVs(Voxel voxel, Orientation o, Orientation n) {
+            if ((o & n) != 0) {
+                return topTexture.uv;
+            }
+            var ni = n.Inverse();
+            if (o == ni) {
+                return bottomTexture.uv;
+            }
+            if ((o & ~ni).IsAxisAligned()) {
+                return sideTexture.uv;
+            }
+            else {
+                return cornerTexture.uv;
+            }
         }
     }
 

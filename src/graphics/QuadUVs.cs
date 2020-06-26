@@ -19,6 +19,10 @@ namespace VoxelSpace {
         public Vector2 c;
         public Vector2 d;
 
+        public QuadUVs rotatedCW => new QuadUVs(c, a, d, b);
+        public QuadUVs rotatedCCW => new QuadUVs(b, d, a, c);
+        public QuadUVs rotated180 => new QuadUVs(d, c, b, a);
+
         public QuadUVs(Vector2 a, Vector2 d) {
             this.a = a;
             this.d = d;
@@ -33,16 +37,6 @@ namespace VoxelSpace {
             this.d = d;
         }
 
-        public QuadUVs RotatedCW() {
-            return new QuadUVs(
-                c, a, d, b
-            );
-        }
-        public QuadUVs RotatedCCW() {
-            return new QuadUVs(
-                b, d, a, c
-            );
-        }
 
     }
 

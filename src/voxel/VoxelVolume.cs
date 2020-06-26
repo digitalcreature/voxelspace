@@ -76,7 +76,7 @@ namespace VoxelSpace {
         public Voxel GetVoxel(Coords c) {
             var chunk = GetChunkContainingGlobalCoords(c);
             if (chunk != null) {
-                return chunk[chunk.GlobalToLocalCoords(c)];
+                return chunk[chunk.VolumeToLocalCoords(c)];
             }
             else {
                 return Voxel.empty;
@@ -90,7 +90,7 @@ namespace VoxelSpace {
             if (chunk == null) {
                 chunk = AddChunk(GlobalToChunkCoords(c));
             }
-            var localCoords = chunk.GlobalToLocalCoords(c);
+            var localCoords = chunk.VolumeToLocalCoords(c);
             chunk[localCoords] = v;
             if (onModifyVoxel != null) {
                 onModifyVoxel(this, chunk, c, v);

@@ -59,7 +59,7 @@ namespace VoxelSpace {
                 for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
                     for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
                         for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
-                            if (IsInCave(chunk.LocalToGlobalCoords(new Coords(i, j, k)))) {
+                            if (IsInCave(chunk.LocalToVolumeCoords(new Coords(i, j, k)))) {
                                 chunk[i, j, k] = Voxel.empty;
                             }
                             else {
@@ -73,7 +73,7 @@ namespace VoxelSpace {
                 for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
                     for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
                         for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
-                            var vc = chunk.LocalToGlobalCoords(new Coords(i, j, k));
+                            var vc = chunk.LocalToVolumeCoords(new Coords(i, j, k));
                             if (IsInCave(vc)) {
                                 chunk[i, j, k] = Voxel.empty;
                             }

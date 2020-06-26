@@ -141,7 +141,7 @@ namespace VoxelSpace {
 
         void UpdateOrientation() {
             var gDir = world.gravity.GetGravityDirection(transform.position);
-            orientation = (-gDir).ToOrientation();;
+            orientation = (-gDir).ToAxisAlignedOrientation();;
             orientationNormal = orientation.ToNormal();
             bounds.size = Vector3.One * playerWidth;
             switch(orientation) {

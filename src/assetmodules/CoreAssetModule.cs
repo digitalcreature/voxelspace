@@ -6,9 +6,13 @@ namespace VoxelSpace {
         public override string name => "core";
 
         protected override void OnLoadAssets() {
-            LoadVoxelType("grass", true, new SingleVoxelSkin(LoadVoxelTexture("grass")));
-            LoadVoxelType("stone", true, new SingleVoxelSkin(LoadVoxelTexture("stone")));
-            LoadVoxelType("dirt", true, new SingleVoxelSkin(LoadVoxelTexture("dirt")));
+            LoadVoxelType("grass", true, new TBSCVoxelSkin(
+                VoxelTexture("grassT"), VoxelTexture("dirtTB"), VoxelTexture("grassS"), VoxelTexture("grassC")
+            ));
+            LoadVoxelType("dirt", true, new TBSCVoxelSkin(
+                VoxelTexture("dirtTB"), VoxelTexture("dirtS"), VoxelTexture("dirtC")
+            ));
+            LoadVoxelType("stone", true, new SingleVoxelSkin(VoxelTexture("stone")));
         }
     }
 
