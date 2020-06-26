@@ -7,13 +7,12 @@ namespace VoxelSpace {
 
         public bool isSolid { get; private set; }
         public bool isMeshable => isSolid;
-        public TileTexture texture { get; private set; }
 
-        public IVoxelModel model => throw new NotImplementedException();
+        public IVoxelSkin skin { get; private set; }
 
-        public VoxelTypeAsset(AssetModule module, string name, bool isSolid, TileTexture texture)
+        public VoxelTypeAsset(AssetModule module, string name, bool isSolid, IVoxelSkin skin)
             : base(module, name) {
-            this.texture = texture;
+            this.skin = skin;
             this.isSolid = isSolid;
         }
 

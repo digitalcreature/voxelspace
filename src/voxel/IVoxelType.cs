@@ -7,9 +7,8 @@ namespace VoxelSpace {
 
         bool isSolid { get; }
         bool isMeshable { get; }
-        TileTexture texture { get; }
 
-        IVoxelModel model { get; }
+        IVoxelSkin skin { get; }
 
     }
 

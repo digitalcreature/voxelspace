@@ -67,7 +67,7 @@ namespace VoxelSpace {
                                     new Vector3(i, j + 1, k + 1),
                                     new Vector3(i, j, k),
                                     new Vector3(i, j, k + 1),
-                                    Vector3.Left
+                                    Orientation.Xn
                                 );
                             }
                             // +x face
@@ -78,7 +78,7 @@ namespace VoxelSpace {
                                     new Vector3(i + 1, j + 1, k),
                                     new Vector3(i + 1, j, k + 1),
                                     new Vector3(i + 1, j, k),
-                                    Vector3.Right
+                                    Orientation.Xp
                                 );
                             }
                             // -y face
@@ -89,7 +89,7 @@ namespace VoxelSpace {
                                     new Vector3(i, j, k),
                                     new Vector3(i + 1, j, k + 1),
                                     new Vector3(i, j, k + 1),
-                                    Vector3.Down
+                                    Orientation.Yn
                                 );
                             }
                             // +y face
@@ -100,7 +100,7 @@ namespace VoxelSpace {
                                     new Vector3(i + 1, j + 1, k),
                                     new Vector3(i, j + 1, k + 1),
                                     new Vector3(i + 1, j + 1, k + 1),
-                                    Vector3.Up
+                                    Orientation.Yp
                                 );
                             }
                             // -z face
@@ -111,7 +111,7 @@ namespace VoxelSpace {
                                     new Vector3(i, j + 1, k),
                                     new Vector3(i + 1, j, k),
                                     new Vector3(i, j, k),
-                                    Vector3.Forward
+                                    Orientation.Zn
                                 );
                             }
                             // +z face
@@ -122,7 +122,7 @@ namespace VoxelSpace {
                                     new Vector3(i + 1, j + 1, k + 1),
                                     new Vector3(i, j, k + 1),
                                     new Vector3(i + 1, j, k + 1),
-                                    Vector3.Backward
+                                    Orientation.Zp
                                 );
                             }
                         }
@@ -165,13 +165,14 @@ namespace VoxelSpace {
         //      | /   |
         //      c --- d
         // 
-        void AddVoxelFace(Voxel voxel, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 normal) {
-            var uv = voxel.type.texture.uv;
+        void AddVoxelFace(Voxel voxel, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Orientation normal) {
+            var uv = voxel.type.skin.GetFaceUVs(voxel, normal);
+            var n = normal.ToNormal();
             AddQuad(
-                new VoxelVertex(a, normal, uv.a),
-                new VoxelVertex(b, normal, uv.b),
-                new VoxelVertex(c, normal, uv.c),
-                new VoxelVertex(d, normal, uv.d)
+                new VoxelVertex(a, n, uv.a),
+                new VoxelVertex(b, n, uv.b),
+                new VoxelVertex(c, n, uv.c),
+                new VoxelVertex(d, n, uv.d)
             );
         }
 

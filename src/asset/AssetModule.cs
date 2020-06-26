@@ -94,8 +94,8 @@ namespace VoxelSpace {
 
         protected TileTexture LoadVoxelTexture(string name) => LoadTileTexture(name, "voxel");
 
-        protected VoxelTypeAsset LoadVoxelType(string name, bool isSolid, TileTexture texture) {
-            return AddAsset(new VoxelTypeAsset(this, name, isSolid, texture));
+        protected VoxelTypeAsset LoadVoxelType(string name, bool isSolid, IVoxelSkin skin) {
+            return AddAsset(new VoxelTypeAsset(this, name, isSolid, skin));
         }
 
         public void LoadAssets(AssetManager manager, ContentManager content) {
