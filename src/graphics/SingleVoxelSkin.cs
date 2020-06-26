@@ -18,7 +18,7 @@ namespace VoxelSpace {
             this.texture = texture;
         }
 
-        public QuadUVs GetFaceUVs(Voxel voxel, Orientation faceNormal) {
+        public QuadUVs GetFaceUVs(Voxel voxel, Orientation voxelOrientation, Orientation faceNormal) {
             return texture.uv;
         }
     }

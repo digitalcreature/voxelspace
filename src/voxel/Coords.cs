@@ -66,6 +66,11 @@ namespace VoxelSpace {
         public static explicit operator Coords(Vector3 a)
             => new Coords((int) MathF.Floor(a.X), (int) MathF.Floor(a.Y), (int) MathF.Floor(a.Z));
 
+        public Coords Abs() => new Coords(Math.Abs(x), Math.Abs(y), Math.Abs(z));
+        public Coords Sign() => new Coords( Math.Sign(x), Math.Sign(y), Math.Sign(z));
+        public int Max() => Math.Max(x, Math.Max(y, z));
+        public int Min() => Math.Min(x, Math.Min(y, z));
+
     }
 
 }

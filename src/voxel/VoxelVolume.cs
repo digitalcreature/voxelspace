@@ -9,20 +9,24 @@ namespace VoxelSpace {
 
     public delegate void ModifyVoxelCallback(VoxelVolume volume, VoxelChunk chunk, Coords global, Voxel voxel);
 
-    public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid {
+    public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid, IVoxelOrientationField {
 
         Dictionary<Coords, VoxelChunk> chunks;
         HashSet<VoxelChunk> dirtyChunks;
+
         public int chunkCount => chunks.Count;
 
         public event ModifyVoxelCallback onModifyVoxel;
 
+        public IVoxelOrientationField orientationField;
+
         public VoxelChunk this[Coords c]
             => chunks.ContainsKey(c) ? chunks[c] : null;
 
-        public VoxelVolume() {
+        public VoxelVolume(IVoxelOrientationField orientationField = null) {
             chunks = new Dictionary<Coords, VoxelChunk>();
             dirtyChunks = new HashSet<VoxelChunk>();
+            this.orientationField = orientationField;
         }
 
         public VoxelChunk AddChunk(Coords coords) {
@@ -122,6 +126,10 @@ namespace VoxelSpace {
 
         public bool CellIsSolid(Coords c) {
             return GetVoxel(c).isSolid;
+        }
+
+        public Orientation GetVoxelOrientation(Coords c) {
+            return orientationField?.GetVoxelOrientation(c) ?? Orientation.Zero;
         }
 
         public bool Raycast(Vector3 origin, Vector3 dir, float range, Predicate<Voxel> pred, out VoxelRaycastResult result) {            
