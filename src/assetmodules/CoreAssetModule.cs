@@ -12,7 +12,9 @@ namespace VoxelSpace {
             LoadVoxelType("dirt", true, new TBSCVoxelSkin(
                 VoxelTexture("dirtTB"), VoxelTexture("dirtS"), VoxelTexture("dirtC")
             ));
-            LoadVoxelType("stone", true, new SingleVoxelSkin(VoxelTexture("stone")));
+            LoadVoxelType("stone", true, new TBSCVoxelSkin(
+                VoxelTexture("stoneTB"), VoxelTexture("stoneS"), VoxelTexture("stoneC")
+            ));
         }
     }
 

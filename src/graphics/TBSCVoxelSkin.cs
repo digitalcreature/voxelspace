@@ -37,7 +37,7 @@ namespace VoxelSpace {
             this.cornerTexture = cornerTexture;
         }
 
-        public QuadUVs GetFaceUVs(Voxel voxel, Orientation o, Orientation n) {
+        public QuadUVs GetFaceUVs(Voxel voxel, Orientation o, Orientation n, Orientation u, Orientation r) {
             if ((o & n) != 0) {
                 return topTexture.uv;
             }
@@ -45,11 +45,22 @@ namespace VoxelSpace {
             if (o == ni) {
                 return bottomTexture.uv;
             }
-            if ((o & ~ni).IsAxisAligned()) {
-                return sideTexture.uv;
+            var fo = o & ~ni;
+            if (fo.IsAxisAligned()) {
+                if (fo == u) return sideTexture.uv;
+                if (fo == r) return sideTexture.uv.rotatedCW;
+                fo = fo.Inverse();
+                if (fo == u) return sideTexture.uv.rotated180;
+                if (fo == r) return sideTexture.uv.rotatedCCW;
+                return bottomTexture.uv;
             }
             else {
-                return cornerTexture.uv;
+                if (fo == (u | r)) return cornerTexture.uv;
+                var ui = u.Inverse();
+                if (fo == (ui | r)) return cornerTexture.uv.rotatedCW;
+                var ri = r.Inverse();
+                if (fo == (ui | ri)) return cornerTexture.uv.rotated180;
+                return cornerTexture.uv.rotatedCCW;
             }
         }
     }

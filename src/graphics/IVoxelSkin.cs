@@ -8,7 +8,7 @@ namespace VoxelSpace {
 
         IEnumerable<TileTexture> textures { get; }
 
-        QuadUVs GetFaceUVs(Voxel voxel, Orientation voxelOrientation, Orientation faceNormal);
+        QuadUVs GetFaceUVs(Voxel voxel, Orientation voxelOrientation, Orientation faceNormal, Orientation faceUp, Orientation faceRight);
 
     }
 

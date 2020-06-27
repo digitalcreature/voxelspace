@@ -70,7 +70,9 @@ namespace VoxelSpace {
                                     new Vector3(i, j + 1, k + 1),
                                     new Vector3(i, j, k),
                                     new Vector3(i, j, k + 1),
-                                    Orientation.Xn
+                                    Orientation.Xn,
+                                    Orientation.Yp,
+                                    Orientation.Zp
                                 );
                             }
                             // +x face
@@ -82,7 +84,9 @@ namespace VoxelSpace {
                                     new Vector3(i + 1, j + 1, k),
                                     new Vector3(i + 1, j, k + 1),
                                     new Vector3(i + 1, j, k),
-                                    Orientation.Xp
+                                    Orientation.Xp,
+                                    Orientation.Yp,
+                                    Orientation.Zn
                                 );
                             }
                             // -y face
@@ -94,7 +98,9 @@ namespace VoxelSpace {
                                     new Vector3(i, j, k),
                                     new Vector3(i + 1, j, k + 1),
                                     new Vector3(i, j, k + 1),
-                                    Orientation.Yn
+                                    Orientation.Yn,
+                                    Orientation.Zn,
+                                    Orientation.Xn
                                 );
                             }
                             // +y face
@@ -106,7 +112,9 @@ namespace VoxelSpace {
                                     new Vector3(i + 1, j + 1, k),
                                     new Vector3(i, j + 1, k + 1),
                                     new Vector3(i + 1, j + 1, k + 1),
-                                    Orientation.Yp
+                                    Orientation.Yp,
+                                    Orientation.Zn,
+                                    Orientation.Xp
                                 );
                             }
                             // -z face
@@ -118,7 +126,9 @@ namespace VoxelSpace {
                                     new Vector3(i, j + 1, k),
                                     new Vector3(i + 1, j, k),
                                     new Vector3(i, j, k),
-                                    Orientation.Zn
+                                    Orientation.Zn,
+                                    Orientation.Yp,
+                                    Orientation.Xn
                                 );
                             }
                             // +z face
@@ -130,7 +140,9 @@ namespace VoxelSpace {
                                     new Vector3(i + 1, j + 1, k + 1),
                                     new Vector3(i, j, k + 1),
                                     new Vector3(i + 1, j, k + 1),
-                                    Orientation.Zp
+                                    Orientation.Zp,
+                                    Orientation.Yp,
+                                    Orientation.Xp
                                 );
                             }
                         }
@@ -173,14 +185,14 @@ namespace VoxelSpace {
         //      | /   |
         //      c --- d
         // 
-        void AddVoxelFace(Voxel voxel, Orientation orientation, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Orientation normal) {
-            var uv = voxel.type.skin.GetFaceUVs(voxel, orientation, normal);
-            var n = normal.ToNormal();
+        void AddVoxelFace(Voxel voxel, Orientation orientation, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Orientation n, Orientation u, Orientation r) {
+            var uv = voxel.type.skin.GetFaceUVs(voxel, orientation, n, u, r);
+            var normal = n.ToNormal();
             AddQuad(
-                new VoxelVertex(a, n, uv.a),
-                new VoxelVertex(b, n, uv.b),
-                new VoxelVertex(c, n, uv.c),
-                new VoxelVertex(d, n, uv.d)
+                new VoxelVertex(a, normal, uv.a),
+                new VoxelVertex(b, normal, uv.b),
+                new VoxelVertex(c, normal, uv.c),
+                new VoxelVertex(d, normal, uv.d)
             );
         }
 
