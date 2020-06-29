@@ -14,6 +14,7 @@ namespace VoxelSpace {
             this.type = type;
         }
 
+        public bool isEmpty => type == null;
         public bool isMeshable => type != null && type.isMeshable;
         public bool isSolid => type != null && type.isSolid;
 

@@ -121,7 +121,7 @@ namespace VoxelSpace {
             // first move along orientation axis
             var vDelta = delta.Project(orientationNormal);
             var actualMove = bounds.MoveInCollisionGrid(vDelta, world.volume);
-            if (actualMove.ProjectScalarOrientation(orientation) == 0) {
+            if (actualMove != vDelta) {
                 if (vSpeed < 0) {
                     // if we were moving down, we are grounded now
                     isGrounded = true;

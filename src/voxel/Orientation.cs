@@ -11,20 +11,9 @@ namespace VoxelSpace {
     public static class OrientationExtensions {
 
         public static Orientation Inverse(this Orientation orientation) {
-            switch (orientation) {
-                case Orientation.Zero: return Orientation.Zero;
-                case Orientation.Xp: return Orientation.Xn;
-                case Orientation.Xn: return Orientation.Xp;
-                case Orientation.Yp: return Orientation.Yn;
-                case Orientation.Yn: return Orientation.Yp;
-                case Orientation.Zp: return Orientation.Zn;
-                case Orientation.Zn: return Orientation.Zp;
-                default:
-                    var normal = orientation.ToNormal();
-                    normal = -normal;
-                    return normal.ToOrientation();
-
-            }
+            var p = (byte) orientation & 0b010101;
+            var n = (byte) orientation & 0b101010;
+            return (Orientation) ((p << 1) | (n >> 1));
         }
 
         public static bool IsAxisAligned(this Orientation orientation) {

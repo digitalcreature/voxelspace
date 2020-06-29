@@ -54,65 +54,75 @@ namespace VoxelSpace {
         // note: i spent all night trying to get this to work and that among other annoying things was what fixed 99% of issues. I can sleep now (will i? probably not. but i can.)
         public Vector3 MoveInCollisionGrid(Vector3 delta, ICollisionGrid grid, float skinWidth = 1E-5f) {
             float inc;
+            var d = delta;
             var start = this.position;
             var startRegion = GetBoundingRegion();
-            while (delta.X != 0 || delta.Y != 0 || delta.Z != 0) {
-                if (delta.X != 0) {
-                    inc = MathF.Abs(delta.X) < 1 ? delta.X : MathF.Sign(delta.X);
+            bool hadCollision = false;
+            while (d.X != 0 || d.Y != 0 || d.Z != 0) {
+                if (d.X != 0) {
+                    inc = MathF.Abs(d.X) < 1 ? d.X : MathF.Sign(d.X);
                     position.X += inc;
                     if (grid.CheckBounds(this, startRegion)) {
+                        hadCollision = true;
                         float x;
-                        if (delta.X > 0) {
+                        if (d.X > 0) {
                             x = MathF.Ceiling(max.X) - 1 - size.X - skinWidth;
                         }
                         else {
                             x = MathF.Floor(min.X) + 1 + skinWidth;
                         }
-                        delta.X = 0;
+                        d.X = 0;
                         position.X = x;
                     }
                     else {
-                        delta.X -= inc;
+                        d.X -= inc;
                     }
                 }
-                if (delta.Y != 0) {
-                    inc = MathF.Abs(delta.Y) < 1 ? delta.Y : MathF.Sign(delta.Y);
+                if (d.Y != 0) {
+                    inc = MathF.Abs(d.Y) < 1 ? d.Y : MathF.Sign(d.Y);
                     position.Y += inc;
                     if (grid.CheckBounds(this, startRegion)) {
+                        hadCollision = true;
                         float y;
-                        if (delta.Y > 0) {
+                        if (d.Y > 0) {
                             y = MathF.Ceiling(max.Y) - 1 - size.Y - skinWidth;
                         }
                         else {
                             y = MathF.Floor(min.Y) + 1 + skinWidth;
                         }
-                        delta.Y = 0;
+                        d.Y = 0;
                         position.Y = y;
                     }
                     else {
-                        delta.Y -= inc;
+                        d.Y -= inc;
                     }
                 }
-                if (delta.Z != 0) {
-                    inc = MathF.Abs(delta.Z) < 1 ? delta.Z : MathF.Sign(delta.Z);
+                if (d.Z != 0) {
+                    inc = MathF.Abs(d.Z) < 1 ? d.Z : MathF.Sign(d.Z);
                     position.Z += inc;
                     if (grid.CheckBounds(this, startRegion)) {
+                        hadCollision = true;
                         float z;
-                        if (delta.Z > 0) {
+                        if (d.Z > 0) {
                             z = MathF.Ceiling(max.Z) - 1 - size.Z - skinWidth;
                         }
                         else {
                             z = MathF.Floor(min.Z) + 1 + skinWidth;
                         }
-                        delta.Z = 0;
+                        d.Z = 0;
                         position.Z = z;
                     }
                     else {
-                        delta.Z -= inc;
+                        d.Z -= inc;
                     }
                 }
             }
-            return position - start;
+            if (hadCollision) {
+                return position - start;
+            }
+            else {
+                return delta;
+            }
         }
 
         public bool Raycast(Vector3 origin, Vector3 direction, out RaycastResult result) {
