@@ -92,9 +92,7 @@ namespace VoxelSpace {
             }
             var localCoords = chunk.VolumeToLocalCoords(c);
             chunk[localCoords] = v;
-            if (onModifyVoxel != null) {
-                onModifyVoxel(this, chunk, c, v);
-            }
+            onModifyVoxel?.Invoke(this, chunk, c, v);
         }
 
         // return the chunk containing the voxel at a set of coords

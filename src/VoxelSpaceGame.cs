@@ -47,7 +47,6 @@ namespace VoxelSpace {
             var atlas = new TextureAtlas();
             foreach (var tile in assetManager.GetContent<TileTexture>()) {
                 var tex = tile.content;
-                Logger.InfoFormat(this, "tile {0} => {1}", tile.qualifiedName, tex);
                 atlas.AddTileTexture(tile.content);
             }
             atlas.CreateAtlasTexture(GraphicsDevice);
@@ -55,12 +54,12 @@ namespace VoxelSpace {
             // terrain shader
             effect = Content.Load<Effect>("shader/terrain");
             effect.Parameters["proj"].SetValue(projMat);
-            var light = new Vector3(1, -2, 3);
+            var light = new Vector3(1, 2, 3);
             light.Normalize();
             effect.Parameters["lightDirection"].SetValue(light);
             effect.Parameters["lightIntensity"].SetValue(0.3f);
             effect.Parameters["lightAmbient"].SetValue(0.5f);
-            effect.Parameters["tex"].SetValue(atlas.atlasTexture);
+            effect.Parameters["tex"]?.SetValue(atlas.atlasTexture);
             
             // planet
             planet = new Planet(64, 20, new VoxelVolumeRenderer(effect));
