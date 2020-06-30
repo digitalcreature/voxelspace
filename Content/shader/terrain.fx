@@ -20,12 +20,14 @@ struct a2v {
     float4 normal : NORMAL;
     float2 uv : TEXCOORD0;
     float light : TEXCOORD2;
+    float ao : TEXCOORD3;
 };
 
 struct v2f {
     float4 position : POSITION;
     float2 uv : TEXCOORD0;
     float light : TEXCOORD1;
+    float ao : TEXCOORD2;
 };
 
 v2f vert(a2v a) {
@@ -35,6 +37,7 @@ v2f vert(a2v a) {
     float4 worldNormal = mul(model, a.normal);
     o.light = clamp(dot(worldNormal.xyz, lightDirection), 0, 1) * lightIntensity + lightAmbient;
     o.light *= a.light;
+    o.ao = 1 - (1 - a.ao) * .5;
     o.uv = a.uv;
     return o;
 }
@@ -42,7 +45,7 @@ v2f vert(a2v a) {
 float4 frag(v2f v) : COLOR {
     float4 color = tex2D(texSampler, v.uv);
     clip(color.a - 0.5);
-    return v.light * color;
+    return v.light * v.ao * color;
 }
 
 technique Terrain {

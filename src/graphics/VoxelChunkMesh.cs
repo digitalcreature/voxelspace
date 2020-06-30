@@ -62,13 +62,16 @@ namespace VoxelSpace {
     public struct VoxelLightVertex {
         
         public float light;
+        public float ao;
 
-        public VoxelLightVertex(float light) {
+        public VoxelLightVertex(float light, float ao) {
             this.light = light;
+            this.ao = ao;
         }
 
         public static readonly VertexDeclaration declaration = new VertexDeclaration(
-            new VertexElement(0, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 2)
+            new VertexElement(0, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 2),
+            new VertexElement(4, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 3)
         );
     }
 

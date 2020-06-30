@@ -58,7 +58,7 @@ namespace VoxelSpace {
             light.Normalize();
             effect.Parameters["lightDirection"].SetValue(light);
             effect.Parameters["lightIntensity"].SetValue(0.3f);
-            effect.Parameters["lightAmbient"].SetValue(0.5f);
+            effect.Parameters["lightAmbient"].SetValue(0.7f);
             effect.Parameters["tex"]?.SetValue(atlas.atlasTexture);
             
             // planet

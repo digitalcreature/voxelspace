@@ -186,6 +186,8 @@ namespace VoxelSpace {
                         bt = new Coords(0, pc.y == vc.y ? -1 : 1, 0);
                         break;
                 }
+                // ao calculation with help from:
+                // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
                 bool corner = GetVoxelIncludingNeighbors(neighborCoords + t + bt).isSolid;
                 bool sideA = GetVoxelIncludingNeighbors(neighborCoords + t).isSolid;
                 bool sideB = GetVoxelIncludingNeighbors(neighborCoords + bt).isSolid;
@@ -200,11 +202,28 @@ namespace VoxelSpace {
                     if (sideB) ao ++;
                     ao /= 3;
                 }
-                ao = 1 - ao * aoIntensity;
-                lightVerts.Add(new VoxelLightVertex(light * ao));
+                ao = 1 - ao;
+                lightVerts.Add(new VoxelLightVertex(light, ao));
+            }
+            // go back and flip any faces we need to for ao reasons
+            for (int i = 0; i < verts.Count; i += 4) {
+                 var lightA = lightVerts[i  ];
+                 var lightB = lightVerts[i+1];
+                 var lightC = lightVerts[i+2];
+                 var lightD = lightVerts[i+3];
+                if (lightA.ao + lightD.ao > lightB.ao + lightC.ao) {
+                    var tmp = verts[i];
+                    verts[i] = verts[i+1];
+                    verts[i+1] = verts[i+3];
+                    verts[i+3] = verts[i+2];
+                    verts[i+2] = tmp;
+                    lightVerts[i  ] = lightB;
+                    lightVerts[i+1] = lightD;
+                    lightVerts[i+2] = lightA;
+                    lightVerts[i+3] = lightC;
+                }
             }
         }
-        const float aoIntensity = 0.5f;
 
         // add a quad
         // verts in order:
