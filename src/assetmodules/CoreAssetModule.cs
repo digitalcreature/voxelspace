@@ -1,20 +1,32 @@
 using System;
 
-namespace VoxelSpace {
+namespace VoxelSpace.Assets {
 
     public class CoreAssetModule : AssetModule {
         public override string name => "core";
 
+        protected override void OnLoadContent() {
+            LoadVoxelTexture("grassT");
+            LoadVoxelTexture("grassS");
+            LoadVoxelTexture("grassC");
+            LoadVoxelTexture("dirtTB");
+            LoadVoxelTexture("dirtS");
+            LoadVoxelTexture("dirtC");
+            LoadVoxelTexture("stoneTB");
+            LoadVoxelTexture("stoneS");
+            LoadVoxelTexture("stoneC");
+        }
+
         protected override void OnLoadAssets() {
-            LoadVoxelType("grass", true, new TBSCVoxelSkin(
-                VoxelTexture("grassT"), VoxelTexture("dirtTB"), VoxelTexture("grassS"), VoxelTexture("grassC")
-            ));
-            LoadVoxelType("dirt", true, new TBSCVoxelSkin(
-                VoxelTexture("dirtTB"), VoxelTexture("dirtS"), VoxelTexture("dirtC")
-            ));
-            LoadVoxelType("stone", true, new TBSCVoxelSkin(
-                VoxelTexture("stoneTB"), VoxelTexture("stoneS"), VoxelTexture("stoneC")
-            ));
+            AddAsset("grass",new VoxelType(true, new TBSCVoxelSkin(
+                C<TileTexture>("grassT"), C<TileTexture>("dirtTB"), C<TileTexture>("grassS"), C<TileTexture>("grassC")
+            )));
+            AddAsset("dirt",new VoxelType(true, new TBSCVoxelSkin(
+                C<TileTexture>("dirtTB"), C<TileTexture>("dirtS"), C<TileTexture>("dirtC")
+            )));
+            AddAsset("stone",new VoxelType(true, new TBSCVoxelSkin(
+                C<TileTexture>("stoneTB"), C<TileTexture>("stoneS"), C<TileTexture>("stoneC")
+            )));
         }
     }
 

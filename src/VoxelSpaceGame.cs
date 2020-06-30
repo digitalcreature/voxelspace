@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 
+using VoxelSpace.Assets;
+
 namespace VoxelSpace {
 
     public class VoxelSpaceGame : Game {
@@ -43,8 +45,10 @@ namespace VoxelSpace {
             assetManager.LoadModules(Content);
 
             var atlas = new TextureAtlas();
-            foreach (var tile in assetManager.GetAssets<TileTextureAsset>()) {
-                atlas.AddTileTexture(tile.tileTexture);
+            foreach (var tile in assetManager.GetContent<TileTexture>()) {
+                var tex = tile.content;
+                Logger.InfoFormat(this, "tile {0} => {1}", tile.qualifiedName, tex);
+                atlas.AddTileTexture(tile.content);
             }
             atlas.CreateAtlasTexture(GraphicsDevice);
             
@@ -64,15 +68,15 @@ namespace VoxelSpace {
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
             generator.maxHeight = 16;
-            generator.grass = assetManager.GetAsset<VoxelTypeAsset>("core.grass");
-            generator.stone = assetManager.GetAsset<VoxelTypeAsset>("core.stone");
-            generator.dirt = assetManager.GetAsset<VoxelTypeAsset>("core.dirt");
+            generator.grass = assetManager.FindAsset<IVoxelType>("core:grass")?.asset;
+            generator.stone = assetManager.FindAsset<IVoxelType>("core:stone")?.asset;
+            generator.dirt = assetManager.FindAsset<IVoxelType>("core:dirt")?.asset;
 
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
             player = new PlayerEntity(pos, new MouseLook(center));
-            player.voxelTypeToPlace = assetManager.GetAsset<VoxelTypeAsset>("core.dirt");
+            player.voxelTypeToPlace = assetManager.FindAsset<IVoxelType>("core:dirt")?.asset;
             planet.AddEntity(player);
             player.Freeze();
 

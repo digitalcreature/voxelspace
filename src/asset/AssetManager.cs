@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 
-namespace VoxelSpace {
+namespace VoxelSpace.Assets {
 
     public class AssetManager {
 
@@ -30,25 +30,38 @@ namespace VoxelSpace {
             return null;
         }
 
-        public T GetAsset<T>(string qualifiedName) where T : IAsset {
+        public Asset<T>? FindAsset<T>(string qualifiedName) where T : class {
             var (modName, name) = SplitQualifiedAssetName(qualifiedName);
             if (modName == null) {
                 throw new ArgumentException(
                     string.Format("Must supply fully qualified name for asset search. '{0}' is missing a module name.", qualifiedName));
             }
             else {
-                var module = GetModule(modName);
-                if (module != null) {
-                    return module.GetAsset<T>(name);
-                }
+                return GetModule(modName)?.FindAsset<T>(name);
             }
-            return default(T);
+        }
+        public Content<T>? FindContent<T>(string qualifiedName) where T : class {
+            var (modName, name) = SplitQualifiedAssetName(qualifiedName);
+            if (modName == null) {
+                throw new ArgumentException(
+                    string.Format("Must supply fully qualified name for content search. '{0}' is missing a module name.", qualifiedName));
+            }
+            else {
+                return GetModule(modName)?.FindContent<T>(name);
+            }
         }
 
-        public IEnumerable<T> GetAssets<T>() where T : IAsset {
+        public IEnumerable<Asset<T>> GetAssets<T>() where T : class {
             foreach (var module in modules.Values) {
                 foreach (var asset in module.GetAssets<T>()) {
                     yield return asset;
+                }
+            }
+        }
+        public IEnumerable<Content<T>> GetContent<T>() where T : class {
+            foreach (var module in modules.Values) {
+                foreach (var content in module.GetContent<T>()) {
+                    yield return content;
                 }
             }
         }
@@ -59,10 +72,6 @@ namespace VoxelSpace {
                 if (!module.isLoaded) {
                     LoadModule(module, content);
                 }
-            }
-            foreach (var module in modules.Values) {
-                module.LoadContent(content);
-                Logger.InfoFormat(this, "Loaded asset module content {0} ({1} content)", module.name, module.contentAssetCount);
             }
         }
 
@@ -78,20 +87,33 @@ namespace VoxelSpace {
                     throw new AssetException(this, "Asset module dependency unsatisfied! {0} depends on {1} (missing)", module.name, depName);
                 }
             }
-            module.LoadAssets(this, content);
-            Logger.InfoFormat(this, "Loaded asset module {0} ({1} assets)", module.name, module.assetCount);
+            module.LoadContent(content);
+            module.LoadAssets(this);
+            Logger.InfoFormat(this, "Loaded asset module {0} ({1} content, {2} assets)", module.name, module.contentCount, module.assetCount);
         }
 
-        static readonly Regex qualifiedNamePattern = new Regex(@"(\w+)\.(.+)");
+        public static bool IsNameQualified(string name) {
+            int count = 0;
+            foreach (var c in name) {
+                if (c == ':') count ++;
+            }
+            if (count == 0) return false;
+            else if (count == 1) return true;
+            else throw InvalidAssetName(name);
+        }
 
         public static (string, string) SplitQualifiedAssetName(string qualifiedName) {
-            var m = qualifiedNamePattern.Match(qualifiedName);
-            if (m.Success) {
-                return (m.Groups[1].Value, m.Groups[2].Value);
-            }
-            else {
-                return (null, qualifiedName);
-            }
+            var parts = qualifiedName.Split(':');
+            switch (parts.Length) {
+                case 1: return (null, parts[0]);
+                case 2: return (parts[0], parts[1]);
+                default:
+                    throw InvalidAssetName(qualifiedName);    
+            }   
+        }
+
+        static Exception InvalidAssetName(string name) {
+            return new ArgumentException(string.Format("Invalid asset name {0}", name));
         }
 
     }

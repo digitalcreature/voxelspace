@@ -6,7 +6,7 @@ float3 lightDirection;
 float lightIntensity;
 float lightAmbient;
 
-texture tex;
+uniform texture tex;
 sampler2D texSampler = sampler_state {
     Texture = (tex);
     MagFilter = Point;

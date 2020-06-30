@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 
-namespace VoxelSpace {
+namespace VoxelSpace.Assets {
 
     public interface IAsset {
         
@@ -10,45 +10,60 @@ namespace VoxelSpace {
         string name { get; }
         string qualifiedName { get; }
 
+        object asset { get; }
 
     }
 
-    public abstract class Asset : IAsset {
+    public struct Asset<T> : IAsset where T : class {
 
         public AssetModule module { get; private set; }
         public string name { get; private set; }
-        public string qualifiedName
-            => module.name + "." + name;
+        public string qualifiedName => module.name + ":" + name;
 
-        public Asset(AssetModule module, string name) {
+        public T asset { get; private set; }
+
+        object IAsset.asset => asset;
+
+        public Asset(AssetModule module, string name, T asset) {
             this.module = module;
             this.name = name;
+            this.asset = asset;
+        }
+
+        // used to cast to a searched type
+        public Asset(IAsset asset) {
+            this.module = asset.module;
+            this.name = asset.name;
+            this.asset = asset.asset as T;
         }
 
     }
 
-    // an asset that needs to load data from the Content system
-    public abstract class ContentAsset : Asset {
+    public interface IContent {
+        
+        AssetModule module { get; }
+        string name { get; }
+        string qualifiedName { get; }
 
-        // the path inside the module folder that the file is located
-        // ex: modulename/foo/bar/assetname => directory = foo/bar
-        public string directory { get; private set; }
-        // the path to pass to ContentManager when loading this asset
-        public string contentFileName =>
-            string.Format("{0}/{1}/{2}", module.name, directory, name);
-        public bool isLoaded { get; protected set; }
+        object content { get; }
 
+    }
 
-        public ContentAsset(AssetModule module, string name, string directory) : base(module, name) {
-            this.directory = directory;
+    public struct Content<T> : IContent where T : class {
+
+        public AssetModule module { get; private set; }
+        public string name { get; private set; }
+        public string qualifiedName => module.name + ":" + name;
+
+        public T content { get; private set; }
+
+        object IContent.content => content;
+
+        public Content(AssetModule module, string name, T content) {
+            this.module = module;
+            this.name = name;
+            this.content = content;
         }
-
-        public void LoadContent(ContentManager content) {
-            OnLoadContent(content);
-            isLoaded = true;
-        }
-
-        protected abstract void OnLoadContent(ContentManager content);
 
     }
 

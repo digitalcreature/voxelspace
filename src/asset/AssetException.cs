@@ -1,6 +1,6 @@
 using System;
 
-namespace VoxelSpace {
+namespace VoxelSpace.Assets {
 
     public class AssetException : Exception {
 
