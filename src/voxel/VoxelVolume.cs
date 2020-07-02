@@ -73,13 +73,13 @@ namespace VoxelSpace {
         }
 
         // get the voxel at a specific set of global coords
-        public Voxel GetVoxel(Coords c) {
+        public Voxel? GetVoxel(Coords c) {
             var chunk = GetChunkContainingGlobalCoords(c);
             if (chunk != null) {
                 return chunk[chunk.VolumeToLocalCoords(c)];
             }
             else {
-                return Voxel.empty;
+                return null;
             }
         }
 
@@ -123,7 +123,7 @@ namespace VoxelSpace {
         }
 
         public bool CellIsSolid(Coords c) {
-            return GetVoxel(c).isSolid;
+            return GetVoxel(c)?.isSolid ?? false;
         }
 
         public Orientation GetVoxelOrientation(Coords c) {
@@ -133,7 +133,7 @@ namespace VoxelSpace {
         public bool Raycast(Vector3 origin, Vector3 dir, float range, Predicate<Voxel> pred, out VoxelRaycastResult result) {            
             dir.Normalize();
             Coords current = (Coords) origin;
-            var voxel = GetVoxel(current);
+            var voxel = GetVoxel(current) ?? Voxel.empty;
             if (pred(voxel)) {
                 result = new VoxelRaycastResult() {
                     volume = this,
@@ -181,7 +181,7 @@ namespace VoxelSpace {
                     normal = Vector3.Backward;
                     normal.Z = -step.z;
                 }
-                voxel = GetVoxel(current);
+                voxel = GetVoxel(current) ?? Voxel.empty;
                 if (distance < range && pred(voxel)) {
                     result = new VoxelRaycastResult() {
                         voxel = voxel,

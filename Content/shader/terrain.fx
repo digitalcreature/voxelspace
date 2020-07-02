@@ -19,8 +19,10 @@ struct a2v {
     float4 position : POSITION;
     float4 normal : NORMAL;
     float2 uv : TEXCOORD0;
-    float light : TEXCOORD2;
-    float ao : TEXCOORD3;
+    float ao : TEXCOORD2;
+    float3 lightSunP : TEXCOORD5;
+    float3 lightSunN : TEXCOORD5;
+    float lightPoint : TEXCOORD5;
 };
 
 struct v2f {
@@ -36,7 +38,7 @@ v2f vert(a2v a) {
     o.position = mul(mul(world, view), proj);
     float4 worldNormal = mul(model, a.normal);
     o.light = clamp(dot(worldNormal.xyz, lightDirection), 0, 1) * lightIntensity + lightAmbient;
-    o.light *= a.light;
+    o.light *= a.lightPoint;
     o.ao = 1 - (1 - a.ao) * .5;
     o.uv = a.uv;
     return o;

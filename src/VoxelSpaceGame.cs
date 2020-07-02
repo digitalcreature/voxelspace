@@ -20,6 +20,7 @@ namespace VoxelSpace {
         Planet planet;
 
         PlanetGenerator planetGenerator;
+        VoxelVolumeLightCalculator lightCalculator;
         VoxelVolumeMeshGenerator meshGenerator;
         PlayerEntity player;
 
@@ -70,6 +71,7 @@ namespace VoxelSpace {
             generator.grass = assetManager.FindAsset<IVoxelType>("core:grass")?.asset;
             generator.stone = assetManager.FindAsset<IVoxelType>("core:stone")?.asset;
             generator.dirt = assetManager.FindAsset<IVoxelType>("core:dirt")?.asset;
+            lightCalculator = new VoxelVolumeLightCalculator();
 
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
@@ -98,6 +100,9 @@ namespace VoxelSpace {
                 // planet.gravity.AlignToGravity(camera.transform);
             }
             if (planetGenerator.UpdateTask()) {
+                lightCalculator.StartTask(planet.volume);
+            }
+            if (lightCalculator.UpdateTask()) {
                 meshGenerator.StartTask(planet.volume);
             }
             if (meshGenerator.UpdateTask()) {

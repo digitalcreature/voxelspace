@@ -61,18 +61,54 @@ namespace VoxelSpace {
     // vertex light data for voxel meshs
     public struct VoxelLightVertex {
         
-        public float light;
+        public static readonly VoxelLightVertex zero = new VoxelLightVertex() {
+            sunP = Vector3.Zero,
+            sunN = Vector3.Zero,
+            point = 0
+        };
+
         public float ao;
 
-        public VoxelLightVertex(float light, float ao) {
-            this.light = light;
+        public Vector3 sunP;
+        public Vector3 sunN;
+        public float point;
+
+        public VoxelLightVertex(in VoxelLight light, float ao = 0) {
+            sunP = new Vector3(
+                (float) light.sunXp /  VoxelLight.MAX_LIGHT,
+                (float) light.sunYp /  VoxelLight.MAX_LIGHT,
+                (float) light.sunZp /  VoxelLight.MAX_LIGHT
+            );
+            sunN = new Vector3(
+                (float) light.sunXn /  VoxelLight.MAX_LIGHT,
+                (float) light.sunYn /  VoxelLight.MAX_LIGHT,
+                (float) light.sunZn /  VoxelLight.MAX_LIGHT
+            );
+            point = (float) light.point / VoxelLight.MAX_LIGHT;
             this.ao = ao;
         }
 
         public static readonly VertexDeclaration declaration = new VertexDeclaration(
             new VertexElement(0, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 2),
-            new VertexElement(4, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 3)
+            new VertexElement(4, VertexElementFormat.Vector3, VertexElementUsage.TextureCoordinate, 3),
+            new VertexElement(16, VertexElementFormat.Vector3, VertexElementUsage.TextureCoordinate, 4),
+            new VertexElement(28, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 5)
         );
+
+
+        // used for effecient averaging
+        public void AddLight(VoxelLightVertex a) {
+            sunP += a.sunP;
+            sunN += a.sunN;
+            point += a.point;
+        }
+
+        public void DivideLight(float f) {
+            sunP /= f;
+            sunN /= f;
+            point /= f;
+        }
+
     }
 
 }

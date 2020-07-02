@@ -14,15 +14,9 @@ namespace VoxelSpace {
 
         Voxel[,,] voxels;
 
-        public Voxel this[int x, int y, int z] {
-            get => voxels[x,y,z];
-            set => voxels[x, y, z] = value;
-        }
+        public ref Voxel this[int x, int y, int z] => ref voxels[x,y,z];
 
-        public Voxel this[Coords c] {
-            get => voxels[c.x, c.y, c.z];
-            set => voxels[c.x, c.y, c.z] = value;
-        }
+        public ref Voxel this[Coords c] => ref voxels[c.x, c.y, c.z];
 
         public VoxelChunk(VoxelVolume volume, Coords coords) {
             this.volume = volume;

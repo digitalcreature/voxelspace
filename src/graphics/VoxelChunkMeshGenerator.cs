@@ -166,7 +166,7 @@ namespace VoxelSpace {
                 var vc = vert.coords;
                 var pc = (Coords) vert.position;
                 Orientation normal = vert.normal.ToAxisAlignedOrientation();
-                Coords neighborCoords = vc + (Coords) vert.normal;
+                Coords n = vc + (Coords) vert.normal;
                 var t = Coords.zero;
                 var bt = Coords.zero;
                 switch (normal) {
@@ -188,39 +188,59 @@ namespace VoxelSpace {
                 }
                 // ao calculation with help from:
                 // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
-                bool corner = GetVoxelIncludingNeighbors(neighborCoords + t + bt).isSolid;
-                bool sideA = GetVoxelIncludingNeighbors(neighborCoords + t).isSolid;
-                bool sideB = GetVoxelIncludingNeighbors(neighborCoords + bt).isSolid;
-                float light = 1;
+                Voxel top = GetVoxelIncludingNeighbors(n);
+                Voxel corner = GetVoxelIncludingNeighbors(n + t + bt);
+                Voxel sideA = GetVoxelIncludingNeighbors(n + t);
+                Voxel sideB = GetVoxelIncludingNeighbors(n + bt);
+                var light = VoxelLightVertex.zero;
+                float count = 0;
+                if (!top.isSolid) {
+                    light.AddLight(new VoxelLightVertex(top.lighting));
+                    count ++;
+                }
                 float ao = 0;
-                if (sideA && sideB) {
+                if (sideA.isSolid && sideB.isSolid) {
                     ao = 1;
                 }
                 else {
-                    if (corner) ao ++;
-                    if (sideA) ao ++;
-                    if (sideB) ao ++;
+                    if (corner.isSolid) ao ++;
+                    else {
+                        light.AddLight(new VoxelLightVertex(corner.lighting));
+                        count ++;
+                    }
+                    if (sideA.isSolid) ao ++;
+                    else {
+                        light.AddLight(new VoxelLightVertex(sideA.lighting));
+                        count ++;
+                    }
+                    if (sideB.isSolid) ao ++;
+                    else {
+                        light.AddLight(new VoxelLightVertex(sideB.lighting));
+                        count ++;
+                    }
                     ao /= 3;
                 }
-                ao = 1 - ao;
-                lightVerts.Add(new VoxelLightVertex(light, ao));
+                light.DivideLight(count);
+                light.ao = 1 - ao;
+                lightVerts.Add(light);
             }
             // go back and flip any faces we need to for ao reasons
             for (int i = 0; i < verts.Count; i += 4) {
-                 var lightA = lightVerts[i  ];
-                 var lightB = lightVerts[i+1];
-                 var lightC = lightVerts[i+2];
-                 var lightD = lightVerts[i+3];
-                if (lightA.ao + lightD.ao > lightB.ao + lightC.ao) {
+                 var aoA = lightVerts[i  ].ao;
+                 var aoB = lightVerts[i+1].ao;
+                 var aoC = lightVerts[i+2].ao;
+                 var aoD = lightVerts[i+3].ao;
+                if (aoA + aoD > aoB + aoC) {
                     var tmp = verts[i];
                     verts[i] = verts[i+1];
                     verts[i+1] = verts[i+3];
                     verts[i+3] = verts[i+2];
                     verts[i+2] = tmp;
-                    lightVerts[i  ] = lightB;
-                    lightVerts[i+1] = lightD;
-                    lightVerts[i+2] = lightA;
-                    lightVerts[i+3] = lightC;
+                    var tmp2 = lightVerts[i];
+                    lightVerts[i] = lightVerts[i+1];
+                    lightVerts[i+1] = lightVerts[i+3];
+                    lightVerts[i+3] = lightVerts[i+2];
+                    lightVerts[i+2] = tmp2;
                 }
             }
         }
