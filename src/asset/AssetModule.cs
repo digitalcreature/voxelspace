@@ -1,7 +1,7 @@
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 
 namespace VoxelSpace.Assets {
@@ -130,15 +130,32 @@ namespace VoxelSpace.Assets {
 
         // load a piece of content from the ContentManager
         // if the content isnt supported natively, execute special code to load it
+        // if the requested type implements a static method:
+        //  public static T LoadInstance(string, ContentManager)
+        // we call it to load it. if it doesnt, we assume its a native MonoGame asset type and load it directly
         protected T LoadContent<T>(string directory, string name) where T : class {
             // check for name conflict at the start, before we load anything
             CheckContentNameConflict<T>(name);
             var contentPath = this.name + "/" + directory + "/" + name;
             T content;
-            if (typeof(T) == typeof(TileTexture)) {
-                var texture = contentManager.Load<Texture2D>(contentPath);
-                var tileTexture = new TileTexture(texture);
-                content = tileTexture as T;
+            var type = typeof(T);
+            var methods = type.FindMembers(MemberTypes.Method, BindingFlags.Public | BindingFlags.Static, (member, _) => {
+                if (member is MethodInfo method) {
+                    if (method.GetCustomAttribute<ContentLoaderAttribute>() != null) {
+                        if (method.ReturnType == typeof(T)) {
+                            var args = method.GetParameters();
+                            if (args.Length == 2
+                                    && args[0].ParameterType == typeof(string)
+                                    && args[1].ParameterType == typeof(ContentManager)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }, null);
+            if (methods.Length == 1 && methods[0] is MethodInfo method) {
+                content = method.Invoke(null, new object[]{contentPath, contentManager}) as T;
             }
             else {
                 content = contentManager.Load<T>(contentPath);

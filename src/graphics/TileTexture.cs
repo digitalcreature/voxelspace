@@ -27,6 +27,11 @@ namespace VoxelSpace {
             }
         }
 
+        [VoxelSpace.Assets.ContentLoader]
+        static TileTexture ContentLoader(string name, ContentManager content) {
+            return new TileTexture(content.Load<Texture2D>(name));
+        }
+
     }
 
 }
