@@ -43,14 +43,9 @@ namespace VoxelSpace {
             for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
                 for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
                     for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
-                        ref var vox = ref chunk[i, j, k];
-                        vox.lighting.point = 0;//(byte) (rng.Next() % VoxelLight.MAX_LIGHT);
-                        vox.lighting.sunXp = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
-                        vox.lighting.sunXn = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
-                        vox.lighting.sunYp = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
-                        vox.lighting.sunYn = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
-                        vox.lighting.sunZp = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
-                        vox.lighting.sunZn = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
+                        ref var light = ref chunk[i, j, k].lighting;
+                        light = VoxelLight.fullSun;
+                        var coords = new Coords(i, j, k);
                     }
                 }
 

@@ -16,6 +16,15 @@ namespace VoxelSpace {
 
         public int chunkCount => chunks.Count;
 
+        Region? _chunkRegion;
+
+        public Region chunkRegion {
+            // if the region was invalidated, such as by removal of a chunk, recalculate it
+            get => _chunkRegion ?? CalculateChunkRegion();
+            private set => _chunkRegion = value;
+        }
+        public Region voxelRegion => chunkRegion * VoxelChunk.chunkSize;
+
         public event ModifyVoxelCallback onModifyVoxel;
 
         public IVoxelOrientationField orientationField;
@@ -27,11 +36,13 @@ namespace VoxelSpace {
             chunks = new Dictionary<Coords, VoxelChunk>();
             dirtyChunks = new HashSet<VoxelChunk>();
             this.orientationField = orientationField;
+            chunkRegion = new Region();
         }
 
         public VoxelChunk AddChunk(Coords coords) {
             var chunk = new VoxelChunk(this, coords);
             chunks.Add(coords, chunk);
+            chunkRegion.ExpandToInclude(coords);
             return chunk;
         }
 
@@ -40,11 +51,23 @@ namespace VoxelSpace {
                 var chunk = chunks[coords];
                 chunk.Dispose();
                 chunks.Remove(coords);
+                // region isnt valid, so set it to null
+                _chunkRegion = null;
                 return true;
             }
             else {
                 return false;
             }
+        }
+
+        // recalculate the chunk region
+        Region CalculateChunkRegion() {
+            Region chunkRegion = new Region();
+            foreach (var c in chunks.Keys) {
+                chunkRegion.ExpandToInclude(c);
+            }
+            _chunkRegion = chunkRegion;
+            return chunkRegion;
         }
 
         public void SetChunkDirty(VoxelChunk chunk) {

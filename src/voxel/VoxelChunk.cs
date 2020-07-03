@@ -12,6 +12,9 @@ namespace VoxelSpace {
         ref Voxel this[int i, int j, int k] { get; }
         ref Voxel this[Coords c] { get; }
 
+        // ref VoxelLight GetLight(int i, int j, int k);
+        // ref VoxelLight GetLight(Coords c);
+
     }
 
     public class VoxelChunk : IVoxelChunk, IDisposable {
@@ -23,14 +26,15 @@ namespace VoxelSpace {
         public VoxelChunkMesh mesh { get; private set; }
 
         Voxel[,,] voxels;
+        // VoxelLight[,,] voxelLights;
 
         public ref Voxel this[int x, int y, int z] => ref voxels[x,y,z];
-
         public ref Voxel this[Coords c] => ref voxels[c.x, c.y, c.z];
 
         public VoxelChunk(VoxelVolume volume, Coords coords) {
             this.volume = volume;
             voxels = new Voxel[chunkSize, chunkSize, chunkSize];
+            // voxelLights = new VoxelLight[chunkSize, chunkSize, chunkSize];
             this.coords = coords;
         }
 
@@ -46,7 +50,9 @@ namespace VoxelSpace {
                 mesh.Dispose();
             }
         }
-        
+
+        // public ref VoxelLight GetLight(int i, int j, int k) => ref voxelLights[i,j,k];
+        // public ref VoxelLight GetLight(Coords c) => ref voxelLights[c.x, c.y, c.z];
     }
 
     public static class VoxelChunkExtentions {
@@ -71,23 +77,5 @@ namespace VoxelSpace {
                 return chunk.volume?.GetVoxel(chunk.LocalToVolumeCoords(new Coords(i, j, k))) ?? Voxel.empty;
             }
         }
-    }
-
-    public class SingleVoxelChunk : IVoxelChunk {
-
-        public VoxelVolume volume { get; private set; }
-        public Coords coords { get; private set; }
-
-        Voxel voxel;
-
-        public ref Voxel this[Coords c] => ref voxel;
-        public ref Voxel this[int i, int j, int k] => ref voxel;
-
-        public SingleVoxelChunk(VoxelVolume volume, Coords coords, Voxel? voxel) {
-            this.volume = volume;
-            this.coords = coords;
-            this.voxel = voxel ?? Voxel.empty;
-        }
-
     }
 }
