@@ -29,32 +29,6 @@ namespace VoxelSpace {
             }
         }
 
-        // get a voxel based on local coordinates to this chunk, while also checking
-        // other chunks in the volume if this is out of bounds
-        Voxel GetVoxelIncludingNeighbors(Coords c) => GetVoxelIncludingNeighbors(c.x, c.y, c.z);
-        Voxel GetVoxelIncludingNeighbors(int i, int j, int k) {
-            if (i >= 0 && i < VoxelChunk.chunkSize &&
-                j >= 0 && j < VoxelChunk.chunkSize &&
-                k >= 0 && k < VoxelChunk.chunkSize) {
-                    return chunk[i, j, k];
-            }
-            else {
-                if (chunk.volume != null) {
-                    var c = chunk.LocalToVolumeCoords(new Coords(i, j, k));
-                    var neighbor = chunk.volume.GetChunkContainingGlobalCoords(c);
-                    if (neighbor != null) {
-                        return neighbor[neighbor.VolumeToLocalCoords(c)];
-                    }
-                    else {
-                        return Voxel.empty;
-                    }
-                }
-                else {
-                    return Voxel.empty;
-                }
-            }
-        }
-
         public void Generate() {
             var size = VoxelChunk.chunkSize;
             for (int i = 0; i < size; i ++) {
@@ -65,7 +39,7 @@ namespace VoxelSpace {
                             var coords = new Coords(i, j, k);
                             var orientation = chunk.volume.GetVoxelOrientation(chunk.LocalToVolumeCoords(coords));
                             // -x face
-                            if (!GetVoxelIncludingNeighbors(i - 1, j, k).isMeshable) {
+                            if (!chunk.GetVoxelIncludingNeighbors(i - 1, j, k).isMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -80,7 +54,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +x face
-                            if (!GetVoxelIncludingNeighbors(i + 1, j, k).isMeshable) {
+                            if (!chunk.GetVoxelIncludingNeighbors(i + 1, j, k).isMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -95,7 +69,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // -y face
-                            if (!GetVoxelIncludingNeighbors(i, j - 1, k).isMeshable) {
+                            if (!chunk.GetVoxelIncludingNeighbors(i, j - 1, k).isMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -110,7 +84,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +y face
-                            if (!GetVoxelIncludingNeighbors(i, j + 1, k).isMeshable) {
+                            if (!chunk.GetVoxelIncludingNeighbors(i, j + 1, k).isMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -125,7 +99,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // -z face
-                            if (!GetVoxelIncludingNeighbors(i, j, k - 1).isMeshable) {
+                            if (!chunk.GetVoxelIncludingNeighbors(i, j, k - 1).isMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -140,7 +114,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +z face
-                            if (!GetVoxelIncludingNeighbors(i, j, k + 1).isMeshable) {
+                            if (!chunk.GetVoxelIncludingNeighbors(i, j, k + 1).isMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -188,10 +162,10 @@ namespace VoxelSpace {
                 }
                 // ao calculation with help from:
                 // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
-                Voxel top = GetVoxelIncludingNeighbors(n);
-                Voxel corner = GetVoxelIncludingNeighbors(n + t + bt);
-                Voxel sideA = GetVoxelIncludingNeighbors(n + t);
-                Voxel sideB = GetVoxelIncludingNeighbors(n + bt);
+                Voxel top = chunk.GetVoxelIncludingNeighbors(n);
+                Voxel corner = chunk.GetVoxelIncludingNeighbors(n + t + bt);
+                Voxel sideA = chunk.GetVoxelIncludingNeighbors(n + t);
+                Voxel sideB = chunk.GetVoxelIncludingNeighbors(n + bt);
                 var light = VoxelLightVertex.zero;
                 float count = 0;
                 if (!top.isSolid) {

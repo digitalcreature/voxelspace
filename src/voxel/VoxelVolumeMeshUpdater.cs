@@ -21,27 +21,27 @@ namespace VoxelSpace {
             UpdateChunkMesh(chunk);
             if (local.x == 0) {
                 var neighbor = volume[chunk.coords + new Coords(-1, 0, 0)];
-                if (neighbor != null) UpdateChunkMesh(neighbor);
+                if (neighbor is VoxelChunk neighborChunk) UpdateChunkMesh(neighborChunk);
             }
             if (local.x == VoxelChunk.chunkSize - 1) {
                 var neighbor = volume[chunk.coords + new Coords(1, 0, 0)];
-                if (neighbor != null) UpdateChunkMesh(neighbor);
+                if (neighbor is VoxelChunk neighborChunk) UpdateChunkMesh(neighborChunk);
             }
             if (local.y == 0) {
                 var neighbor = volume[chunk.coords + new Coords(0, -1, 0)];
-                if (neighbor != null) UpdateChunkMesh(neighbor);
+                if (neighbor is VoxelChunk neighborChunk) UpdateChunkMesh(neighborChunk);
             }
             if (local.y == VoxelChunk.chunkSize - 1) {
                 var neighbor = volume[chunk.coords + new Coords(0, 1, 0)];
-                if (neighbor != null) UpdateChunkMesh(neighbor);
+                if (neighbor is VoxelChunk neighborChunk) UpdateChunkMesh(neighborChunk);
             }
             if (local.z == 0) {
                 var neighbor = volume[chunk.coords + new Coords(0, 0, -1)];
-                if (neighbor != null) UpdateChunkMesh(neighbor);
+                if (neighbor is VoxelChunk neighborChunk) UpdateChunkMesh(neighborChunk);
             }
             if (local.z == VoxelChunk.chunkSize - 1) {
                 var neighbor = volume[chunk.coords + new Coords(0, 0, 1)];
-                if (neighbor != null) UpdateChunkMesh(neighbor);
+                if (neighbor is VoxelChunk neighborChunk) UpdateChunkMesh(neighborChunk);
             }
         }
 

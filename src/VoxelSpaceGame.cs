@@ -26,6 +26,8 @@ namespace VoxelSpace {
 
         SelectionWireframe selectionWireframe;
 
+        Vector3 sunDirection;
+
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
             assetManager = new AssetManager();
@@ -55,11 +57,8 @@ namespace VoxelSpace {
             // terrain shader
             effect = Content.Load<Effect>("shader/terrain");
             effect.Parameters["proj"].SetValue(projMat);
-            var light = new Vector3(1, 2, 3);
-            light.Normalize();
-            effect.Parameters["lightDirection"].SetValue(light);
-            effect.Parameters["lightIntensity"].SetValue(0.3f);
-            effect.Parameters["lightAmbient"].SetValue(0.7f);
+            effect.Parameters["lightIntensity"].SetValue(0f);//0.5f);
+            effect.Parameters["lightAmbient"].SetValue(1f);//0.5f);
             effect.Parameters["tex"]?.SetValue(atlas.atlasTexture);
             
             // planet
@@ -93,7 +92,7 @@ namespace VoxelSpace {
 
         protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
-            var deltaTime = gameTime.ElapsedGameTime.Milliseconds / 1000f;
+            var deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
             IsMouseVisible = !IsActive;
             if (IsActive) {
                 planet.Update(gameTime);
@@ -108,10 +107,16 @@ namespace VoxelSpace {
             if (meshGenerator.UpdateTask()) {
                 player.UnFreeze();
             }
+            // test day/night cycle
+            float t = (float) gameTime.TotalGameTime.TotalSeconds;
+            t /= 10; // 10 seconds a day
+            t *= 2 * MathHelper.Pi;
+            sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
         }
 
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            effect.Parameters["lightDirection"].SetValue(sunDirection.Normalized());
             effect.Parameters["view"].SetValue(player.viewMatrix);
             effect.CurrentTechnique.Passes[0].Apply();
             planet.Render(GraphicsDevice);

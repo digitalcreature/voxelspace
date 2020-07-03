@@ -9,7 +9,7 @@ namespace VoxelSpace {
 
     public delegate void ModifyVoxelCallback(VoxelVolume volume, VoxelChunk chunk, Coords global, Voxel voxel);
 
-    public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid, IVoxelOrientationField {
+    public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid {
 
         Dictionary<Coords, VoxelChunk> chunks;
         HashSet<VoxelChunk> dirtyChunks;
@@ -20,7 +20,7 @@ namespace VoxelSpace {
 
         public IVoxelOrientationField orientationField;
 
-        public VoxelChunk this[Coords c]
+        public IVoxelChunk this[Coords c]
             => chunks.ContainsKey(c) ? chunks[c] : null;
 
         public VoxelVolume(IVoxelOrientationField orientationField = null) {

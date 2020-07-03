@@ -4,7 +4,17 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
-    public class VoxelChunk : IDisposable {
+    public interface IVoxelChunk {
+
+        VoxelVolume volume { get; }
+        Coords coords { get; }
+
+        ref Voxel this[int i, int j, int k] { get; }
+        ref Voxel this[Coords c] { get; }
+
+    }
+
+    public class VoxelChunk : IVoxelChunk, IDisposable {
 
         public const int chunkSize = 32;
 
@@ -36,16 +46,48 @@ namespace VoxelSpace {
                 mesh.Dispose();
             }
         }
-
-        public Coords LocalToVolumeCoords(Coords c) 
-            => coords * chunkSize + c;
-        public Coords VolumeToLocalCoords(Coords c)
-            => c - coords * chunkSize;
-        public Vector3 LocalToVolumeVector(Vector3 c) 
-            => coords * chunkSize + c;
-        public Vector3 VolumeToLocalVector(Vector3 c)
-            => c - (coords * chunkSize);
         
+    }
+
+    public static class VoxelChunkExtentions {
+
+        public static Coords LocalToVolumeCoords(this IVoxelChunk chunk, Coords c) 
+            => chunk.coords * VoxelChunk.chunkSize + c;
+        public static Coords VolumeToLocalCoords(this IVoxelChunk chunk, Coords c)
+            => c - chunk.coords * VoxelChunk.chunkSize;
+        public static Vector3 LocalToVolumeVector(this IVoxelChunk chunk, Vector3 c) 
+            => chunk.coords * VoxelChunk.chunkSize + c;
+        public static Vector3 VolumeToLocalVector(this IVoxelChunk chunk, Vector3 c)
+            => c - (chunk.coords * VoxelChunk.chunkSize);
+        public static Voxel GetVoxelIncludingNeighbors(this IVoxelChunk chunk, Coords c)
+            => chunk.GetVoxelIncludingNeighbors(c.x, c.y, c.z);
+        public static Voxel GetVoxelIncludingNeighbors(this IVoxelChunk chunk, int i, int j, int k) {
+            if (i >= 0 && i < VoxelChunk.chunkSize &&
+                j >= 0 && j < VoxelChunk.chunkSize &&
+                k >= 0 && k < VoxelChunk.chunkSize) {
+                    return chunk[i, j, k];
+            }
+            else {
+                return chunk.volume?.GetVoxel(chunk.LocalToVolumeCoords(new Coords(i, j, k))) ?? Voxel.empty;
+            }
+        }
+    }
+
+    public class SingleVoxelChunk : IVoxelChunk {
+
+        public VoxelVolume volume { get; private set; }
+        public Coords coords { get; private set; }
+
+        Voxel voxel;
+
+        public ref Voxel this[Coords c] => ref voxel;
+        public ref Voxel this[int i, int j, int k] => ref voxel;
+
+        public SingleVoxelChunk(VoxelVolume volume, Coords coords, Voxel? voxel) {
+            this.volume = volume;
+            this.coords = coords;
+            this.voxel = voxel ?? Voxel.empty;
+        }
 
     }
 }

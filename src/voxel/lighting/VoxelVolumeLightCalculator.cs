@@ -39,21 +39,23 @@ namespace VoxelSpace {
         }
 
         void CalculateChunkLights(VoxelChunk chunk) {
+            var rng = new Random(chunk.coords.GetHashCode());
             for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
                 for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
                     for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
                         ref var vox = ref chunk[i, j, k];
-                        var p = chunk.LocalToVolumeCoords(new Coords(i, j, k));
-                        var noise = Perlin.Noise(((Vector3) p) * 0.1f);
-                        noise = (noise + 1) / 2f;
-                        vox.lighting.point = (byte) (noise * VoxelLight.MAX_LIGHT);
+                        vox.lighting.point = 0;//(byte) (rng.Next() % VoxelLight.MAX_LIGHT);
+                        vox.lighting.sunXp = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
+                        vox.lighting.sunXn = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
+                        vox.lighting.sunYp = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
+                        vox.lighting.sunYn = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
+                        vox.lighting.sunZp = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
+                        vox.lighting.sunZn = (byte) (rng.Next() % VoxelLight.MAX_LIGHT);
                     }
                 }
 
             }
         }
-
-
     }
 
 }
