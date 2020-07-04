@@ -6,6 +6,7 @@
     <MonoGamePlatform>DesktopGL</MonoGamePlatform>
     <PublishReadyToRun>false</PublishReadyToRun>
     <TieredCompilation>false</TieredCompilation>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -33,6 +34,7 @@
 
   <ItemGroup>
     <!-- <PackageReference Include="BEPUphysics" Version="2.2.0" /> -->
+    <PackageReference Include="ImGui.NET" Version="1.75.0" />
     <PackageReference Include="MonoGame.Framework.DesktopGL.Core" Version="3.8.*" />
     <PackageReference Include="MonoGame.Content.Builder" Version="3.7.*" />
   </ItemGroup>

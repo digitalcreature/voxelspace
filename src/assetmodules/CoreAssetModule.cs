@@ -3,6 +3,7 @@ using System;
 namespace VoxelSpace.Assets {
 
     public class CoreAssetModule : AssetModule {
+        
         public override string name => "core";
 
         protected override void OnLoadContent() {

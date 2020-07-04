@@ -53,10 +53,10 @@ namespace VoxelSpace {
                 transform.rotationMatrix
             );
 
-        public PlayerEntity(Vector3 position, MouseLook mouseLook) {
+        public PlayerEntity(Vector3 position, MouseLook mouseLook, InputManager input) {
             transform = new Transform(position);
             this.mouseLook = mouseLook;
-            input = new InputManager();
+            this.input = input;
             isGrounded = false;
         }
 

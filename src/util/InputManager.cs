@@ -12,6 +12,9 @@ namespace VoxelSpace {
         MouseState mouseState;
         MouseState lastMouseState;
 
+        public bool blockMouse;
+        public bool blockKeyboard;
+
         public void Update() {
             lastKeyboardState = keyboardState;
             keyboardState = Keyboard.GetState();
@@ -19,15 +22,16 @@ namespace VoxelSpace {
             mouseState = Mouse.GetState();
         }
 
-        public bool IsKeyDown(Keys key) => keyboardState.IsKeyDown(key);
-        public bool IsKeyUp(Keys key) => keyboardState.IsKeyUp(key);
+        public bool IsKeyDown(Keys key) => !blockKeyboard && keyboardState.IsKeyDown(key);
+        public bool IsKeyUp(Keys key) => !blockKeyboard && keyboardState.IsKeyUp(key);
 
         public bool WasKeyPressed(Keys key)
-            => keyboardState.IsKeyDown(key) && !lastKeyboardState.IsKeyDown(key);
+            => !blockKeyboard && keyboardState.IsKeyDown(key) && !lastKeyboardState.IsKeyDown(key);
         public bool WasKeyReleased(Keys key)
-            => keyboardState.IsKeyUp(key) && !lastKeyboardState.IsKeyUp(key);
+            => !blockKeyboard && keyboardState.IsKeyUp(key) && !lastKeyboardState.IsKeyUp(key);
 
         public bool IsMouseButtonDown(MouseButton button) {
+            if (blockMouse) return false;
             switch (button) {
                 case MouseButton.Left: return mouseState.LeftButton == ButtonState.Pressed;
                 case MouseButton.Right: return mouseState.RightButton == ButtonState.Pressed;
@@ -37,6 +41,7 @@ namespace VoxelSpace {
         }
 
         public bool IsMouseButtonUp(MouseButton button) {
+            if (blockMouse) return false;
             switch (button) {
                 case MouseButton.Left: return mouseState.LeftButton == ButtonState.Released;
                 case MouseButton.Right: return mouseState.RightButton == ButtonState.Released;
@@ -46,6 +51,7 @@ namespace VoxelSpace {
         }
 
         public bool WasMouseButtonPressed(MouseButton button) {
+            if (blockMouse) return false;
             switch (button) {
                 case MouseButton.Left: return mouseState.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton != ButtonState.Pressed;
                 case MouseButton.Right: return mouseState.RightButton == ButtonState.Pressed && lastMouseState.RightButton != ButtonState.Pressed;
@@ -55,6 +61,7 @@ namespace VoxelSpace {
         }
 
         public bool WasMouseButtonReleased(MouseButton button) {
+            if (blockMouse) return false;
             switch (button) {
                 case MouseButton.Left: return mouseState.LeftButton == ButtonState.Released && lastMouseState.LeftButton != ButtonState.Released;
                 case MouseButton.Right: return mouseState.RightButton == ButtonState.Released && lastMouseState.RightButton != ButtonState.Released;

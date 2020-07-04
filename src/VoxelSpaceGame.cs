@@ -28,6 +28,9 @@ namespace VoxelSpace {
 
         Vector3 sunDirection;
 
+        Debug.DebugUi debugUi;
+        InputManager input;
+
         public VoxelSpaceGame() {
             graphics = new GraphicsDeviceManager(this);
             assetManager = new AssetManager();
@@ -38,6 +41,8 @@ namespace VoxelSpace {
 
         protected override void Initialize() {
             projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), GraphicsDevice.Viewport.AspectRatio, 0.01f, 1000);
+            debugUi = new Debug.DebugUi(this);
+            debugUi.Initialize();
             base.Initialize();
         }
 
@@ -72,10 +77,12 @@ namespace VoxelSpace {
             generator.dirt = assetManager.FindAsset<IVoxelType>("core:dirt")?.asset;
             lightCalculator = new VoxelVolumeLightCalculator();
 
+            input = new InputManager();
+
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
-            player = new PlayerEntity(pos, new MouseLook(center));
+            player = new PlayerEntity(pos, new MouseLook(center), input);
             player.voxelTypeToPlace = assetManager.FindAsset<IVoxelType>("core:dirt")?.asset;
             planet.AddEntity(player);
             player.Freeze();
@@ -124,6 +131,7 @@ namespace VoxelSpace {
                 selectionWireframe.effect.View = player.viewMatrix;
                 selectionWireframe.Draw(player.aimedVoxel.coords, GraphicsDevice);
             }
+            debugUi.Draw(gameTime);
         }
     }
 }
