@@ -29,8 +29,8 @@ namespace VoxelSpace {
 
         public IVoxelOrientationField orientationField;
 
-        public IVoxelChunk this[Coords c]
-            => chunks.ContainsKey(c) ? chunks[c] : null;
+        public VoxelChunk this[Coords c]
+            => chunks.TryGetValue(c, out var chunk) ? chunk : null;
 
         public VoxelVolume(IVoxelOrientationField orientationField = null) {
             chunks = new Dictionary<Coords, VoxelChunk>();
@@ -42,13 +42,14 @@ namespace VoxelSpace {
         public VoxelChunk AddChunk(Coords coords) {
             var chunk = new VoxelChunk(this, coords);
             chunks.Add(coords, chunk);
-            chunkRegion.ExpandToInclude(coords);
+            var region = chunkRegion;
+            region.ExpandToInclude(coords);
+            chunkRegion = region;
             return chunk;
         }
 
         public bool RemoveChunk(Coords coords) {
-            if (chunks.ContainsKey(coords)) {
-                var chunk = chunks[coords];
+            if (chunks.TryGetValue(coords, out var chunk)) {
                 chunk.Dispose();
                 chunks.Remove(coords);
                 // region isnt valid, so set it to null
@@ -98,35 +99,27 @@ namespace VoxelSpace {
         // get the voxel at a specific set of global coords
         public Voxel? GetVoxel(Coords c) {
             var chunk = GetChunkContainingGlobalCoords(c);
-            if (chunk != null) {
-                return chunk[chunk.VolumeToLocalCoords(c)];
-            }
-            else {
-                return null;
-            }
+            return chunk?.voxels[chunk.VolumeToLocalCoords(c)];
+        }
+        
+        // get the voxel light at a specific set of global coords
+        public VoxelLight GetVoxelLight(Coords c) {
+            var chunk = GetChunkContainingGlobalCoords(c);
+            return chunk?.lights[chunk.VolumeToLocalCoords(c)] ?? VoxelLight.NODATA;
         }
 
         // set the voxel at a specific set of coords
         // calls the onModifyVoxel callback
         public void SetVoxel(Coords c, Voxel v) {
-            var chunk = GetChunkContainingGlobalCoords(c);
-            if (chunk == null) {
-                chunk = AddChunk(GlobalToChunkCoords(c));
-            }
+            var chunk = GetChunkContainingGlobalCoords(c) ?? AddChunk(GlobalToChunkCoords(c));
             var localCoords = chunk.VolumeToLocalCoords(c);
-            chunk[localCoords] = v;
+            chunk.voxels[localCoords] = v;
             onModifyVoxel?.Invoke(this, chunk, c, v);
         }
 
         // return the chunk containing the voxel at a set of coords
         public VoxelChunk GetChunkContainingGlobalCoords(Coords c) {
-            c = GlobalToChunkCoords(c);
-            if (chunks.ContainsKey(c)) {
-                return chunks[c];
-            }
-            else {
-                return null;
-            }
+            return this[GlobalToChunkCoords(c)];
         }
 
         public IEnumerable<VoxelChunk> GetDirtyChunks() {
@@ -135,23 +128,17 @@ namespace VoxelSpace {
             }
         }
 
-        public IEnumerator<VoxelChunk> GetEnumerator() {
-            foreach (var chunk in chunks.Values) {
-                yield return chunk;
-            }
-        }
+        public IEnumerator<VoxelChunk> GetEnumerator()
+            => chunks.Values.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
 
-        public bool CellIsSolid(Coords c) {
-            return GetVoxel(c)?.isSolid ?? false;
-        }
+        public bool CellIsSolid(Coords c)
+            => GetVoxel(c)?.isSolid ?? false;
 
-        public Orientation GetVoxelOrientation(Coords c) {
-            return orientationField?.GetVoxelOrientation(c) ?? Orientation.Zero;
-        }
+        public Orientation GetVoxelOrientation(Coords c)
+            => orientationField?.GetVoxelOrientation(c) ?? Orientation.Zero;
 
         public bool Raycast(Vector3 origin, Vector3 dir, float range, Predicate<Voxel> pred, out VoxelRaycastResult result) {            
             dir.Normalize();

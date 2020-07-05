@@ -16,7 +16,7 @@ namespace VoxelSpace {
 
         public Vector3 caveNoiseOffset = new Vector3(54.1f, -53.5f, -5043.2f);
         public float caveNoiseFrequency = 0.1f;
-        public float caveNoiseThreshold = 0.4f;
+        public float caveNoiseThreshold = 0;//0.4f;
 
         WorkerThreadGroup<VoxelChunk> chunkWorkerGroup;
 
@@ -60,10 +60,10 @@ namespace VoxelSpace {
                     for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
                         for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
                             if (IsInCave(chunk.LocalToVolumeCoords(new Coords(i, j, k)))) {
-                                chunk[i, j, k] = Voxel.empty;
+                                chunk.voxels[i, j, k] = Voxel.empty;
                             }
                             else {
-                                chunk[i, j, k] = new Voxel(stone);
+                                chunk.voxels[i, j, k] = new Voxel(stone);
                             }
                         }
                     }
@@ -75,7 +75,7 @@ namespace VoxelSpace {
                         for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
                             var vc = chunk.LocalToVolumeCoords(new Coords(i, j, k));
                             if (IsInCave(vc)) {
-                                chunk[i, j, k] = Voxel.empty;
+                                chunk.voxels[i, j, k] = Voxel.empty;
                             }
                             else {
                                 var vpos = vc + Vector3.One * 0.5f;
@@ -103,7 +103,7 @@ namespace VoxelSpace {
                                 else {
                                     type = stone;
                                 }
-                                chunk[i,j,k] = new Voxel(type);
+                                chunk.voxels[i, j, k] = new Voxel(type);
                             }
                         }
                     }

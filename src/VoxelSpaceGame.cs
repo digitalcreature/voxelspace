@@ -131,7 +131,7 @@ namespace VoxelSpace {
                 selectionWireframe.effect.View = player.viewMatrix;
                 selectionWireframe.Draw(player.aimedVoxel.coords, GraphicsDevice);
             }
-            debugUi.Draw(gameTime);
+            // debugUi.Draw(gameTime);
         }
     }
 }

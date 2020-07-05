@@ -30,7 +30,7 @@ struct v2f {
     float2 uv : TEXCOORD0;
     float light : TEXCOORD1;
     float ao : TEXCOORD2;
-    // float3 color : TEXCOORD3;
+    float4 color : TEXCOORD3;
 };
 
 v2f vert(a2v a) {
@@ -47,7 +47,7 @@ v2f vert(a2v a) {
     float3 sun = lerp(a.lightSunN, a.lightSunP, clamp(sign(sunDir), 0, 1)) * abs(sunDir);
     float totalSunLight = sun.x + sun.y + sun.z;
     o.light *= clamp(totalSunLight + a.lightPoint, 0, 1);
-    // o.color = sun/2 + 0.5;
+    o.color = float4(a.lightSunP, 0);//sun/2 + 0.5;
     return o;
 }
 
@@ -55,7 +55,7 @@ float4 frag(v2f v) : COLOR {
     float4 color = tex2D(texSampler, v.uv);
     clip(color.a - 0.5);
     // return float4(v.color, 1);
-    return v.light * v.ao * color;
+    return v.light * v.ao * color;// + v.color * 0.5;
 }
 
 technique Terrain {

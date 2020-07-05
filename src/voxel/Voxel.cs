@@ -9,11 +9,9 @@ namespace VoxelSpace {
         public static readonly Voxel empty = new Voxel(null);
 
         public IVoxelType type;
-        public VoxelLight lighting;
 
-        public Voxel(IVoxelType type, VoxelLight lighting = default(VoxelLight)) {
+        public Voxel(IVoxelType type) {
             this.type = type;
-            this.lighting = lighting;
         }
 
         public bool isEmpty => type == null;

@@ -71,6 +71,12 @@ namespace VoxelSpace {
         public int Max() => Math.Max(x, Math.Max(y, z));
         public int Min() => Math.Min(x, Math.Min(y, z));
 
+        public void Deconstruct(out int x, out int y, out int z) {
+            x = this.x;
+            y = this.y;
+            z = this.z;
+        }
+
     }
 
 }

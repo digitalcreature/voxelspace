@@ -49,6 +49,10 @@ namespace VoxelSpace {
             return min.GetHashCode() ^ max.GetHashCode();
         }
 
+        public override string ToString() {
+            return string.Format("[{0} - {1}]", min, max);
+        }
+
 
     }
 }

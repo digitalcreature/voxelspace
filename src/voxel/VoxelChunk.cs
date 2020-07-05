@@ -4,20 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
-    public interface IVoxelChunk {
-
-        VoxelVolume volume { get; }
-        Coords coords { get; }
-
-        ref Voxel this[int i, int j, int k] { get; }
-        ref Voxel this[Coords c] { get; }
-
-        // ref VoxelLight GetLight(int i, int j, int k);
-        // ref VoxelLight GetLight(Coords c);
-
-    }
-
-    public class VoxelChunk : IVoxelChunk, IDisposable {
+    public class VoxelChunk : IDisposable {
 
         public const int chunkSize = 32;
 
@@ -25,17 +12,14 @@ namespace VoxelSpace {
         public Coords coords { get; private set; }
         public VoxelChunkMesh mesh { get; private set; }
 
-        Voxel[,,] voxels;
-        // VoxelLight[,,] voxelLights;
-
-        public ref Voxel this[int x, int y, int z] => ref voxels[x,y,z];
-        public ref Voxel this[Coords c] => ref voxels[c.x, c.y, c.z];
+        public Array3<Voxel> voxels { get; private set; }
+        public Array3<VoxelLight> lights { get; private set; }
 
         public VoxelChunk(VoxelVolume volume, Coords coords) {
             this.volume = volume;
-            voxels = new Voxel[chunkSize, chunkSize, chunkSize];
-            // voxelLights = new VoxelLight[chunkSize, chunkSize, chunkSize];
             this.coords = coords;
+            voxels = new Voxel[chunkSize, chunkSize, chunkSize];
+            lights = new VoxelLight[chunkSize, chunkSize, chunkSize];
         }
 
         public void UpdateMesh(VoxelChunkMesh mesh) {
@@ -51,31 +35,44 @@ namespace VoxelSpace {
             }
         }
 
-        // public ref VoxelLight GetLight(int i, int j, int k) => ref voxelLights[i,j,k];
-        // public ref VoxelLight GetLight(Coords c) => ref voxelLights[c.x, c.y, c.z];
-    }
+        public static bool AreLocalCoordsInBounds(Coords c) {
+            var min = 0;
+            var max = chunkSize - 1;
+            return c.x >= min && c.x < max
+                && c.y >= min && c.y < max
+                && c.z >= min && c.z < max;
+        }
 
-    public static class VoxelChunkExtentions {
-
-        public static Coords LocalToVolumeCoords(this IVoxelChunk chunk, Coords c) 
-            => chunk.coords * VoxelChunk.chunkSize + c;
-        public static Coords VolumeToLocalCoords(this IVoxelChunk chunk, Coords c)
-            => c - chunk.coords * VoxelChunk.chunkSize;
-        public static Vector3 LocalToVolumeVector(this IVoxelChunk chunk, Vector3 c) 
-            => chunk.coords * VoxelChunk.chunkSize + c;
-        public static Vector3 VolumeToLocalVector(this IVoxelChunk chunk, Vector3 c)
-            => c - (chunk.coords * VoxelChunk.chunkSize);
-        public static Voxel GetVoxelIncludingNeighbors(this IVoxelChunk chunk, Coords c)
-            => chunk.GetVoxelIncludingNeighbors(c.x, c.y, c.z);
-        public static Voxel GetVoxelIncludingNeighbors(this IVoxelChunk chunk, int i, int j, int k) {
-            if (i >= 0 && i < VoxelChunk.chunkSize &&
-                j >= 0 && j < VoxelChunk.chunkSize &&
-                k >= 0 && k < VoxelChunk.chunkSize) {
-                    return chunk[i, j, k];
+        public Coords LocalToVolumeCoords(Coords c) 
+            => coords * chunkSize + c;
+        public Coords VolumeToLocalCoords(Coords c)
+            => c - (coords * chunkSize);
+        public Vector3 LocalToVolumeVector(Vector3 c) 
+            => coords * chunkSize + c;
+        public Vector3 VolumeToLocalVector(Vector3 c)
+            => c - (coords * chunkSize);
+        
+        public Voxel GetVoxelIncludingNeighbors(Coords c) {
+            if (AreLocalCoordsInBounds(c)) {
+                return voxels[c];
             }
             else {
-                return chunk.volume?.GetVoxel(chunk.LocalToVolumeCoords(new Coords(i, j, k))) ?? Voxel.empty;
+                return volume?.GetVoxel(LocalToVolumeCoords(c)) ?? Voxel.empty;
             }
         }
+        public Voxel GetVoxelIncludingNeighbors(int i, int j, int k)
+            => GetVoxelIncludingNeighbors(new Coords(i, j, k));
+
+        public VoxelLight GetVoxelLightIncludingNeighbors(Coords c) {
+            if (AreLocalCoordsInBounds(c)) {
+                return lights[c];
+            }
+            else {
+                return volume?.GetVoxelLight(LocalToVolumeCoords(c)) ?? VoxelLight.NODATA;
+            }
+        }
+        public VoxelLight GetVoxelLightIncludingNeighbors(int i, int j, int k)
+            => GetVoxelLightIncludingNeighbors(new Coords(i, j, k));
     }
+
 }

@@ -62,7 +62,7 @@ namespace VoxelSpace {
         }
 
         public string GetCompletionMessage(string message) {
-            return string.Format("{0} (1 threads in {2}s)", message, completionTime);
+            return string.Format("{0} (1 threads in {1}s)", message, completionTime);
         }
     }
 
