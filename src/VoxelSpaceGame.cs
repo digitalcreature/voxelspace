@@ -95,6 +95,7 @@ namespace VoxelSpace {
             selectionWireframe.effect.Projection = projMat;
 
             new VoxelVolumeMeshUpdater(GraphicsDevice).RegisterCallbacks(planet.volume);
+            sunDirection = Vector3.Down;
         }
 
         protected override void Update(GameTime gameTime) {
@@ -118,7 +119,7 @@ namespace VoxelSpace {
             float t = (float) gameTime.TotalGameTime.TotalSeconds;
             t /= 10; // 10 seconds a day
             t *= 2 * MathHelper.Pi;
-            sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+            // sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
         }
 
         protected override void Draw(GameTime gameTime) {

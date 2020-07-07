@@ -16,7 +16,7 @@ namespace VoxelSpace {
 
         public Vector3 caveNoiseOffset = new Vector3(54.1f, -53.5f, -5043.2f);
         public float caveNoiseFrequency = 0.1f;
-        public float caveNoiseThreshold = 0;//0.4f;
+        public float caveNoiseThreshold = 0.4f;
 
         WorkerThreadGroup<VoxelChunk> chunkWorkerGroup;
 

@@ -63,7 +63,7 @@ namespace VoxelSpace {
         public Voxel GetVoxelIncludingNeighbors(int i, int j, int k)
             => GetVoxelIncludingNeighbors(new Coords(i, j, k));
 
-        public VoxelLight GetVoxelLightIncludingNeighbors(Coords c) {
+        public unsafe VoxelLight GetVoxelLightIncludingNeighbors(Coords c) {
             if (AreLocalCoordsInBounds(c)) {
                 return lights[c];
             }

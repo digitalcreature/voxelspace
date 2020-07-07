@@ -27,10 +27,10 @@ namespace VoxelSpace {
 
 
         public byte sunXp;
-        public byte sunXn;
         public byte sunYp;
-        public byte sunYn;
         public byte sunZp;
+        public byte sunXn;
+        public byte sunYn;
         public byte sunZn;
 
         public byte point;

@@ -1,11 +1,12 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace VoxelSpace {
 
-    // drop in wrapper that lets us index using Coords
-    public struct Array3<T> {
+    // wrapper that lets us index with Coords
+    public struct Array3<T> where T : struct {
 
-        T[,,] data;
+        public readonly T[,,] data;
 
         public ref T this[int i, int j, int k] => ref data[i, j, k];
         public ref T this[(int, int, int) v] => ref data[v.Item1, v.Item2, v.Item3];
@@ -22,8 +23,6 @@ namespace VoxelSpace {
         public static implicit operator T[,,](Array3<T> a) => a.data;
         public static implicit operator Array3<T>(T[,,] data) => new Array3<T>(data);
 
-
     }
-
 
 }
