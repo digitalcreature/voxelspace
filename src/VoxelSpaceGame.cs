@@ -35,8 +35,8 @@ namespace VoxelSpace {
             graphics = new GraphicsDeviceManager(this);
             assetManager = new AssetManager();
             Content.RootDirectory = "Content";
-            graphics.PreferredBackBufferWidth = 1280;
-            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = 1920;
+            graphics.PreferredBackBufferHeight = 1080;
         }
 
         protected override void Initialize() {
@@ -119,7 +119,7 @@ namespace VoxelSpace {
             float t = (float) gameTime.TotalGameTime.TotalSeconds;
             t /= 10; // 10 seconds a day
             t *= 2 * MathHelper.Pi;
-            // sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+            sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
         }
 
         protected override void Draw(GameTime gameTime) {

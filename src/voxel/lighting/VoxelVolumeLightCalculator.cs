@@ -11,29 +11,95 @@ namespace VoxelSpace {
     // use to calculate the lights after voxel volume generation/deserialization
     public class VoxelVolumeLightCalculator : IMultiFrameTask<VoxelVolume> {
 
-        WorkerThread<VoxelVolume> workerThread;
+        WorkerThreadGroup<VoxelVolume> workerThreadGroup;
 
-        public bool isRunning => workerThread.isRunning;
-        public bool hasCompleted => workerThread.hasCompleted;
+        public bool isRunning => workerThreadGroup.isRunning;
+        public bool hasCompleted => workerThreadGroup.hasCompleted;
         // public float progress => workerThread.progress;
 
         public VoxelVolumeLightCalculator() {
-            workerThread = new WorkerThread<VoxelVolume>(CalculateLights);
+            workerThreadGroup = new WorkerThreadGroup<VoxelVolume>(CalculateLight, 7);
         }
 
         public void StartTask(VoxelVolume volume) {
             if (!this.HasStarted()) {
-                workerThread.StartTask(volume);
+                workerThreadGroup.StartTask(volume, volume, volume, volume, volume, volume, volume);
             }
         }
 
         public bool UpdateTask() {
-            bool isDone = workerThread.UpdateTask();
+            bool isDone = workerThreadGroup.UpdateTask();
             if (isDone) {
-                Logger.Info(this, workerThread.GetCompletionMessage("Calculated lighting for volume"));
+                Logger.Info(this, workerThreadGroup.GetCompletionMessage("Calculated lighting for volume"));
             }
             return isDone;
         }
+
+        unsafe void CalculateLight(VoxelVolume volume) {
+            int l = workerThreadGroup.GetCurrentThreadIndex();
+            if (l == 6) {
+                // if were dealing with point lights, just copy the value from the source
+                // this will be propogated when we reach the propogation step
+                foreach (var chunk in volume) {
+                    for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
+                        for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
+                            for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
+                                ref var light = ref chunk.lights[i, j, k];
+                                light.point = light.pointSource;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                var vRegion = volume.voxelRegion;
+                var axis = l % 3; // x = 0, y = 1, z = 2
+                var neg = l >= 3;
+                int minA, minB, minC;
+                int maxA, maxB, maxC;
+                minA = (&vRegion.min.x)[(axis + 1) % 3];
+                maxA = (&vRegion.max.x)[(axis + 1) % 3];
+                minB = (&vRegion.min.x)[(axis + 2) % 3];
+                maxB = (&vRegion.max.x)[(axis + 2) % 3];
+                int incr = neg ? -1 : 1;
+                if (neg) {
+                    minC = (&vRegion.max.x)[axis] - 1;
+                    maxC = (&vRegion.min.x)[axis] - 1;
+                }
+                else {
+                    minC = (&vRegion.min.x)[axis];
+                    maxC = (&vRegion.max.x)[axis];
+                }
+
+                // iterate over the voxels in the 2d plane perpendicular to the axis we care about
+                // this way we can effeciently cast sunlight in the direction we care about
+                for (int va = minA; va < maxA; va ++) {
+                    for (int vb = minB; vb < maxB; vb ++) {
+                        Coords vCoords = Coords.zero;
+                        (&vCoords.x)[(axis + 1) % 3] = va;
+                        (&vCoords.x)[(axis + 2) % 3] = vb;
+                        for (int vc = minC; vc != maxC; vc += incr) {
+                            (&vCoords.x)[axis] = vc;
+                            // if (l == 0) {
+                            //     Logger.Debug(this, $"{vCoords}");
+                            // }
+                            var chunk = volume.GetChunkContainingGlobalCoords(vCoords);
+                            if (chunk != null) {
+                                Coords lCoords = chunk.VolumeToLocalCoords(vCoords);
+                                // if weve reached a solid voxel, stop casting sunlight and move to the next column
+                                if (chunk.voxels[lCoords].isSolid) {
+                                    break;
+                                }
+                                fixed (byte* light = &chunk.lights.data[lCoords.x, lCoords.y, lCoords.z].sunXp) {
+                                    light[l] = VoxelLight.MAX_LIGHT;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 
         void CalculateLights(VoxelVolume volume) {
             CalculateSunlight(volume);

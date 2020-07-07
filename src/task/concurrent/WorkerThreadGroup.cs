@@ -20,6 +20,8 @@ namespace VoxelSpace {
         Thread[] workers;
         Stopwatch stopwatch;
 
+        Dictionary<int, int> threadIndicies;
+
         public int dataCount { get; private set; }
         public int dataRemaining {
             get => _dataRemaining;
@@ -40,8 +42,10 @@ namespace VoxelSpace {
             isRunning = false;
             this.processor = processor;
             this.workerCount = workerCount;
+            threadIndicies = new Dictionary<int, int>();
         }
 
+        public void StartTask(params T[] data) => StartTask(data as IEnumerable<T>);
         public void StartTask(IEnumerable<T> data) {
             if (!isRunning && !hasCompleted) {
                 isRunning = true;
@@ -53,10 +57,20 @@ namespace VoxelSpace {
                 stopwatch = Stopwatch.StartNew();
                 workers = new Thread[workerCount];
                 for (int i = 0; i < workerCount; i ++) {
-                    workers[i] = new Thread(Worker);
+                    var thread = new Thread(Worker);
+                    threadIndicies[thread.ManagedThreadId] = i;
+                    workers[i] = thread;
                     workers[i].Start();
                 }
             }
+        }
+
+        public int GetCurrentThreadIndex() {
+            var id = Thread.CurrentThread.ManagedThreadId;
+            if (threadIndicies.ContainsKey(id)) {
+                return threadIndicies[id];
+            }
+            else throw new InvalidOperationException("Current thread is not a part of worker thread group");
         }
 
         public string GetCompletionMessage(string format) {
@@ -93,11 +107,6 @@ namespace VoxelSpace {
             isRunning = false;
             hasCompleted = true;
             completionTime = stopwatch.ElapsedMilliseconds / 1000f;
-            foreach (var worker in workers) {
-                if (worker.IsAlive) {
-                    worker.Abort();
-                }
-            }
             workers = null;
         }
 
