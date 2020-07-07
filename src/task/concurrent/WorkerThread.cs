@@ -15,19 +15,17 @@ namespace VoxelSpace {
         public bool hasCompleted { get; private set; }
 
         Func<T, R> action;
-        Thread worker;
         Stopwatch stopwatch;
 
-        T data;
         R result;
 
         float completionTime;
+        bool resultAvailable;
 
         public WorkerThread(Func<T, R> action) {
             this.action = action;
             isRunning = false;
             hasCompleted = false;
-            worker = null;
         }
 
         public void StartTask(T data) {
@@ -35,22 +33,21 @@ namespace VoxelSpace {
                 isRunning = true;
                 hasCompleted = false;
                 stopwatch = Stopwatch.StartNew();
-                this.data = data;
-                worker = new Thread(Worker);
-                worker.Start();
+                resultAvailable = false;
+                ThreadPool.QueueUserWorkItem(Worker, data);
             }
         }
 
-        void Worker() {
-            result = action(data);
-            worker = null;
+        void Worker(object data) {
+            result = action((T) data);
+            resultAvailable = true;
         }
 
 
         public bool UpdateTask() => UpdateTask(null);
         public bool UpdateTask(Action<R> resultProcessor) {
             if (isRunning) {
-                if (worker == null) {
+                if (resultAvailable) {
                     resultProcessor?.Invoke(result);
                     isRunning = false;
                     hasCompleted = true;
@@ -62,7 +59,7 @@ namespace VoxelSpace {
         }
 
         public string GetCompletionMessage(string message) {
-            return string.Format("{0} (1 threads in {1}s)", message, completionTime);
+            return string.Format("{0} ({1}s)", message, completionTime);
         }
     }
 

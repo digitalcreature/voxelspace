@@ -15,12 +15,7 @@ namespace VoxelSpace {
         public bool hasCompleted { get; private set; }
         public bool isRunning { get; private set; }
 
-        public int workerCount { get; private set; }
-
-        Thread[] workers;
         Stopwatch stopwatch;
-
-        Dictionary<int, int> threadIndicies;
 
         public int dataCount { get; private set; }
         public int dataRemaining {
@@ -32,17 +27,14 @@ namespace VoxelSpace {
         public float progress => 1 - (dataRemaining / (float) dataCount);
         public float completionTime { get; private set; }
 
-        ConcurrentQueue<T> dataQueue;
         ConcurrentQueue<R> resultQueue;
 
         System.Func<T, R> processor;
 
-        public WorkerThreadGroup(System.Func<T, R> processor, int workerCount = defaultWorkerCount) {
+        public WorkerThreadGroup(System.Func<T, R> processor) {
             hasCompleted = false;
             isRunning = false;
             this.processor = processor;
-            this.workerCount = workerCount;
-            threadIndicies = new Dictionary<int, int>();
         }
 
         public void StartTask(params T[] data) => StartTask(data as IEnumerable<T>);
@@ -50,32 +42,22 @@ namespace VoxelSpace {
             if (!isRunning && !hasCompleted) {
                 isRunning = true;
                 hasCompleted = false;
-                dataQueue = new ConcurrentQueue<T>(data);
-                dataCount = dataQueue.Count;
-                dataRemaining = dataCount;
                 resultQueue = new ConcurrentQueue<R>();
                 stopwatch = Stopwatch.StartNew();
-                workers = new Thread[workerCount];
-                for (int i = 0; i < workerCount; i ++) {
-                    var thread = new Thread(Worker);
-                    threadIndicies[thread.ManagedThreadId] = i;
-                    workers[i] = thread;
-                    workers[i].Start();
+                dataRemaining = 0;
+                foreach (var d in data) {
+                    dataCount ++;
+                }
+                dataRemaining = dataCount;
+                foreach (var d in data) {
+                    ThreadPool.QueueUserWorkItem(Worker, d);
                 }
             }
         }
 
-        public int GetCurrentThreadIndex() {
-            var id = Thread.CurrentThread.ManagedThreadId;
-            if (threadIndicies.ContainsKey(id)) {
-                return threadIndicies[id];
-            }
-            else throw new InvalidOperationException("Current thread is not a part of worker thread group");
-        }
-
         public string GetCompletionMessage(string format) {
             var message = string.Format(format, dataCount);
-            return string.Format("{0} ({1} threads in {2}s)", message, workerCount, completionTime);
+            return string.Format("{0} ({1}s)", message, completionTime);
         }
 
         public bool UpdateTask() => UpdateTask(null);
@@ -95,19 +77,16 @@ namespace VoxelSpace {
             return false;
         }
 
-        void Worker() {
-            while (dataQueue.TryDequeue(out var data)) {
-                var result = processor(data);
-                resultQueue.Enqueue(result);
-                Interlocked.Decrement(ref _dataRemaining);
-            }
+        void Worker(object data) {
+            var result = processor((T) data);
+            resultQueue.Enqueue(result);
+            Interlocked.Decrement(ref _dataRemaining);
         }
 
         void Finish() {
             isRunning = false;
             hasCompleted = true;
             completionTime = stopwatch.ElapsedMilliseconds / 1000f;
-            workers = null;
         }
 
         public IEnumerator<R> GetEnumerator() => resultQueue.GetEnumerator();
@@ -117,8 +96,8 @@ namespace VoxelSpace {
     // convience class for worker threads that dont return new data
     public class WorkerThreadGroup<T> : WorkerThreadGroup<T, T> {
 
-        public WorkerThreadGroup(System.Action<T> processor, int workerCount = defaultWorkerCount)
-        : base((t) => { processor(t); return t; }, workerCount) {}
+        public WorkerThreadGroup(System.Action<T> processor)
+        : base((t) => { processor(t); return t; }) {}
 
     }
 

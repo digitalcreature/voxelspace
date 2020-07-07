@@ -26,6 +26,7 @@ namespace VoxelSpace {
         }
 
         public void Draw(GraphicsDevice graphics) {
+            // graphics.SetVertexBuffer(verts);
             graphics.SetVertexBuffers(new VertexBufferBinding(verts, 0), new VertexBufferBinding(lightVerts, 0));
             graphics.Indices = tris;
             graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, tris.IndexCount/3);

@@ -67,7 +67,7 @@ namespace VoxelSpace {
             effect.Parameters["tex"]?.SetValue(atlas.atlasTexture);
             
             // planet
-            planet = new Planet(64, 20, new VoxelVolumeRenderer(effect));
+            planet = new Planet(32, 20, new VoxelVolumeRenderer(effect));
             var generator = new PlanetTerrainGenerator();
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
@@ -104,7 +104,6 @@ namespace VoxelSpace {
             IsMouseVisible = !IsActive;
             if (IsActive) {
                 planet.Update(gameTime);
-                // planet.gravity.AlignToGravity(camera.transform);
             }
             if (planetGenerator.UpdateTask()) {
                 lightCalculator.StartTask(planet.volume);
@@ -119,7 +118,8 @@ namespace VoxelSpace {
             float t = (float) gameTime.TotalGameTime.TotalSeconds;
             t /= 10; // 10 seconds a day
             t *= 2 * MathHelper.Pi;
-            sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+            // Logger.Debug(this, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
+            // sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
         }
 
         protected override void Draw(GameTime gameTime) {

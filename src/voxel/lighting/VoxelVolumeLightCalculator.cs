@@ -11,19 +11,19 @@ namespace VoxelSpace {
     // use to calculate the lights after voxel volume generation/deserialization
     public class VoxelVolumeLightCalculator : IMultiFrameTask<VoxelVolume> {
 
-        WorkerThreadGroup<VoxelVolume> workerThreadGroup;
+        WorkerThreadGroup<(VoxelVolume, int)> workerThreadGroup;
 
         public bool isRunning => workerThreadGroup.isRunning;
         public bool hasCompleted => workerThreadGroup.hasCompleted;
         // public float progress => workerThread.progress;
 
         public VoxelVolumeLightCalculator() {
-            workerThreadGroup = new WorkerThreadGroup<VoxelVolume>(CalculateLight, 7);
+            workerThreadGroup = new WorkerThreadGroup<(VoxelVolume, int)>(CalculateLight);
         }
 
         public void StartTask(VoxelVolume volume) {
             if (!this.HasStarted()) {
-                workerThreadGroup.StartTask(volume, volume, volume, volume, volume, volume, volume);
+                workerThreadGroup.StartTask((volume, 0), (volume, 1), (volume, 2), (volume, 3), (volume, 4), (volume, 5), (volume, 6));
             }
         }
 
@@ -35,8 +35,8 @@ namespace VoxelSpace {
             return isDone;
         }
 
-        unsafe void CalculateLight(VoxelVolume volume) {
-            int l = workerThreadGroup.GetCurrentThreadIndex();
+        unsafe void CalculateLight((VoxelVolume, int) data) {
+            var (volume, l) = data;
             if (l == 6) {
                 // if were dealing with point lights, just copy the value from the source
                 // this will be propogated when we reach the propogation step
@@ -53,33 +53,38 @@ namespace VoxelSpace {
             }
             else {
                 var vRegion = volume.voxelRegion;
-                var axis = l % 3; // x = 0, y = 1, z = 2
+                int axis = l % 3; // x = 0, y = 1, z = 2
                 var neg = l >= 3;
+                int ai = (axis + 1) % 3;
+                int bi = (axis + 2) % 3;
+                int ci = axis;
                 int minA, minB, minC;
                 int maxA, maxB, maxC;
-                minA = (&vRegion.min.x)[(axis + 1) % 3];
-                maxA = (&vRegion.max.x)[(axis + 1) % 3];
-                minB = (&vRegion.min.x)[(axis + 2) % 3];
-                maxB = (&vRegion.max.x)[(axis + 2) % 3];
+                minA = (&vRegion.min.x)[ai];
+                maxA = (&vRegion.max.x)[ai];
+                minB = (&vRegion.min.x)[bi];
+                maxB = (&vRegion.max.x)[bi];
                 int incr = neg ? -1 : 1;
                 if (neg) {
-                    minC = (&vRegion.max.x)[axis] - 1;
-                    maxC = (&vRegion.min.x)[axis] - 1;
+                    minC = (&vRegion.max.x)[ci] - 1;
+                    maxC = (&vRegion.min.x)[ci] - 1;
                 }
                 else {
-                    minC = (&vRegion.min.x)[axis];
-                    maxC = (&vRegion.max.x)[axis];
+                    minC = (&vRegion.min.x)[ci];
+                    maxC = (&vRegion.max.x)[ci];
                 }
+
+                Queue<Coords> propQueue = new Queue<Coords>();
 
                 // iterate over the voxels in the 2d plane perpendicular to the axis we care about
                 // this way we can effeciently cast sunlight in the direction we care about
                 for (int va = minA; va < maxA; va ++) {
                     for (int vb = minB; vb < maxB; vb ++) {
                         Coords vCoords = Coords.zero;
-                        (&vCoords.x)[(axis + 1) % 3] = va;
-                        (&vCoords.x)[(axis + 2) % 3] = vb;
+                        (&vCoords.x)[ai] = va;
+                        (&vCoords.x)[bi] = vb;
                         for (int vc = minC; vc != maxC; vc += incr) {
-                            (&vCoords.x)[axis] = vc;
+                            (&vCoords.x)[ci] = vc;
                             // if (l == 0) {
                             //     Logger.Debug(this, $"{vCoords}");
                             // }
@@ -90,11 +95,46 @@ namespace VoxelSpace {
                                 if (chunk.voxels[lCoords].isSolid) {
                                     break;
                                 }
+                                propQueue.Enqueue(vCoords);
                                 fixed (byte* light = &chunk.lights.data[lCoords.x, lCoords.y, lCoords.z].sunXp) {
                                     light[l] = VoxelLight.MAX_LIGHT;
                                 }
                             }
                         }
+                    }
+                }
+                // propagate!
+                if (l == 6) {
+                    // point lights get their own implementation
+                }
+                else {
+                    byte propDecr = VoxelLight.MAX_LIGHT / 16;
+                    int lightLevel = VoxelLight.MAX_LIGHT - propDecr;
+                    Queue<Coords> nextQueue = new Queue<Coords>();
+                    while (propQueue.Count > 0 && lightLevel > 0) {
+                        while (propQueue.TryDequeue(out var c)) {
+                            for (int a = 0; a < 6; a ++) {
+                                axis = a % 3;
+                                incr = a >= 3 ? -1 : 1;
+                                Coords nc = c;
+                                (&nc.x)[axis] += incr;
+                                var chunk = volume.GetChunkContainingGlobalCoords(nc);
+                                if (chunk != null) {
+                                    var lnc = chunk.VolumeToLocalCoords(nc);
+                                    if (!chunk.voxels[lnc].isSolid) {
+                                        fixed (byte *light = &chunk.lights.data[lnc.x, lnc.y, lnc.z].sunXp) {
+                                            if (light[l] < lightLevel) {
+                                                light[l] = (byte) lightLevel;
+                                                nextQueue.Enqueue(nc);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // swap them queues
+                        (nextQueue, propQueue) = (propQueue, nextQueue);
+                        lightLevel -= propDecr;
                     }
                 }
             }
