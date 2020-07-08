@@ -144,7 +144,7 @@ namespace VoxelSpace {
             orientation = (-gDir).ToAxisAlignedOrientation();;
             orientationNormal = orientation.ToNormal();
             bounds.size = Vector3.One * playerWidth;
-            switch(orientation) {
+            switch (orientation) {
                 case Orientation.Xp:
                 case Orientation.Xn:
                     bounds.size.X = playerHeight;

@@ -35,8 +35,8 @@ namespace VoxelSpace {
             graphics = new GraphicsDeviceManager(this);
             assetManager = new AssetManager();
             Content.RootDirectory = "Content";
-            graphics.PreferredBackBufferWidth = 1920;
-            graphics.PreferredBackBufferHeight = 1080;
+            graphics.PreferredBackBufferWidth = 1280;
+            graphics.PreferredBackBufferHeight = 720;
         }
 
         protected override void Initialize() {
