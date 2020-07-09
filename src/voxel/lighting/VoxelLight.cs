@@ -4,7 +4,7 @@ namespace VoxelSpace {
 
     public struct VoxelLight {
 
-        public const byte MAX_LIGHT = 254;
+        public const byte MAX_LIGHT = 255;
         public static readonly VoxelLight fullSun = new VoxelLight() {
             sunXp = MAX_LIGHT,
             sunXn = MAX_LIGHT,
@@ -13,18 +13,11 @@ namespace VoxelSpace {
             sunZp = MAX_LIGHT,
             sunZn = MAX_LIGHT,
             point = 0,
-            pointSource = 0
+            isValid = true
         };
-        // represents a voxel light with no data
-        // this is used in cases where we would be using nullable for voxel lights,
-        // which takes the size over 8 bytes, leading to massive overhead
-        // this is why the max is 254 instead of 255
-        public static readonly VoxelLight NODATA = new VoxelLight() {
-            point = 255
+        public static readonly VoxelLight INVALID = new VoxelLight() {
+            isValid = false,
         };
-
-        public bool IsNODATA => point == 255;
-
 
         public byte sunXp;
         public byte sunYp;
@@ -34,7 +27,62 @@ namespace VoxelSpace {
         public byte sunZn;
 
         public byte point;
-        public byte pointSource;
+        public bool isValid;
+
+    }
+
+    public enum VoxelLightChannel {
+        SunXp = 0,
+        SunYp = 1,
+        SunZp = 2,
+        SunXn = 3,
+        SunYn = 4,
+        SunZn = 5,
+        Point = 6,
+    }
+
+    // oh baby its SoA time
+    public unsafe class VoxelChunkLightData : IDisposable {
+
+        VoxelChunk.UnmanagedArray3<byte>[] data;
+
+        public VoxelChunk.UnmanagedArray3<byte> this[VoxelLightChannel channel] => data[(int) channel];
+        public VoxelChunk.UnmanagedArray3<byte> this[int channel] => data[channel];
+
+        public VoxelChunkLightData() {
+            data = new VoxelChunk.UnmanagedArray3<byte>[7];
+            for (int l = 0; l < 7; l ++) {
+                data[l] = new VoxelChunk.UnmanagedArray3<byte>();
+            }
+        }
+
+        ~VoxelChunkLightData() {
+            Dispose();
+        }
+
+        public void Dispose() {
+            if (data != null) {
+                foreach (var channel in data) {
+                    channel.Dispose();
+                }
+                data = null;
+            }
+        }
+
+        // only used when we need to convert to AoS. pretty much only used in VoxelChunkMeshGenerator
+        public VoxelLight GetVoxelLight(Coords c) {
+            int offset = VoxelChunk.UnmanagedArray3<byte>.GetIndex(c);
+            return new VoxelLight() {
+                sunXp = *data[0][offset],
+                sunYp = *data[1][offset],
+                sunZp = *data[2][offset],
+                sunXn = *data[3][offset],
+                sunYn = *data[4][offset],
+                sunZn = *data[5][offset],
+                point = *data[6][offset],
+                isValid = true
+            };
+        }
 
     }
 

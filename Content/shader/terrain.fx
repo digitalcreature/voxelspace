@@ -46,6 +46,7 @@ v2f vert(a2v a) {
     sunDir /= abs(sunDir.x) + abs(sunDir.y) + abs(sunDir.z);
     float3 sun = lerp(a.lightSunN, a.lightSunP, clamp(sign(sunDir), 0, 1)) * abs(sunDir);
     float totalSunLight = sun.x + sun.y + sun.z;
+    // float totalSunLight = a.lightSunP.y;
     o.light *= clamp(totalSunLight + a.lightPoint, 0, 1);
     o.color = float4(a.lightSunP, 0);//sun/2 + 0.5;
     return o;

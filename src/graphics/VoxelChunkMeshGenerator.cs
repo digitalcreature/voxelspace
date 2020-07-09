@@ -10,13 +10,12 @@ namespace VoxelSpace {
         public VoxelChunk chunk { get; private set; }
 
         List<VoxelVertex> verts;
-        List<VoxelLightVertex> lightVerts;
+        VoxelLightVertex[] lightVerts;
         List<uint> tris;
 
         public VoxelChunkMeshGenerator(VoxelChunk chunk) {
             this.chunk = chunk;
             verts = new List<VoxelVertex>();
-            lightVerts = new List<VoxelLightVertex>();
             tris = new List<uint>();
         }
 
@@ -25,7 +24,7 @@ namespace VoxelSpace {
                 return null;
             }
             else {
-                return new VoxelChunkMesh(graphics, verts.ToArray(), lightVerts.ToArray(), tris.ToArray());
+                return new VoxelChunkMesh(graphics, verts.ToArray(), lightVerts, tris.ToArray());
             }
         }
 
@@ -135,8 +134,10 @@ namespace VoxelSpace {
             CalculateLighting();
         }
 
-        void CalculateLighting() {
-            foreach (var vert in verts) {
+        unsafe void CalculateLighting() {
+            lightVerts = new VoxelLightVertex[verts.Count];
+            for (int v = 0; v < verts.Count; v ++) {
+                var vert = verts[v];
                 var vc = vert.coords;
                 var pc = (Coords) vert.position;
                 Orientation normal = vert.normal.ToAxisAlignedOrientation();
@@ -172,7 +173,7 @@ namespace VoxelSpace {
                 VoxelLight sideBLight = chunk.GetVoxelLightIncludingNeighbors(n + bt);
                 var light = VoxelLightVertex.zero;
                 float count = 0;
-                if (!top.isSolid && !topLight.IsNODATA) {
+                if (!top.isSolid && topLight.isValid) {
                     light.AddLight(new VoxelLightVertex(topLight));
                     count ++;
                 }
@@ -183,21 +184,21 @@ namespace VoxelSpace {
                 else {
                     if (corner.isSolid) ao ++;
                     else {
-                        if (!cornerLight.IsNODATA) {
+                        if (cornerLight.isValid) {
                             light.AddLight(new VoxelLightVertex(cornerLight));
                             count ++;
                         }
                     }
                     if (sideA.isSolid) ao ++;
                     else {
-                        if (!sideALight.IsNODATA) {
+                        if (sideALight.isValid) {
                             light.AddLight(new VoxelLightVertex(sideALight));
                             count ++;
                         }
                     }
                     if (sideB.isSolid) ao ++;
                     else {
-                        if (!sideBLight.IsNODATA) {
+                        if (sideBLight.isValid) {
                             light.AddLight(new VoxelLightVertex(sideBLight));
                             count ++;
                         }
@@ -206,7 +207,7 @@ namespace VoxelSpace {
                 }
                 light.DivideLight(count);
                 light.ao = 1 - ao;
-                lightVerts.Add(light);
+                lightVerts[v] = light;
             }
             // go back and flip any faces we need to for ao reasons
             for (int i = 0; i < verts.Count; i += 4) {

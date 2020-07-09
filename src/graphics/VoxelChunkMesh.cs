@@ -68,8 +68,8 @@ namespace VoxelSpace {
             point = 0
         };
 
-        public float ao;
 
+        public float ao;
         public Vector3 sunP;
         public Vector3 sunN;
         public float point;

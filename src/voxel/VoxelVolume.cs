@@ -98,27 +98,38 @@ namespace VoxelSpace {
 
         // get the voxel at a specific set of global coords
         public Voxel? GetVoxel(Coords c) {
-            var chunk = GetChunkContainingGlobalCoords(c);
+            var chunk = GetChunkContainingVolumeCoords(c);
             return chunk?.voxels[chunk.VolumeToLocalCoords(c)];
         }
         
         // get the voxel light at a specific set of global coords
         public VoxelLight GetVoxelLight(Coords c) {
-            var chunk = GetChunkContainingGlobalCoords(c);
-            return chunk?.lights[chunk.VolumeToLocalCoords(c)] ?? VoxelLight.NODATA;
+            var chunk = GetChunkContainingVolumeCoords(c);
+            return chunk?.lightData.GetVoxelLight(chunk.VolumeToLocalCoords(c)) ?? VoxelLight.INVALID;
+        }
+
+        public unsafe byte* GetVoxelLightData(Coords c, VoxelLightChannel channel) => GetVoxelLightData(c, (int) channel);
+        public unsafe byte* GetVoxelLightData(Coords c, int channel) {
+            var chunk = GetChunkContainingVolumeCoords(c);
+            if (chunk != null) {
+                return chunk.lightData[channel][chunk.VolumeToLocalCoords(c)];
+            }
+            else {
+                return null;
+            }
         }
 
         // set the voxel at a specific set of coords
         // calls the onModifyVoxel callback
         public void SetVoxel(Coords c, Voxel v) {
-            var chunk = GetChunkContainingGlobalCoords(c) ?? AddChunk(GlobalToChunkCoords(c));
+            var chunk = GetChunkContainingVolumeCoords(c) ?? AddChunk(GlobalToChunkCoords(c));
             var localCoords = chunk.VolumeToLocalCoords(c);
             chunk.voxels[localCoords] = v;
             onModifyVoxel?.Invoke(this, chunk, c, v);
         }
 
         // return the chunk containing the voxel at a set of coords
-        public VoxelChunk GetChunkContainingGlobalCoords(Coords c) {
+        public VoxelChunk GetChunkContainingVolumeCoords(Coords c) {
             return this[GlobalToChunkCoords(c)];
         }
 
@@ -147,7 +158,7 @@ namespace VoxelSpace {
             if (pred(voxel)) {
                 result = new VoxelRaycastResult() {
                     volume = this,
-                    chunk = GetChunkContainingGlobalCoords(current),
+                    chunk = GetChunkContainingVolumeCoords(current),
                     coords = current,
                     normal = Vector3.Zero,
                     voxel = voxel
@@ -198,7 +209,7 @@ namespace VoxelSpace {
                         coords = current,
                         volume = this,
                         normal = normal,
-                        chunk = GetChunkContainingGlobalCoords(current)
+                        chunk = GetChunkContainingVolumeCoords(current)
                     };
                     return true;
                 }

@@ -23,7 +23,7 @@ namespace VoxelSpace {
 
         public void StartTask(VoxelVolume volume) {
             if (!this.HasStarted()) {
-                workerThreadGroup.StartTask((volume, 0), (volume, 1), (volume, 2), (volume, 3), (volume, 4), (volume, 5), (volume, 6));
+                workerThreadGroup.StartTask((volume, 0), (volume, 1), (volume, 2), (volume, 3), (volume, 4), (volume, 5));
             }
         }
 
@@ -35,433 +35,127 @@ namespace VoxelSpace {
             return isDone;
         }
 
-        unsafe void CalculateLight((VoxelVolume, int) data) {
-            var (volume, l) = data;
-            if (l == 6) {
-                // if were dealing with point lights, just copy the value from the source
-                // this will be propogated when we reach the propogation step
-                foreach (var chunk in volume) {
-                    for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
-                        for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
-                            for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
-                                ref var light = ref chunk.lights[i, j, k];
-                                light.point = light.pointSource;
-                            }
-                        }
-                    }
-                }
+        struct LightNode {
+            public VoxelChunk chunk;
+            public Coords lCoords;
+        }
+
+        void CalculateLight((VoxelVolume, int) data) {
+            var (volume, channel) = data;
+            Queue<LightNode> q = new Queue<LightNode>();
+            SeedSunLight(volume, channel, q);
+            PropogateSunlight(volume, channel, q);
+        }
+
+        unsafe void SeedSunLight(VoxelVolume volume, int channel, Queue<LightNode> q) {
+            var cRegion = volume.chunkRegion;
+            int axis = channel % 3; // x = 0, y = 1, z = 2
+            var neg = channel >= 3;
+            int ai = (axis + 1) % 3;
+            int bi = (axis + 2) % 3;
+            int ci = axis;
+            int minA, minB, minC;
+            int maxA, maxB, maxC;
+            minA = (&cRegion.min.x)[ai];
+            maxA = (&cRegion.max.x)[ai];
+            minB = (&cRegion.min.x)[bi];
+            maxB = (&cRegion.max.x)[bi];
+            int incr = neg ? -1 : 1;
+            Coords lCoords = Coords.zero;
+            if (neg) {
+                minC = (&cRegion.max.x)[ci] - 1;
+                maxC = (&cRegion.min.x)[ci] - 1;
+                (&lCoords.x)[ci] = VoxelChunk.chunkSize - 1;
             }
             else {
-                var vRegion = volume.voxelRegion;
-                int axis = l % 3; // x = 0, y = 1, z = 2
-                var neg = l >= 3;
-                int ai = (axis + 1) % 3;
-                int bi = (axis + 2) % 3;
-                int ci = axis;
-                int minA, minB, minC;
-                int maxA, maxB, maxC;
-                minA = (&vRegion.min.x)[ai];
-                maxA = (&vRegion.max.x)[ai];
-                minB = (&vRegion.min.x)[bi];
-                maxB = (&vRegion.max.x)[bi];
-                int incr = neg ? -1 : 1;
-                if (neg) {
-                    minC = (&vRegion.max.x)[ci] - 1;
-                    maxC = (&vRegion.min.x)[ci] - 1;
-                }
-                else {
-                    minC = (&vRegion.min.x)[ci];
-                    maxC = (&vRegion.max.x)[ci];
-                }
-
-                Queue<Coords> propQueue = new Queue<Coords>();
-
-                // iterate over the voxels in the 2d plane perpendicular to the axis we care about
-                // this way we can effeciently cast sunlight in the direction we care about
-                for (int va = minA; va < maxA; va ++) {
-                    for (int vb = minB; vb < maxB; vb ++) {
-                        Coords vCoords = Coords.zero;
-                        (&vCoords.x)[ai] = va;
-                        (&vCoords.x)[bi] = vb;
-                        for (int vc = minC; vc != maxC; vc += incr) {
-                            (&vCoords.x)[ci] = vc;
-                            // if (l == 0) {
-                            //     Logger.Debug(this, $"{vCoords}");
-                            // }
-                            var chunk = volume.GetChunkContainingGlobalCoords(vCoords);
-                            if (chunk != null) {
-                                Coords lCoords = chunk.VolumeToLocalCoords(vCoords);
-                                // if weve reached a solid voxel, stop casting sunlight and move to the next column
-                                if (chunk.voxels[lCoords].isSolid) {
-                                    break;
-                                }
-                                propQueue.Enqueue(vCoords);
-                                fixed (byte* light = &chunk.lights.data[lCoords.x, lCoords.y, lCoords.z].sunXp) {
-                                    light[l] = VoxelLight.MAX_LIGHT;
+                minC = (&cRegion.min.x)[ci];
+                maxC = (&cRegion.max.x)[ci];
+                (&lCoords.x)[ci] = 0;
+            }
+            for (int ca = minA; ca < maxA; ca ++) {
+                for (int cb = minB; cb < maxB; cb ++) {
+                    Coords cCoords = Coords.zero;
+                    (&cCoords.x)[ai] = ca;
+                    (&cCoords.x)[bi] = cb;
+                    for (int cc = minC; cc != maxC; cc += incr) {
+                        (&cCoords.x)[ci] = cc;
+                        var chunk = volume[cCoords];
+                        if (chunk != null) {
+                            for (int la = 0; la < VoxelChunk.chunkSize; la ++) {
+                                for (int lb = 0; lb < VoxelChunk.chunkSize; lb ++) {
+                                    (&lCoords.x)[ai] = la;
+                                    (&lCoords.x)[bi] = lb;
+                                    *chunk.lightData[channel][lCoords] = VoxelLight.MAX_LIGHT;
+                                    q.Enqueue(new LightNode() {
+                                        chunk = chunk,
+                                        lCoords = lCoords,
+                                    });
                                 }
                             }
+                            break;
                         }
-                    }
-                }
-                // propagate!
-                if (l == 6) {
-                    // point lights get their own implementation
-                }
-                else {
-                    byte propDecr = VoxelLight.MAX_LIGHT / 16;
-                    int lightLevel = VoxelLight.MAX_LIGHT - propDecr;
-                    Queue<Coords> nextQueue = new Queue<Coords>();
-                    while (propQueue.Count > 0 && lightLevel > 0) {
-                        while (propQueue.TryDequeue(out var c)) {
-                            for (int a = 0; a < 6; a ++) {
-                                axis = a % 3;
-                                incr = a >= 3 ? -1 : 1;
-                                Coords nc = c;
-                                (&nc.x)[axis] += incr;
-                                var chunk = volume.GetChunkContainingGlobalCoords(nc);
-                                if (chunk != null) {
-                                    var lnc = chunk.VolumeToLocalCoords(nc);
-                                    if (!chunk.voxels[lnc].isSolid) {
-                                        fixed (byte *light = &chunk.lights.data[lnc.x, lnc.y, lnc.z].sunXp) {
-                                            if (light[l] < lightLevel) {
-                                                light[l] = (byte) lightLevel;
-                                                nextQueue.Enqueue(nc);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        // swap them queues
-                        (nextQueue, propQueue) = (propQueue, nextQueue);
-                        lightLevel -= propDecr;
                     }
                 }
             }
         }
 
-
-        void CalculateLights(VoxelVolume volume) {
-            CalculateSunlight(volume);
-            PropagateLights(volume);
-        }
-
-        void CalculateSunlight(VoxelVolume volume) {
-            // this could be way more optimized. but. guess what? theres a lot going
-            // on here and i dont want to deal with it. maybe if its an issue later
-
-
-            Coords chunkCoords = Coords.zero;
-            var region = volume.chunkRegion;
-            var rmin = region.min;
-            var rmax = region.max;
-            for (chunkCoords.x = rmin.x; chunkCoords.x < rmax.x; chunkCoords.x ++) {
-                for (chunkCoords.y = rmin.y; chunkCoords.y < rmax.y; chunkCoords.y ++) {
-                    VoxelChunk nZC = null;
-                    for (chunkCoords.z = rmin.z; chunkCoords.z < rmax.z; chunkCoords.z ++) {
-                        var chunk = volume[chunkCoords];
-                        if (chunk != null) {
-                            var (cx, cy, cz) = chunkCoords;
-                            // precaulculate neighbor chunks
-                            VoxelChunk nXC = null;
-                            Coords neighborChunkCoords = chunkCoords;
-                            for (neighborChunkCoords.x = cx - 1; neighborChunkCoords.x >= rmin.x; neighborChunkCoords.x --) {
-                                nXC = volume[neighborChunkCoords];
-                                if (nXC != null) {
-                                    break;
+        unsafe void PropogateSunlight(VoxelVolume volume, int channel, Queue<LightNode> q) {
+            int lAxis = channel % 3;
+            bool lIsNeg = channel >= 3;
+            while (q.TryDequeue(out var node)) {
+                byte lightLevel = *node.chunk.lightData[channel][node.lCoords];
+                int neighborLightLevel = lightLevel - VoxelLight.MAX_LIGHT / 16;
+                if (neighborLightLevel > 0) {
+                    for (int axis = 0; axis < 3; axis ++) {
+                        var neighbor = node;
+                        (&neighbor.lCoords.x)[axis] ++;
+                        if ((&neighbor.lCoords.x)[axis] == VoxelChunk.chunkSize) {
+                            var neighborChunkCoords = node.chunk.coords;
+                            (&neighborChunkCoords.x)[axis] ++;
+                            neighbor.chunk = volume[neighborChunkCoords];
+                            (&neighbor.lCoords.x)[axis] = 0;
+                        }
+                        if (neighbor.chunk != null) {
+                            byte* light = neighbor.chunk.lightData[channel][neighbor.lCoords];
+                            if (!neighbor.chunk.voxels[neighbor.lCoords].isSolid && *light < neighborLightLevel) {
+                                byte l;
+                                if (axis == lAxis && !lIsNeg && lightLevel == VoxelLight.MAX_LIGHT) {
+                                    l = VoxelLight.MAX_LIGHT;
                                 }
+                                else {
+                                    l = (byte) neighborLightLevel;
+                                }
+                                *light = l;
+                                q.Enqueue(neighbor);
                             }
-                            VoxelChunk nYC = null;
-                            neighborChunkCoords = chunkCoords;
-                            for (neighborChunkCoords.y = cy - 1; neighborChunkCoords.y >= rmin.y; neighborChunkCoords.y --) {
-                                nYC = volume[neighborChunkCoords];
-                                if (nYC != null) {
-                                    break;
+                        }
+                    }
+                    for (int axis = 0; axis < 3; axis ++) {
+                        var neighbor = node;
+                        (&neighbor.lCoords.x)[axis] --;
+                        if ((&neighbor.lCoords.x)[axis] == -1) {
+                            var neighborChunkCoords = node.chunk.coords;
+                            (&neighborChunkCoords.x)[axis] --;
+                            neighbor.chunk = volume[neighborChunkCoords];
+                            (&neighbor.lCoords.x)[axis] = VoxelChunk.chunkSize - 1;
+                        }
+                        if (neighbor.chunk != null) {
+                            byte* light = neighbor.chunk.lightData[channel][neighbor.lCoords];
+                            if (!neighbor.chunk.voxels[neighbor.lCoords].isSolid && *light < neighborLightLevel) {
+                                byte l;
+                                if (axis == lAxis && lIsNeg && lightLevel == VoxelLight.MAX_LIGHT) {
+                                    l = VoxelLight.MAX_LIGHT;
                                 }
-                            }
-                            // local coords
-                            Coords lCoords = Coords.zero;
-                            for (lCoords.x = 0; lCoords.x < VoxelChunk.chunkSize; lCoords.x ++) {
-                                for (lCoords.y = 0; lCoords.y < VoxelChunk.chunkSize; lCoords.y ++) {
-                                    for (lCoords.z = 0; lCoords.z < VoxelChunk.chunkSize; lCoords.z ++) {
-                                        if (!chunk.voxels[lCoords].isSolid) {
-                                            var (lx, ly, lz) = lCoords;
-                                            // // volume coords
-                                            // var vCoords = chunk.LocalToVolumeCoords(lCoords);
-                                            // neighbor voxels
-                                            Voxel nXV, nYV, nZV;
-                                            VoxelLight nXL, nYL, nZL;
-                                            if (lCoords.x > 0) {
-                                                // if inside the chunk, just get the neighbors from there
-                                                nXV = chunk.voxels[lx - 1, ly, lz];
-                                                nXL = chunk.lights[lx - 1, ly, lz];
-                                            }
-                                            else {
-                                                nXV = chunk.GetVoxelIncludingNeighbors(lx - 1, ly, lz);
-                                                nXL = nXC?.lights[VoxelChunk.chunkSize - 1, ly, lz] ?? VoxelLight.NODATA;
-                                            }
-                                            if (lCoords.y > 0) {
-                                                // if inside the chunk, just get the neighbors from there
-                                                nYV = chunk.voxels[lx, ly - 1, lz];
-                                                nYL = chunk.lights[lx, ly - 1, lz];
-                                            }
-                                            else {
-                                                nYV = chunk.GetVoxelIncludingNeighbors(lx, ly - 1, lz);
-                                                nYL = nYC?.lights[lx, VoxelChunk.chunkSize - 1, lz] ?? VoxelLight.NODATA;
-                                            }
-                                            if (lCoords.z > 0) {
-                                                // if inside the chunk, just get the neighbors from there
-                                                nZV = chunk.voxels[lx, ly, lz - 1];
-                                                nZL = chunk.lights[lx, ly, lz - 1];
-                                            }
-                                            else {
-                                                nZV = chunk.GetVoxelIncludingNeighbors(lx, ly, lz - 1);
-                                                nZL = nZC?.lights[lx, ly, VoxelChunk.chunkSize - 1] ?? VoxelLight.NODATA;
-                                            }
-                                            // now that we know our neighbors, the real fun begins
-                                            ref var light = ref chunk.lights[lx, ly, lz];
-                                            light.sunXp = 0;
-                                            light.sunYp = 0;
-                                            light.sunZp = 0;
-                                            light.point = 0;
-                                            if (nXV.isSolid) {
-                                                light.sunXp = 0;
-                                            }
-                                            else {
-                                                if (nXL.IsNODATA || nXL.sunXp == VoxelLight.MAX_LIGHT) {
-                                                    light.sunXp = VoxelLight.MAX_LIGHT;
-                                                }
-                                            }
-                                            if (nYV.isSolid) {
-                                                light.sunYp = 0;
-                                            }
-                                            else {
-                                                if (nYL.IsNODATA || nYL.sunYp == VoxelLight.MAX_LIGHT) {
-                                                    light.sunYp = VoxelLight.MAX_LIGHT;
-                                                }
-                                            }
-                                            if (nZV.isSolid) {
-                                                light.sunZp = 0;
-                                            }
-                                            else {
-                                                if (nZL.IsNODATA || nZL.sunZp == VoxelLight.MAX_LIGHT) {
-                                                    light.sunZp = VoxelLight.MAX_LIGHT;
-                                                }
-                                            }
-                                            nZC = chunk;
-                                        }
-                                    }
+                                else {
+                                    l = (byte) neighborLightLevel;
                                 }
+                                *light = l;
+                                q.Enqueue(neighbor);
                             }
                         }
                     }
                 }
             }
-            // negative direction
-            var rmax1 = rmax - Coords.one;
-            var chunkSize1 = VoxelChunk.chunkSize - 1;
-            for (chunkCoords.x = rmax1.x; chunkCoords.x >= rmin.x; chunkCoords.x --) {
-                for (chunkCoords.y = rmax1.y; chunkCoords.y >= rmin.y; chunkCoords.y --) {
-                    VoxelChunk nZC = null;
-                    for (chunkCoords.z = rmax1.z; chunkCoords.z >= rmin.z; chunkCoords.z --) {
-                        var chunk = volume[chunkCoords];
-                        if (chunk != null) {
-                            var (cx, cy, cz) = chunkCoords;
-                            // precaulculate neighbor chunks
-                            VoxelChunk nXC = null;
-                            Coords neighborChunkCoords = chunkCoords;
-                            for (neighborChunkCoords.x = cx + 1; neighborChunkCoords.x < rmax.x; neighborChunkCoords.x ++) {
-                                nXC = volume[neighborChunkCoords];
-                                if (nXC != null) {
-                                    break;
-                                }
-                            }
-                            VoxelChunk nYC = null;
-                            neighborChunkCoords = chunkCoords;
-                            for (neighborChunkCoords.y = cy + 1; neighborChunkCoords.y < rmax.y; neighborChunkCoords.y ++) {
-                                nYC = volume[neighborChunkCoords];
-                                if (nYC != null) {
-                                    break;
-                                }
-                            }
-                            // local coords
-                            Coords lCoords = Coords.zero;
-                            for (lCoords.x = chunkSize1; lCoords.x >= 0; lCoords.x --) {
-                                for (lCoords.y = chunkSize1; lCoords.y >= 0; lCoords.y --) {
-                                    for (lCoords.z = chunkSize1; lCoords.z >= 0; lCoords.z --) {
-                                        if (!chunk.voxels[lCoords].isSolid) {
-                                            var (lx, ly, lz) = lCoords;
-                                            // // volume coords
-                                            // var vCoords = chunk.LocalToVolumeCoords(lCoords);
-                                            // neighbor voxels
-                                            Voxel nXV, nYV, nZV;
-                                            VoxelLight nXL, nYL, nZL;
-                                            if (lCoords.x < chunkSize1) {
-                                                // if inside the chunk, just get the neighbors from there
-                                                nXV = chunk.voxels[lx + 1, ly, lz];
-                                                nXL = chunk.lights[lx + 1, ly, lz];
-                                            }
-                                            else {
-                                                nXV = chunk.GetVoxelIncludingNeighbors(lx + 1, ly, lz);
-                                                nXL = nXC?.lights[0, ly, lz] ?? VoxelLight.NODATA;
-                                            }
-                                            if (lCoords.y < chunkSize1) {
-                                                // if inside the chunk, just get the neighbors from there
-                                                nYV = chunk.voxels[lx, ly + 1, lz];
-                                                nYL = chunk.lights[lx, ly + 1, lz];
-                                            }
-                                            else {
-                                                nYV = chunk.GetVoxelIncludingNeighbors(lx, ly + 1, lz);
-                                                nYL = nYC?.lights[lx, 0, lz] ?? VoxelLight.NODATA;
-                                            }
-                                            if (lCoords.z < chunkSize1) {
-                                                // if inside the chunk, just get the neighbors from there
-                                                nZV = chunk.voxels[lx, ly, lz + 1];
-                                                nZL = chunk.lights[lx, ly, lz + 1];
-                                            }
-                                            else {
-                                                nZV = chunk.GetVoxelIncludingNeighbors(lx, ly, lz + 1);
-                                                nZL = nZC?.lights[lx, ly, 0] ?? VoxelLight.NODATA;
-                                            }
-                                            // now that we know our neighbors, the real fun begins
-                                            ref var light = ref chunk.lights[lx, ly, lz];
-                                            // zero out sunlight
-                                            light.sunXn = 0;
-                                            light.sunYn = 0;
-                                            light.sunZn = 0;
-                                            light.point = 0;
-                                            if (nXV.isSolid) {
-                                                light.sunXn = 0;
-                                            }
-                                            else {
-                                                if (nXL.IsNODATA || nXL.sunXn == VoxelLight.MAX_LIGHT) {
-                                                    light.sunXn = VoxelLight.MAX_LIGHT;
-                                                }
-                                            }
-                                            if (nYV.isSolid) {
-                                                light.sunYn = 0;
-                                            }
-                                            else {
-                                                if (nYL.IsNODATA || nYL.sunYn == VoxelLight.MAX_LIGHT) {
-                                                    light.sunYn = VoxelLight.MAX_LIGHT;
-                                                }
-                                            }
-                                            if (nZV.isSolid) {
-                                                light.sunZn = 0;
-                                            }
-                                            else {
-                                                if (nZL.IsNODATA || nZL.sunZn == VoxelLight.MAX_LIGHT) {
-                                                    light.sunZn = VoxelLight.MAX_LIGHT;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            nZC = chunk;
-                        }
-                    }
-                }
-            }
-
-        }
-
-        unsafe void PropagateLights(VoxelVolume volume) {
-            byte propagationDecrement = 256 / 16;
-            Coords chunkCoords = Coords.zero;
-            var region = volume.chunkRegion;
-            var rmin = region.min;
-            var rmax = region.max;
-            for (chunkCoords.x = rmin.x; chunkCoords.x < rmax.x; chunkCoords.x ++) {
-                for (chunkCoords.y = rmin.y; chunkCoords.y < rmax.y; chunkCoords.y ++) {
-                    for (chunkCoords.z = rmin.z; chunkCoords.z < rmax.z; chunkCoords.z ++) {
-                        var chunk = volume[chunkCoords];
-                        if (chunk != null) {
-                            var (cx, cy, cz) = chunkCoords;
-                            // local coords
-                            Coords lCoords = Coords.zero;
-                            for (lCoords.x = 0; lCoords.x < VoxelChunk.chunkSize; lCoords.x ++) {
-                                for (lCoords.y = 0; lCoords.y < VoxelChunk.chunkSize; lCoords.y ++) {
-                                    for (lCoords.z = 0; lCoords.z < VoxelChunk.chunkSize; lCoords.z ++) {
-                                        if (!chunk.voxels[lCoords].isSolid) {
-                                            var (lx, ly, lz) = lCoords;
-                                            Voxel nXV = chunk.GetVoxelIncludingNeighbors(lx - 1, ly, lz);
-                                            Voxel nYV = chunk.GetVoxelIncludingNeighbors(lx, ly - 1, lz);
-                                            Voxel nZV = chunk.GetVoxelIncludingNeighbors(lx, ly, lz - 1);
-                                            VoxelLight nXL = chunk.GetVoxelLightIncludingNeighbors(lx - 1, ly, lz);
-                                            VoxelLight nYL = chunk.GetVoxelLightIncludingNeighbors(lx, ly - 1, lz);
-                                            VoxelLight nZL = chunk.GetVoxelLightIncludingNeighbors(lx, ly, lz - 1);
-                                            byte *nXLP = &nXL.sunXp;
-                                            byte *nYLP = &nYL.sunXp;
-                                            byte *nZLP = &nZL.sunXp;
-                                            fixed (byte* light = &chunk.lights.data[lx, ly, lz].sunXp) {
-                                                for (int l = 0; l < 7; l ++) {
-                                                    if (light[l] == 0) {
-                                                        short best = 0;
-                                                        if (!nXV.isSolid && !nXL.IsNODATA) best = nXLP[l];
-                                                        if (!nYV.isSolid && !nYL.IsNODATA && nYLP[l] > best) best = nYLP[l];
-                                                        if (!nZV.isSolid && !nZL.IsNODATA && nZLP[l] > best) best = nZLP[l];
-                                                        best -= propagationDecrement;
-                                                        if (best < 0) best = 0;
-                                                        light[l] = (byte) best;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            // negative direction
-            var rmax1 = rmax - Coords.one;
-            var chunkSize1 = VoxelChunk.chunkSize - 1;
-            for (chunkCoords.x = rmax1.x; chunkCoords.x >= rmin.x; chunkCoords.x --) {
-                for (chunkCoords.y = rmax1.y; chunkCoords.y >= rmin.y; chunkCoords.y --) {
-                    for (chunkCoords.z = rmax1.z; chunkCoords.z >= rmin.z; chunkCoords.z --) {
-                        var chunk = volume[chunkCoords];
-                        if (chunk != null) {
-                            var (cx, cy, cz) = chunkCoords;
-                            // local coords
-                            Coords lCoords = Coords.zero;
-                            for (lCoords.x = chunkSize1; lCoords.x >= 0; lCoords.x --) {
-                                for (lCoords.y = chunkSize1; lCoords.y >= 0; lCoords.y --) {
-                                    for (lCoords.z = chunkSize1; lCoords.z >= 0; lCoords.z --) {
-                                        if (!chunk.voxels[lCoords].isSolid) {
-                                            var (lx, ly, lz) = lCoords;
-                                            Voxel nXV = chunk.GetVoxelIncludingNeighbors(lx + 1, ly, lz);
-                                            Voxel nYV = chunk.GetVoxelIncludingNeighbors(lx, ly + 1, lz);
-                                            Voxel nZV = chunk.GetVoxelIncludingNeighbors(lx, ly, lz + 1);
-                                            VoxelLight nXL = chunk.GetVoxelLightIncludingNeighbors(lx + 1, ly, lz);
-                                            VoxelLight nYL = chunk.GetVoxelLightIncludingNeighbors(lx, ly + 1, lz);
-                                            VoxelLight nZL = chunk.GetVoxelLightIncludingNeighbors(lx, ly, lz + 1);
-                                            byte *nXLP = &nXL.sunXp;
-                                            byte *nYLP = &nYL.sunXp;
-                                            byte *nZLP = &nZL.sunXp;
-                                            fixed (byte* light = &chunk.lights.data[lx, ly, lz].sunXp) {
-                                                for (int l = 0; l < 7; l ++) {
-                                                    if (light[l] == 0) {
-                                                        short best = 0;
-                                                        if (!nXV.isSolid && !nXL.IsNODATA) best = nXLP[l];
-                                                        if (!nYV.isSolid && !nYL.IsNODATA && nYLP[l] > best) best = nYLP[l];
-                                                        if (!nZV.isSolid && !nZL.IsNODATA && nZLP[l] > best) best = nZLP[l];
-                                                        best -= propagationDecrement;
-                                                        if (best < 0) best = 0;
-                                                        light[l] = (byte) best;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
         }
 
 
