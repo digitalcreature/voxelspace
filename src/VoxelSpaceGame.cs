@@ -62,8 +62,8 @@ namespace VoxelSpace {
             // terrain shader
             effect = Content.Load<Effect>("shader/terrain");
             effect.Parameters["proj"].SetValue(projMat);
-            effect.Parameters["lightIntensity"].SetValue(0f);//0.5f);
-            effect.Parameters["lightAmbient"].SetValue(1f);//0.5f);
+            effect.Parameters["lightIntensity"].SetValue(0.1f);
+            effect.Parameters["lightAmbient"].SetValue(0.8f);
             effect.Parameters["tex"]?.SetValue(atlas.atlasTexture);
             
             // planet
@@ -119,7 +119,7 @@ namespace VoxelSpace {
             t /= 10; // 10 seconds a day
             t *= 2 * MathHelper.Pi;
             // Logger.Debug(this, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
-            // sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+            sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
         }
 
         protected override void Draw(GameTime gameTime) {

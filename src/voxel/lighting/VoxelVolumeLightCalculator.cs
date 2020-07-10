@@ -72,14 +72,15 @@ namespace VoxelSpace {
                 maxC = (&cRegion.max.x)[ci];
                 (&lCoords.x)[ci] = 0;
             }
+            Coords cCoords = Coords.zero;
+            VoxelChunk chunk;
             for (int ca = minA; ca < maxA; ca ++) {
                 for (int cb = minB; cb < maxB; cb ++) {
-                    Coords cCoords = Coords.zero;
                     (&cCoords.x)[ai] = ca;
                     (&cCoords.x)[bi] = cb;
                     for (int cc = minC; cc != maxC; cc += incr) {
                         (&cCoords.x)[ci] = cc;
-                        var chunk = volume[cCoords];
+                        chunk = volume[cCoords];
                         if (chunk != null) {
                             for (int la = 0; la < VoxelChunk.chunkSize; la ++) {
                                 for (int lb = 0; lb < VoxelChunk.chunkSize; lb ++) {
@@ -104,8 +105,9 @@ namespace VoxelSpace {
             bool lIsNeg = channel >= 3;
             while (q.TryDequeue(out var node)) {
                 byte lightLevel = *node.chunk.lightData[channel][node.lCoords];
-                int neighborLightLevel = lightLevel - VoxelLight.MAX_LIGHT / 16;
+                int neighborLightLevel = lightLevel - VoxelLight.MAX_LIGHT / 8;
                 if (neighborLightLevel > 0) {
+                    // positive direction
                     for (int axis = 0; axis < 3; axis ++) {
                         var neighbor = node;
                         (&neighbor.lCoords.x)[axis] ++;
@@ -130,6 +132,7 @@ namespace VoxelSpace {
                             }
                         }
                     }
+                    // negative direction
                     for (int axis = 0; axis < 3; axis ++) {
                         var neighbor = node;
                         (&neighbor.lCoords.x)[axis] --;

@@ -27,7 +27,7 @@ namespace VoxelSpace {
         const float playerWidth = 0.9f;
         const float playerHeight = 1.8f;
 
-        const float jumpHeight = 1.15f;
+        const float jumpHeight = 1.25f;
 
         const float cameraHeight = 1.5f;
 
