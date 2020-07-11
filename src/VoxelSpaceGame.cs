@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 
 using VoxelSpace.Assets;
+using VoxelSpace.Input;
 
 namespace VoxelSpace {
 
@@ -35,14 +36,20 @@ namespace VoxelSpace {
             graphics = new GraphicsDeviceManager(this);
             assetManager = new AssetManager();
             Content.RootDirectory = "Content";
-            graphics.PreferredBackBufferWidth = 1280;
-            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = 1920;
+            graphics.PreferredBackBufferHeight = 1080;
+            graphics.GraphicsProfile = GraphicsProfile.HiDef;
         }
 
         protected override void Initialize() {
             projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), GraphicsDevice.Viewport.AspectRatio, 0.01f, 1000);
             debugUi = new Debug.DebugUi(this);
             debugUi.Initialize();
+            Input.Mouse.Initialize(this);
+            var rect = Window.ClientBounds;
+            rect.Width += rect.X;
+            rect.Height += rect.Y;
+            Input.Mouse.ClipCursor(rect);
             base.Initialize();
         }
 

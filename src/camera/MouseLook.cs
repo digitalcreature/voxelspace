@@ -7,9 +7,10 @@ namespace VoxelSpace {
     public class MouseLook {
 
         public float sensitivity = 5;
+        public Vector2 look;
+        
         Point screenCenter;
 
-        public Vector2 look;
 
         public MouseLook(Point screenCenter) {
             this.screenCenter = screenCenter;
@@ -19,16 +20,13 @@ namespace VoxelSpace {
             Mouse.SetPosition(screenCenter.X, screenCenter.Y);
         }
 
-        public Vector2 Update(float deltaTime) {
-            var m = Mouse.GetState();
-            var point = m.Position;
-            point -= screenCenter;
-            var lookDelta = point.ToVector2();
-            lookDelta *= deltaTime * sensitivity;
-            look.X += lookDelta.X;
-            look.Y += lookDelta.Y;
+        public Vector2 Update(GameTime time) {
+            var lookDelta = Input.Mouse.GetRawPositionState();
+            Input.Mouse.SetRawPositionState(Vector2.Zero);
+            lookDelta *= (float) time.ElapsedGameTime.TotalSeconds * sensitivity;
+            look += lookDelta;
             look.Y = MathHelper.Clamp(look.Y, -90, 90);
-            CenterMouse();
+            // CenterMouse();
             return lookDelta;
         }
 

@@ -1,6 +1,5 @@
 using System;
 using VoxelSpace;
-using Microsoft.Xna.Framework;
 using System.Threading;
 
 public class Program {

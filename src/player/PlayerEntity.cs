@@ -67,7 +67,7 @@ namespace VoxelSpace {
             UpdateOrientation();
             world.gravity.AlignToGravity(transform);
             var deltaTime = (float) time.ElapsedGameTime.TotalSeconds;
-            var lookDelta = mouseLook.Update(deltaTime);
+            var lookDelta = mouseLook.Update(time);
             transform.Rotate(Quaternion.CreateFromAxisAngle(transform.up, MathHelper.ToRadians(-lookDelta.X)));
             if (!isFrozen) {
                 // figure out horizontal movement and move horizontally

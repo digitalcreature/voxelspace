@@ -57,7 +57,7 @@ float4 frag(v2f v) : COLOR {
 
 technique Terrain {
     pass Pass {
-        VertexShader = compile vs_2_0 vert();
-        PixelShader = compile ps_2_0 frag();
+        VertexShader = compile vs_4_0 vert();
+        PixelShader = compile ps_4_0 frag();
     }
 }
