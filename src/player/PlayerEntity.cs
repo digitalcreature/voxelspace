@@ -6,7 +6,7 @@ namespace VoxelSpace {
 
     public class PlayerEntity : IEntity {
 
-        public VoxelWorld world { get; private set; }
+        public VoxelBody voxelBody { get; private set; }
 
         public Transform transform { get; private set; }
         public MouseLook mouseLook { get; private set; }
@@ -62,10 +62,10 @@ namespace VoxelSpace {
 
         public void Update(GameTime time) {
             input.Update();
-            var g = world.gravity.GetGravityStrength(transform.position);
-            var gDir = world.gravity.GetGravityDirection(transform.position);
+            var g = voxelBody.gravity.GetGravityStrength(transform.position);
+            var gDir = voxelBody.gravity.GetGravityDirection(transform.position);
             UpdateOrientation();
-            world.gravity.AlignToGravity(transform);
+            voxelBody.gravity.AlignToGravity(transform);
             var deltaTime = (float) time.ElapsedGameTime.TotalSeconds;
             var lookDelta = mouseLook.Update(time);
             transform.Rotate(Quaternion.CreateFromAxisAngle(transform.up, MathHelper.ToRadians(-lookDelta.X)));
@@ -89,7 +89,7 @@ namespace VoxelSpace {
                 }
                 moveH = Vector3.TransformNormal(moveH, alignMatrix);
                 moveH *= deltaTime;
-                bounds.MoveInCollisionGrid(moveH, world.volume);
+                bounds.MoveInCollisionGrid(moveH, voxelBody.volume);
                 // update vertical speed and move vertically
                 if (isGrounded && input.IsKeyDown(Keys.Space)) {
                     // jump height depends on gravity direction
@@ -102,14 +102,15 @@ namespace VoxelSpace {
                 MoveVertical(moveV);
             }
             UpdateTransformFromBounds();
-            if (world.volume.Raycast(headPosition, aimDirection, 5, (v) => v.isSolid, out var result)) {
+            if (voxelBody.volume.Raycast(headPosition, aimDirection, 5, (v) => v.isSolid, out var result)) {
                 isAimValid = true;
                 aimedVoxel = result;
                 if (input.WasMouseButtonPressed(MouseButton.Left)) {
-                    world.volume.SetVoxel(aimedVoxel.coords, Voxel.empty);
+                    voxelBody.changeManager.RequestSingleChange(aimedVoxel.coords, null);
                 }
                 else if (input.WasMouseButtonPressed(MouseButton.Right) && aimedVoxel.normal != Vector3.Zero) {
-                    world.volume.SetVoxel(aimedVoxel.coords + (Coords) aimedVoxel.normal, new Voxel(voxelTypeToPlace));
+                    var coords = aimedVoxel.coords + (Coords) aimedVoxel.normal;
+                    voxelBody.changeManager.RequestSingleChange(coords, voxelTypeToPlace);
                 }
             }
             else {
@@ -120,7 +121,7 @@ namespace VoxelSpace {
         void MoveVertical(Vector3 delta) {
             // first move along orientation axis
             var vDelta = delta.Project(orientationNormal);
-            var actualMove = bounds.MoveInCollisionGrid(vDelta, world.volume);
+            var actualMove = bounds.MoveInCollisionGrid(vDelta, voxelBody.volume);
             if (actualMove != vDelta) {
                 if (vSpeed < 0) {
                     // if we were moving down, we are grounded now
@@ -135,12 +136,12 @@ namespace VoxelSpace {
                 // move horizontally
                 // we only do this if we aren't grounded so we dont slide around
                 var hDelta = delta - vDelta;
-                bounds.MoveInCollisionGrid(hDelta, world.volume);
+                bounds.MoveInCollisionGrid(hDelta, voxelBody.volume);
             }
         }
 
         void UpdateOrientation() {
-            var gDir = world.gravity.GetGravityDirection(transform.position);
+            var gDir = voxelBody.gravity.GetGravityDirection(transform.position);
             orientation = (-gDir).ToAxisAlignedOrientation();;
             orientationNormal = orientation.ToNormal();
             bounds.size = Vector3.One * playerWidth;
@@ -173,8 +174,8 @@ namespace VoxelSpace {
             isFrozen = false;
         }
 
-        public void _SetVoxelWorld(VoxelWorld world) {
-            this.world = world;
+        public void _SetVoxelWorld(VoxelBody world) {
+            this.voxelBody = world;
         }
     }
 

@@ -74,7 +74,7 @@ namespace VoxelSpace {
             effect.Parameters["tex"]?.SetValue(atlas.atlasTexture);
             
             // planet
-            planet = new Planet(64, 20, new VoxelVolumeRenderer(effect));
+            planet = new Planet(32, 20, new VoxelVolumeRenderer(effect));
             var generator = new PlanetTerrainGenerator();
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
@@ -101,8 +101,9 @@ namespace VoxelSpace {
             selectionWireframe.effect.DiffuseColor = Vector3.Zero;
             selectionWireframe.effect.Projection = projMat;
 
-            new VoxelVolumeMeshUpdater(GraphicsDevice).RegisterCallbacks(planet.volume);
+            // new VoxelVolumeMeshUpdater(GraphicsDevice).RegisterCallbacks(planet.volume);
             sunDirection = Vector3.Down;
+            planet.StartThreads();
         }
 
         protected override void Update(GameTime gameTime) {
@@ -127,6 +128,11 @@ namespace VoxelSpace {
             t *= 2 * MathHelper.Pi;
             // Logger.Debug(this, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
             sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+        }
+
+        protected override void OnExiting(Object sender, EventArgs args) {
+            base.OnExiting(sender, args);
+            planet.StopThreads();
         }
 
         protected override void Draw(GameTime gameTime) {

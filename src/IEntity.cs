@@ -7,10 +7,10 @@ namespace VoxelSpace {
 
     public interface IEntity {
 
-        VoxelWorld world { get; }
+        VoxelBody voxelBody { get; }
 
         // only call from VoxelWorld
-        void _SetVoxelWorld(VoxelWorld world);
+        void _SetVoxelWorld(VoxelBody world);
         
         void Update(GameTime time);
 

@@ -5,19 +5,30 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
-    public class VoxelWorld {
+    // represents a physical body made of voxels, like a planet, ship, asteroid, etc
+    public class VoxelBody {
 
         public VoxelVolume volume { get; private set; }
         public VoxelVolumeRenderer volumeRenderer { get; private set; }
+        public VoxelVolumeChangeManager changeManager { get; private set; }
         public GravityField gravity { get; private set; }
 
         HashSet<IEntity> entities;
 
-        public VoxelWorld(GravityField gravity = null, VoxelVolumeRenderer volumeRenderer = null) {
+        public VoxelBody(GravityField gravity = null, VoxelVolumeRenderer volumeRenderer = null) {
             volume = new VoxelVolume();
             this.volumeRenderer = volumeRenderer;
+            this.changeManager = new VoxelVolumeChangeManager(volume);
             this.gravity = gravity;
             entities = new HashSet<IEntity>();
+        }
+
+        public void StartThreads() {
+            changeManager.StartThread();
+        }
+
+        public void StopThreads() {
+            changeManager.StopThread();
         }
 
         public void Update(GameTime time) {
@@ -27,15 +38,15 @@ namespace VoxelSpace {
         }
 
         public void AddEntity(IEntity entity) {
-            if (entity.world != null) {
-                entity.world.RemoveEntity(entity);
+            if (entity.voxelBody != null) {
+                entity.voxelBody.RemoveEntity(entity);
             }
             entities.Add(entity);
             entity._SetVoxelWorld(this);
         }
 
         public bool RemoveEntity(IEntity entity) {
-            if (entity.world == this) {
+            if (entity.voxelBody == this) {
                 entity._SetVoxelWorld(null);
                 return entities.Remove(entity);
             }
@@ -43,6 +54,7 @@ namespace VoxelSpace {
         }
 
         public void Render(GraphicsDevice graphics) {
+            changeManager.UpdateChunkMeshes(graphics);
             if (volumeRenderer != null) {
                 volumeRenderer.Render(graphics, volume);
             }

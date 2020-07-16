@@ -7,8 +7,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
-    public delegate void ModifyVoxelCallback(VoxelVolume volume, VoxelChunk chunk, Coords global, Voxel voxel);
-
     public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid {
 
         Dictionary<Coords, VoxelChunk> chunks;
@@ -24,8 +22,6 @@ namespace VoxelSpace {
             private set => _chunkRegion = value;
         }
         public Region voxelRegion => chunkRegion * VoxelChunk.chunkSize;
-
-        public event ModifyVoxelCallback onModifyVoxel;
 
         public IVoxelOrientationField orientationField;
 
@@ -125,7 +121,6 @@ namespace VoxelSpace {
             var chunk = GetChunkContainingVolumeCoords(c) ?? AddChunk(GlobalToChunkCoords(c));
             var localCoords = chunk.VolumeToLocalCoords(c);
             chunk.voxels[localCoords] = v;
-            onModifyVoxel?.Invoke(this, chunk, c, v);
         }
 
         // return the chunk containing the voxel at a set of coords

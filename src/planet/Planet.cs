@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
-    public class Planet : VoxelWorld  {
+    public class Planet : VoxelBody  {
 
         public float radius { get; private set; }
 
