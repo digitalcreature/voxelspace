@@ -89,7 +89,7 @@ namespace VoxelSpace.Assets {
             }
             module.LoadContent(content);
             module.LoadAssets(this);
-            Logger.InfoFormat(this, "Loaded asset module {0} ({1} content, {2} assets)", module.name, module.contentCount, module.assetCount);
+            Logger.Info(this, $"Loaded asset module {module.name} ({module.contentCount} content, {module.assetCount} assets)");
         }
 
         public static bool IsNameQualified(string name) {

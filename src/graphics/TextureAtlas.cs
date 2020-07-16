@@ -27,14 +27,14 @@ namespace VoxelSpace {
         public void AddTileTexture(TileTexture tile) {
             var t = tile.texture;
             if (t.Width != t.Height) {
-                Logger.ErrorFormat(this, "Can't add texture {0} to atlas: Not square {1}x{2}", t.Name, t.Width, t.Height);
+                Logger.Error(this, $"Can't add texture {t.Name} to atlas: Not square {t.Width}x{t.Height}");
                 return;
             }
             if (tilePixelWidth == -1) {
                 tilePixelWidth = t.Width;
             }
             else if (tilePixelWidth != t.Width) {
-                Logger.ErrorFormat(this, "Can't add texture {0} to atlas: Width {1} is not expected {2}", t.Name, t.Width, tilePixelWidth);
+                Logger.Error(this, $"Can't add texture {t.Name} to atlas: Width {t.Width} is not expected {tilePixelWidth}");
                 return;
             }
             tiles.Add(t.Name, tile);

@@ -7,21 +7,22 @@ namespace VoxelSpace {
 
     public partial class VoxelChunkMesh : IDisposable {
 
-
         public VoxelChunk chunk { get; private set; }
 
         VertexBuffer vertBuffer;
         VertexBuffer lightBuffer;
         IndexBuffer trisBuffer;
 
+        public bool areBuffersReady => vertBuffer != null && lightBuffer != null;
+
         public VoxelChunkMesh(VoxelChunk chunk) {
             this.chunk = chunk;
         }
 
         public void Dispose() {
-            if (vertBuffer != null) vertBuffer.Dispose();
-            if (lightBuffer != null) lightBuffer.Dispose();
-            if (trisBuffer != null) trisBuffer.Dispose();
+            vertBuffer?.Dispose();
+            lightBuffer?.Dispose();
+            trisBuffer?.Dispose();
             vertBuffer = null;
             lightBuffer = null;
             trisBuffer = null;
@@ -60,11 +61,9 @@ namespace VoxelSpace {
         }
 
         public void Draw(GraphicsDevice graphics) {
-            if (vertBuffer != null && lightBuffer != null) {
-                graphics.SetVertexBuffers(new VertexBufferBinding(vertBuffer, 0), new VertexBufferBinding(lightBuffer, 0));
-                graphics.Indices = trisBuffer;
-                graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, trisBuffer.IndexCount/3);
-            }
+            graphics.SetVertexBuffers(new VertexBufferBinding(vertBuffer, 0), new VertexBufferBinding(lightBuffer, 0));
+            graphics.Indices = trisBuffer;
+            graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, trisBuffer.IndexCount/3);
         }
 
         public static readonly VertexDeclaration aoDeclaration = new VertexDeclaration(

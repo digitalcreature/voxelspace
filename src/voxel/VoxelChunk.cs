@@ -30,7 +30,10 @@ namespace VoxelSpace {
         }
 
         public void UpdateMesh(VoxelChunkMesh mesh) {
-            if (this.mesh != null) {
+            if (!mesh.areBuffersReady) {
+                throw new ArgumentException($"Cannot update chunk mesh for chunk at {coords}: Mesh buffers aren't ready!");
+            }
+            if (this.mesh != null && this.mesh != mesh) {
                 this.mesh.Dispose();
             }
             this.mesh = mesh;
