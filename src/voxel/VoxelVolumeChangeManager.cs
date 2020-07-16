@@ -15,7 +15,7 @@ namespace VoxelSpace {
         bool abortRequested;
 
         ConcurrentQueue<VoxelChangeRequest> changeRequests;
-        ConcurrentQueue<VoxelChunkMeshGenerator> generatedMeshes;
+        ConcurrentQueue<VoxelChunkMesh> generatedMeshes;
 
         AutoResetEvent changeRequested;
 
@@ -26,7 +26,7 @@ namespace VoxelSpace {
         public VoxelVolumeChangeManager(VoxelVolume volume) {
             this.volume = volume;
             changeRequests = new ConcurrentQueue<VoxelChangeRequest>();
-            generatedMeshes = new ConcurrentQueue<VoxelChunkMeshGenerator>();
+            generatedMeshes = new ConcurrentQueue<VoxelChunkMesh>();
             changeRequested = new AutoResetEvent(false);
         }
 
@@ -56,9 +56,9 @@ namespace VoxelSpace {
 
         // call before rendering chunks to update their meshes if they have been regenerated
         public void UpdateChunkMeshes(GraphicsDevice graphics) {
-            while (generatedMeshes.TryDequeue(out var generatedMesh)) {
-                var mesh = generatedMesh.ToVoxelChunkMesh(graphics);
-                generatedMesh.chunk.UpdateMesh(mesh);
+            while (generatedMeshes.TryDequeue(out var mesh)) {
+                mesh.ApplyChanges(graphics);
+                mesh.chunk.UpdateMesh(mesh);
             }
         }
 
@@ -103,8 +103,8 @@ namespace VoxelSpace {
                     }
                 }
                 Parallel.ForEach(chunksToRemesh, (chunk) => {
-                    var meshGenerator = new VoxelChunkMeshGenerator(chunk);
-                    meshGenerator.Generate();
+                    var meshGenerator = new VoxelChunkMesh(chunk);
+                    meshGenerator.GenerateGeometry();
                     generatedMeshes.Enqueue(meshGenerator);
                 });
                 chunksToRemesh.Clear();

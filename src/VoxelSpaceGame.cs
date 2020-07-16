@@ -39,6 +39,7 @@ namespace VoxelSpace {
             graphics.PreferredBackBufferWidth = 1920;
             graphics.PreferredBackBufferHeight = 1080;
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
+            graphics.SynchronizeWithVerticalRetrace = true;
         }
 
         protected override void Initialize() {
@@ -131,8 +132,7 @@ namespace VoxelSpace {
         }
 
         protected override void OnExiting(Object sender, EventArgs args) {
-            base.OnExiting(sender, args);
-            planet.StopThreads();
+            Environment.Exit(0);
         }
 
         protected override void Draw(GameTime gameTime) {

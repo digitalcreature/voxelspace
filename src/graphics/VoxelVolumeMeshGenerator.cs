@@ -12,7 +12,7 @@ namespace VoxelSpace {
 
         public VoxelVolume volume { get; private set; }
 
-        WorkerThreadGroup<VoxelChunk, VoxelChunkMeshGenerator> chunkWorkerGroup;
+        WorkerThreadGroup<VoxelChunk, VoxelChunkMesh> chunkWorkerGroup;
 
         public bool isRunning => chunkWorkerGroup.isRunning;
         public bool hasCompleted => chunkWorkerGroup.hasCompleted;
@@ -22,7 +22,7 @@ namespace VoxelSpace {
 
         public VoxelVolumeMeshGenerator(GraphicsDevice graphics) {
             this.graphics = graphics;
-            chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk, VoxelChunkMeshGenerator>(GenerateChunkMesh);
+            chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk, VoxelChunkMesh>(GenerateChunkMesh);
         }
 
         public void StartTask(VoxelVolume volume) {
@@ -40,16 +40,15 @@ namespace VoxelSpace {
             return isDone;
         }
 
-        VoxelChunkMeshGenerator GenerateChunkMesh(VoxelChunk chunk) {
-            var generator = new VoxelChunkMeshGenerator(chunk);
-            generator.Generate();
-            return generator;
+        VoxelChunkMesh GenerateChunkMesh(VoxelChunk chunk) {
+            var mesh = new VoxelChunkMesh(chunk);
+            mesh.GenerateGeometry();
+            return mesh;
         }
 
-        void ApplyGeneratedMesh(VoxelChunkMeshGenerator generator) {
-            var mesh = generator.ToVoxelChunkMesh(graphics);
-            var chunk = generator.chunk;
-            chunk.UpdateMesh(mesh);
+        void ApplyGeneratedMesh(VoxelChunkMesh mesh) {
+            mesh.ApplyChanges(graphics);
+            mesh.chunk.UpdateMesh(mesh);
         }
 
     }

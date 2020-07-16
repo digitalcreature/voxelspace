@@ -5,7 +5,7 @@ namespace VoxelSpace {
 
     public interface IVoxelModel {
 
-        void GenerateMesh(VoxelChunkMeshGenerator mesh, Coords coords, Voxel voxel);
+        void GenerateMesh(VoxelChunkMesh mesh, Coords coords, Voxel voxel);
 
     }
 

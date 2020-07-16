@@ -1,36 +1,75 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
-    public class VoxelChunkMesh : IDisposable {
+    public partial class VoxelChunkMesh : IDisposable {
 
-        VertexBuffer verts;
-        VertexBuffer lightVerts;
-        IndexBuffer tris;
 
-        public VoxelChunkMesh(GraphicsDevice graphics, VoxelVertex[] verts, VoxelLightVertex[] lightVerts, uint[] tris) {
-            this.verts = new VertexBuffer(graphics, VoxelVertex.declaration, verts.Length, BufferUsage.None);
-            this.lightVerts = new VertexBuffer(graphics, VoxelLightVertex.declaration, lightVerts.Length, BufferUsage.None);
-            this.tris = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, tris.Length, BufferUsage.None);
-            this.verts.SetData(0, verts, 0, verts.Length, 0);
-            this.lightVerts.SetData(0, lightVerts, 0, lightVerts.Length, 0);
-            this.tris.SetData(0, tris, 0, tris.Length);
+        public VoxelChunk chunk { get; private set; }
+
+        VertexBuffer vertBuffer;
+        VertexBuffer lightBuffer;
+        IndexBuffer trisBuffer;
+
+        public VoxelChunkMesh(VoxelChunk chunk) {
+            this.chunk = chunk;
         }
 
         public void Dispose() {
-            verts.Dispose();
-            lightVerts.Dispose();
-            tris.Dispose();
+            if (vertBuffer != null) vertBuffer.Dispose();
+            if (lightBuffer != null) lightBuffer.Dispose();
+            if (trisBuffer != null) trisBuffer.Dispose();
+            vertBuffer = null;
+            lightBuffer = null;
+            trisBuffer = null;
+        }
+
+        public void ApplyChanges(GraphicsDevice graphics) {
+            if (geometryDirty) {
+                geometryDirty = false;
+                if (vertBuffer == null || vertBuffer.VertexCount != verts.Count) {
+                    if (vertBuffer != null) {
+                        vertBuffer.Dispose();
+                    }
+                    vertBuffer = new VertexBuffer(graphics, VoxelVertex.declaration, verts.Count, BufferUsage.None);
+                }
+                if (trisBuffer == null || trisBuffer.IndexCount != tris.Count) {
+                    if (trisBuffer != null) {
+                        trisBuffer.Dispose();
+                    }
+                    trisBuffer = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, tris.Count, BufferUsage.None);
+                }
+                
+                vertBuffer.SetData(0, verts.ToArray(), 0, vertBuffer.VertexCount, 0);
+                trisBuffer.SetData(0, tris.ToArray(), 0, trisBuffer.IndexCount);
+
+            }
+            if (lightDirty) {
+                lightDirty = false;
+                if (lightBuffer == null || lightBuffer.VertexCount != lights.Length) {
+                    if (lightBuffer != null) {
+                        lightBuffer.Dispose();
+                    }
+                    lightBuffer = new VertexBuffer(graphics, VoxelLightVertex.declaration, lights.Length, BufferUsage.None);
+                }
+                lightBuffer.SetData(0, lights, 0, lightBuffer.VertexCount, 0);
+            }
         }
 
         public void Draw(GraphicsDevice graphics) {
-            // graphics.SetVertexBuffer(verts);
-            graphics.SetVertexBuffers(new VertexBufferBinding(verts, 0), new VertexBufferBinding(lightVerts, 0));
-            graphics.Indices = tris;
-            graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, tris.IndexCount/3);
+            if (vertBuffer != null && lightBuffer != null) {
+                graphics.SetVertexBuffers(new VertexBufferBinding(vertBuffer, 0), new VertexBufferBinding(lightBuffer, 0));
+                graphics.Indices = trisBuffer;
+                graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, trisBuffer.IndexCount/3);
+            }
         }
+
+        public static readonly VertexDeclaration aoDeclaration = new VertexDeclaration(
+            new VertexElement(0, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 2)
+        );
 
     }
 
@@ -70,11 +109,12 @@ namespace VoxelSpace {
 
 
         public float ao;
+
         public Vector3 sunP;
         public Vector3 sunN;
         public float point;
 
-        public VoxelLightVertex(in VoxelLight light, float ao = 0) {
+        public VoxelLightVertex(in VoxelLight light) {
             sunP = new Vector3(
                 (float) light.sunXp /  VoxelLight.MAX_LIGHT,
                 (float) light.sunYp /  VoxelLight.MAX_LIGHT,
@@ -86,7 +126,7 @@ namespace VoxelSpace {
                 (float) light.sunZn /  VoxelLight.MAX_LIGHT
             );
             point = (float) light.point / VoxelLight.MAX_LIGHT;
-            this.ao = ao;
+            ao = 0;
         }
 
         public static readonly VertexDeclaration declaration = new VertexDeclaration(

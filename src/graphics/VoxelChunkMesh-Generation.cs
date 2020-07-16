@@ -5,31 +5,21 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
-    public class VoxelChunkMeshGenerator {
-
-        public VoxelChunk chunk { get; private set; }
+    public partial class VoxelChunkMesh {
 
         List<VoxelVertex> verts;
-        VoxelLightVertex[] lightVerts;
         List<uint> tris;
+        VoxelLightVertex[] lights;
 
-        public VoxelChunkMeshGenerator(VoxelChunk chunk) {
-            this.chunk = chunk;
+        bool geometryDirty;
+        bool lightDirty;
+
+        public void GenerateGeometry() {
+            var size = VoxelChunk.chunkSize;
+            geometryDirty = true;
+            lightDirty = true;
             verts = new List<VoxelVertex>();
             tris = new List<uint>();
-        }
-
-        public VoxelChunkMesh ToVoxelChunkMesh(GraphicsDevice graphics) {
-            if (verts.Count == 0) {
-                return null;
-            }
-            else {
-                return new VoxelChunkMesh(graphics, verts.ToArray(), lightVerts, tris.ToArray());
-            }
-        }
-
-        public void Generate() {
-            var size = VoxelChunk.chunkSize;
             for (int i = 0; i < size; i ++) {
                 for (int j = 0; j < size; j ++) {
                     for (int k = 0; k < size; k ++) {
@@ -135,7 +125,8 @@ namespace VoxelSpace {
         }
 
         unsafe void CalculateLighting() {
-            lightVerts = new VoxelLightVertex[verts.Count];
+            lightDirty = true;
+            lights = new VoxelLightVertex[verts.Count];
             for (int v = 0; v < verts.Count; v ++) {
                 var vert = verts[v];
                 var vc = vert.coords;
@@ -207,25 +198,25 @@ namespace VoxelSpace {
                 }
                 light.DivideLight(count);
                 light.ao = 1 - ao;
-                lightVerts[v] = light;
+                lights[v] = light;
             }
             // go back and flip any faces we need to for ao reasons
             for (int i = 0; i < verts.Count; i += 4) {
-                 var aoA = lightVerts[i  ].ao;
-                 var aoB = lightVerts[i+1].ao;
-                 var aoC = lightVerts[i+2].ao;
-                 var aoD = lightVerts[i+3].ao;
+                 var aoA = lights[i  ].ao;
+                 var aoB = lights[i+1].ao;
+                 var aoC = lights[i+2].ao;
+                 var aoD = lights[i+3].ao;
                 if (aoA + aoD > aoB + aoC) {
                     var tmp = verts[i];
                     verts[i] = verts[i+1];
                     verts[i+1] = verts[i+3];
                     verts[i+3] = verts[i+2];
                     verts[i+2] = tmp;
-                    var tmp2 = lightVerts[i];
-                    lightVerts[i] = lightVerts[i+1];
-                    lightVerts[i+1] = lightVerts[i+3];
-                    lightVerts[i+3] = lightVerts[i+2];
-                    lightVerts[i+2] = tmp2;
+                    var tmp2 = lights[i];
+                    lights[i] = lights[i+1];
+                    lights[i+1] = lights[i+3];
+                    lights[i+3] = lights[i+2];
+                    lights[i+2] = tmp2;
                 }
             }
         }
