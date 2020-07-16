@@ -14,7 +14,7 @@ namespace VoxelSpace {
         bool geometryDirty;
         bool lightDirty;
 
-        public void GenerateGeometry() {
+        public void GenerateGeometryAndLighting() {
             var size = VoxelChunk.chunkSize;
             geometryDirty = true;
             lightDirty = true;
@@ -164,30 +164,30 @@ namespace VoxelSpace {
                 VoxelLight sideBLight = chunk.GetVoxelLightIncludingNeighbors(n + bt);
                 var light = VoxelLightVertex.zero;
                 float count = 0;
-                if (!top.isSolid && topLight.isValid) {
+                if (!top.isOpaque && topLight.isValid) {
                     light.AddLight(new VoxelLightVertex(topLight));
                     count ++;
                 }
                 float ao = 0;
-                if (sideA.isSolid && sideB.isSolid) {
+                if (sideA.isOpaque && sideB.isOpaque) {
                     ao = 1;
                 }
                 else {
-                    if (corner.isSolid) ao ++;
+                    if (corner.isOpaque) ao ++;
                     else {
                         if (cornerLight.isValid) {
                             light.AddLight(new VoxelLightVertex(cornerLight));
                             count ++;
                         }
                     }
-                    if (sideA.isSolid) ao ++;
+                    if (sideA.isOpaque) ao ++;
                     else {
                         if (sideALight.isValid) {
                             light.AddLight(new VoxelLightVertex(sideALight));
                             count ++;
                         }
                     }
-                    if (sideB.isSolid) ao ++;
+                    if (sideB.isOpaque) ao ++;
                     else {
                         if (sideBLight.isValid) {
                             light.AddLight(new VoxelLightVertex(sideBLight));
@@ -230,7 +230,7 @@ namespace VoxelSpace {
         //      | /   |
         //      c --- d
         // 
-        public void AddQuad(VoxelVertex a, VoxelVertex b, VoxelVertex c, VoxelVertex d) {
+        void AddQuad(VoxelVertex a, VoxelVertex b, VoxelVertex c, VoxelVertex d) {
             uint i = (uint) verts.Count;
             verts.Add(a);
             verts.Add(b);

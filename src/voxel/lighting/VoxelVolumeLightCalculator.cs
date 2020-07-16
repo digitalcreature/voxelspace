@@ -119,7 +119,7 @@ namespace VoxelSpace {
                         }
                         if (neighbor.chunk != null) {
                             byte* light = neighbor.chunk.lightData[channel][neighbor.lCoords];
-                            if (!neighbor.chunk.voxels[neighbor.lCoords].isSolid && *light < neighborLightLevel) {
+                            if (!neighbor.chunk.voxels[neighbor.lCoords].isOpaque && *light < neighborLightLevel) {
                                 byte l;
                                 if (axis == lAxis && !lIsNeg && lightLevel == VoxelLight.MAX_LIGHT) {
                                     l = VoxelLight.MAX_LIGHT;
@@ -144,7 +144,7 @@ namespace VoxelSpace {
                         }
                         if (neighbor.chunk != null) {
                             byte* light = neighbor.chunk.lightData[channel][neighbor.lCoords];
-                            if (!neighbor.chunk.voxels[neighbor.lCoords].isSolid && *light < neighborLightLevel) {
+                            if (!neighbor.chunk.voxels[neighbor.lCoords].isOpaque && *light < neighborLightLevel) {
                                 byte l;
                                 if (axis == lAxis && lIsNeg && lightLevel == VoxelLight.MAX_LIGHT) {
                                     l = VoxelLight.MAX_LIGHT;

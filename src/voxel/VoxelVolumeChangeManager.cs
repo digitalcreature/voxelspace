@@ -104,7 +104,7 @@ namespace VoxelSpace {
                 }
                 Parallel.ForEach(chunksToRemesh, (chunk) => {
                     var meshGenerator = new VoxelChunkMesh(chunk);
-                    meshGenerator.GenerateGeometry();
+                    meshGenerator.GenerateGeometryAndLighting();
                     generatedMeshes.Enqueue(meshGenerator);
                 });
                 chunksToRemesh.Clear();

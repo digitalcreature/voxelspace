@@ -42,7 +42,7 @@ namespace VoxelSpace {
 
         VoxelChunkMesh GenerateChunkMesh(VoxelChunk chunk) {
             var mesh = new VoxelChunkMesh(chunk);
-            mesh.GenerateGeometry();
+            mesh.GenerateGeometryAndLighting();
             return mesh;
         }
 

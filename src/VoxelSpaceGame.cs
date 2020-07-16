@@ -75,7 +75,7 @@ namespace VoxelSpace {
             effect.Parameters["tex"]?.SetValue(atlas.atlasTexture);
             
             // planet
-            planet = new Planet(32, 20, new VoxelVolumeRenderer(effect));
+            planet = new Planet(16, 20, new VoxelVolumeRenderer(effect));
             var generator = new PlanetTerrainGenerator();
             planetGenerator = new PlanetGenerator(generator);
             meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
