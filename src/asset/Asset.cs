@@ -6,63 +6,69 @@ namespace VoxelSpace.Assets {
 
     public interface IAsset {
         
-        AssetModule module { get; }
-        string name { get; }
-        string qualifiedName { get; }
+        AssetModule Module { get; }
+        string Name { get; }
+        string QualifiedName { get; }
 
-        object asset { get; }
+        Type ValueType { get; }
+        object Value { get; }
 
     }
 
     public struct Asset<T> : IAsset where T : class {
 
-        public AssetModule module { get; private set; }
-        public string name { get; private set; }
-        public string qualifiedName => module.name + ":" + name;
+        public AssetModule Module { get; private set; }
+        public string Name { get; private set; }
+        public string QualifiedName => Module.Name + ":" + Name;
 
-        public T asset { get; private set; }
+        public Type ValueType => typeof(T);
 
-        object IAsset.asset => asset;
+        public T Value { get; private set; }
+
+        object IAsset.Value => Value;
 
         public Asset(AssetModule module, string name, T asset) {
-            this.module = module;
-            this.name = name;
-            this.asset = asset;
+            Module = module;
+            Name = name;
+            Value = asset;
         }
 
         // used to cast to a searched type
         public Asset(IAsset asset) {
-            this.module = asset.module;
-            this.name = asset.name;
-            this.asset = asset.asset as T;
+            Module = asset.Module;
+            Name = asset.Name;
+            Value = asset.Value as T;
         }
 
     }
 
     public interface IContent {
         
-        AssetModule module { get; }
-        string name { get; }
-        string qualifiedName { get; }
+        AssetModule Module { get; }
+        string Name { get; }
+        string QualifiedName { get; }
 
-        object content { get; }
+        Type ValueType { get; }
+        object Value { get; }
 
     }
 
     public struct Content<T> : IContent where T : class {
 
-        public AssetModule module { get; private set; }
-        public string name { get; private set; }
-        public string qualifiedName => module.name + ":" + name;
+        public AssetModule Module { get; private set; }
+        public string Name { get; private set; }
+        public string QualifiedName => Module.Name + ":" + Name;
 
-        public T content { get; private set; }
+        public Type ValueType => typeof(T);
 
-        object IContent.content => content;
+        public T Value { get; private set; }
+
+        object IContent.Value => Value;
 
         public Content(AssetModule module, string name, T content) {
-            this.module = module;
-            this.name = name;
-            this.content = content;
+            Module = module;
+            Name = name;
+            Value = content;
         }
 
     }

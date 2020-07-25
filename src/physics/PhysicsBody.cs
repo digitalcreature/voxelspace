@@ -5,10 +5,10 @@ namespace VoxelSpace {
 
     public class PhysicsBody : IPhysicsBody {
 
-        public PhysicsDomain domain { get; private set; }
+        public PhysicsDomain Domain { get; private set; }
 
         public void _SetPhysicsDomain(PhysicsDomain domain) {
-            this.domain = domain;
+            Domain = domain;
         }
 
         public virtual void Update(GameTime time) {
@@ -19,7 +19,7 @@ namespace VoxelSpace {
 
     public interface IPhysicsBody {
 
-        PhysicsDomain domain { get; }
+        PhysicsDomain Domain { get; }
 
         // only called from PhysicsDomain
         void _SetPhysicsDomain(PhysicsDomain domain);

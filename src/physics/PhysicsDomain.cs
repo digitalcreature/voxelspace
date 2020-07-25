@@ -6,21 +6,21 @@ namespace VoxelSpace {
 
     public class PhysicsDomain {
 
-        public GravityField gravity { get; private set; }
+        public GravityField Gravity { get; private set; }
 
-        public ICollisionGrid collisionGrid { get; private set; }
+        public ICollisionGrid CollisionGrid { get; private set; }
 
-        HashSet<IPhysicsBody> bodies;
+        HashSet<IPhysicsBody> _bodies;
 
         public PhysicsDomain(GravityField gravity, ICollisionGrid collisionGrid) {
-            this.gravity = gravity;
-            this.collisionGrid = collisionGrid;
-            bodies = new HashSet<IPhysicsBody>();
+            Gravity = gravity;
+            CollisionGrid = collisionGrid;
+            _bodies = new HashSet<IPhysicsBody>();
         }
 
         public void AddBody(IPhysicsBody body) {
             if (body != null) {
-                bodies.Add(body);
+                _bodies.Add(body);
                 body._SetPhysicsDomain(this);
             }
             else {
@@ -30,8 +30,8 @@ namespace VoxelSpace {
 
         public bool RemoveBody(IPhysicsBody body) {
             if (body != null) {
-                if (body.domain == this) {
-                    return bodies.Remove(body);
+                if (body.Domain == this) {
+                    return _bodies.Remove(body);
                 }
                 return false;
             }
@@ -41,7 +41,7 @@ namespace VoxelSpace {
         }
 
         public void UpdateBodies(GameTime time) {
-            foreach (var body in bodies) {
+            foreach (var body in _bodies) {
                 body.Update(time);
             }
         }

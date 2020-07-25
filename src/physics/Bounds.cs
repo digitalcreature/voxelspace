@@ -5,46 +5,46 @@ namespace VoxelSpace {
 
     public struct Bounds {
 
-        public Vector3 position;
-        public Vector3 size;
+        public Vector3 Position;
+        public Vector3 Size;
 
-        public Vector3 center {
-            get => position + size / 2;
-            set => position = value - size / 2;
+        public Vector3 Center {
+            get => Position + Size / 2;
+            set => Position = value - Size / 2;
         }
 
-        public Vector3 min {
-            get => position;
+        public Vector3 Min {
+            get => Position;
             set {
-                size += position - value;
-                position = value;
+                Size += Position - value;
+                Position = value;
             }
         }
 
-        public Vector3 max {
-            get => position + size;
+        public Vector3 Max {
+            get => Position + Size;
             set {
-                size = position + value;
+                Size = Position + value;
             }
         }
 
-        public Coords minCoords => 
-            new Coords((int)MathF.Floor(min.X), (int) MathF.Floor(min.Y), (int) MathF.Floor(min.Z));
-        public Coords maxCoords => 
-            new Coords((int)MathF.Ceiling(max.X), (int) MathF.Ceiling(max.Y), (int) MathF.Ceiling(max.Z));
+        public Coords MinCoords => 
+            new Coords((int)MathF.Floor(Min.X), (int) MathF.Floor(Min.Y), (int) MathF.Floor(Min.Z));
+        public Coords MaxCoords => 
+            new Coords((int)MathF.Ceiling(Max.X), (int) MathF.Ceiling(Max.Y), (int) MathF.Ceiling(Max.Z));
 
         public Bounds(Vector3 position, Vector3 size) {
-            this.position = position;
-            this.size = size;
+            Position = position;
+            Size = size;
         }
 
         public Bounds(Vector3 size) {
-            this.size = size;
-            this.position = Vector3.Zero;
+            Size = size;
+            Position = Vector3.Zero;
         }
 
         public Region GetBoundingRegion() {
-            return new Region(minCoords, maxCoords);
+            return new Region(MinCoords, MaxCoords);
         }
 
         // move the bounds by a certain position delta, checking for and solving collisions withing a collision grid
@@ -55,24 +55,24 @@ namespace VoxelSpace {
         public Vector3 MoveInCollisionGrid(Vector3 delta, ICollisionGrid grid, float skinWidth = 1E-5f) {
             float inc;
             var d = delta;
-            var start = this.position;
+            var start = Position;
             var startRegion = GetBoundingRegion();
             bool hadCollision = false;
             while (d.X != 0 || d.Y != 0 || d.Z != 0) {
                 if (d.X != 0) {
                     inc = MathF.Abs(d.X) < 1 ? d.X : MathF.Sign(d.X);
-                    position.X += inc;
+                    Position.X += inc;
                     if (grid.CheckBounds(this, startRegion)) {
                         hadCollision = true;
                         float x;
                         if (d.X > 0) {
-                            x = MathF.Ceiling(max.X) - 1 - size.X - skinWidth;
+                            x = MathF.Ceiling(Max.X) - 1 - Size.X - skinWidth;
                         }
                         else {
-                            x = MathF.Floor(min.X) + 1 + skinWidth;
+                            x = MathF.Floor(Min.X) + 1 + skinWidth;
                         }
                         d.X = 0;
-                        position.X = x;
+                        Position.X = x;
                     }
                     else {
                         d.X -= inc;
@@ -80,18 +80,18 @@ namespace VoxelSpace {
                 }
                 if (d.Y != 0) {
                     inc = MathF.Abs(d.Y) < 1 ? d.Y : MathF.Sign(d.Y);
-                    position.Y += inc;
+                    Position.Y += inc;
                     if (grid.CheckBounds(this, startRegion)) {
                         hadCollision = true;
                         float y;
                         if (d.Y > 0) {
-                            y = MathF.Ceiling(max.Y) - 1 - size.Y - skinWidth;
+                            y = MathF.Ceiling(Max.Y) - 1 - Size.Y - skinWidth;
                         }
                         else {
-                            y = MathF.Floor(min.Y) + 1 + skinWidth;
+                            y = MathF.Floor(Min.Y) + 1 + skinWidth;
                         }
                         d.Y = 0;
-                        position.Y = y;
+                        Position.Y = y;
                     }
                     else {
                         d.Y -= inc;
@@ -99,18 +99,18 @@ namespace VoxelSpace {
                 }
                 if (d.Z != 0) {
                     inc = MathF.Abs(d.Z) < 1 ? d.Z : MathF.Sign(d.Z);
-                    position.Z += inc;
+                    Position.Z += inc;
                     if (grid.CheckBounds(this, startRegion)) {
                         hadCollision = true;
                         float z;
                         if (d.Z > 0) {
-                            z = MathF.Ceiling(max.Z) - 1 - size.Z - skinWidth;
+                            z = MathF.Ceiling(Max.Z) - 1 - Size.Z - skinWidth;
                         }
                         else {
-                            z = MathF.Floor(min.Z) + 1 + skinWidth;
+                            z = MathF.Floor(Min.Z) + 1 + skinWidth;
                         }
                         d.Z = 0;
-                        position.Z = z;
+                        Position.Z = z;
                     }
                     else {
                         d.Z -= inc;
@@ -118,7 +118,7 @@ namespace VoxelSpace {
                 }
             }
             if (hadCollision) {
-                return position - start;
+                return Position - start;
             }
             else {
                 return delta;
@@ -130,8 +130,8 @@ namespace VoxelSpace {
             Vector3 quadrant= Vector3.Zero;
             Vector3 maxT = Vector3.Zero;
             Vector3 candidatePlane = Vector3.Zero;
-            var min = position;
-            var max = min + size;
+            var min = Position;
+            var max = min + Size;
             // candidate planes
             // X
             if (origin.X < min.X) {
@@ -179,9 +179,9 @@ namespace VoxelSpace {
             // if we are inside, were done
             if (inside) {
                 result = new RaycastResult() {
-                    point = origin,
-                    normal = Vector3.Zero,
-                    distance = 0
+                    Point = origin,
+                    Normal = Vector3.Zero,
+                    Distance = 0
                 };
                 return true;
             }
@@ -251,9 +251,9 @@ namespace VoxelSpace {
             }
             var distance = Vector3.Distance(point, origin);
             result = new RaycastResult() {
-                point = point,
-                normal = normal,
-                distance = distance
+                Point = point,
+                Normal = normal,
+                Distance = distance
             };
             return true;
         }

@@ -11,41 +11,41 @@ namespace VoxelSpace {
 
     public class VoxelSpaceGame : Game {
         
-        GraphicsDeviceManager graphics;
-        AssetManager assetManager;
+        GraphicsDeviceManager _graphics;
+        AssetManager _assetManager;
 
-        Matrix projMat;
+        Matrix _projMat;
 
-        Effect effect;
+        Effect _effect;
 
-        Planet planet;
+        Planet _planet;
 
-        PlanetGenerator planetGenerator;
-        VoxelVolumeLightCalculator lightCalculator;
-        VoxelVolumeMeshGenerator meshGenerator;
-        PlayerEntity player;
+        PlanetGenerator _planetGenerator;
+        VoxelVolumeLightCalculator _lightCalculator;
+        VoxelVolumeMeshGenerator _meshGenerator;
+        PlayerEntity _player;
 
-        SelectionWireframe selectionWireframe;
+        SelectionWireframe _selectionWireframe;
 
-        Vector3 sunDirection;
+        Vector3 _sunDirection;
 
-        Debug.DebugUi debugUi;
-        InputManager input;
+        Debug.DebugUi _debugUi;
+        InputManager _inputManager;
 
         public VoxelSpaceGame() {
-            graphics = new GraphicsDeviceManager(this);
-            assetManager = new AssetManager();
+            _graphics = new GraphicsDeviceManager(this);
+            _assetManager = new AssetManager();
             Content.RootDirectory = "Content";
-            graphics.PreferredBackBufferWidth = 1920;
-            graphics.PreferredBackBufferHeight = 1080;
-            graphics.GraphicsProfile = GraphicsProfile.HiDef;
-            graphics.SynchronizeWithVerticalRetrace = true;
+            _graphics.PreferredBackBufferWidth = 1920;
+            _graphics.PreferredBackBufferHeight = 1080;
+            _graphics.GraphicsProfile = GraphicsProfile.HiDef;
+            _graphics.SynchronizeWithVerticalRetrace = true;
         }
 
         protected override void Initialize() {
-            projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), GraphicsDevice.Viewport.AspectRatio, 0.01f, 1000);
-            debugUi = new Debug.DebugUi(this);
-            debugUi.Initialize();
+            _projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), GraphicsDevice.Viewport.AspectRatio, 0.01f, 1000);
+            _debugUi = new Debug.DebugUi(this);
+            _debugUi.Initialize();
             Input.Mouse.Initialize(this);
             var rect = Window.ClientBounds;
             rect.Width += rect.X;
@@ -57,54 +57,54 @@ namespace VoxelSpace {
         protected override void LoadContent() {
             // load assets
             var coreModule = new CoreAssetModule();
-            assetManager.AddModule(coreModule);
-            assetManager.LoadModules(Content);
+            _assetManager.AddModule(coreModule);
+            _assetManager.LoadModules(Content);
 
             var atlas = new TextureAtlas();
-            foreach (var tile in assetManager.GetContent<TileTexture>()) {
-                var tex = tile.content;
-                atlas.AddTileTexture(tile.content);
+            foreach (var tile in _assetManager.GetContent<TileTexture>()) {
+                var tex = tile.Value;
+                atlas.AddTileTexture(tile.Value);
             }
             atlas.CreateAtlasTexture(GraphicsDevice);
             
             // terrain shader
-            effect = Content.Load<Effect>("shader/terrain");
-            effect.Parameters["proj"].SetValue(projMat);
-            effect.Parameters["lightIntensity"].SetValue(0.1f);
-            effect.Parameters["lightAmbient"].SetValue(0.8f);
-            effect.Parameters["tex"]?.SetValue(atlas.atlasTexture);
+            _effect = Content.Load<Effect>("shader/terrain");
+            _effect.Parameters["proj"].SetValue(_projMat);
+            _effect.Parameters["lightIntensity"].SetValue(0.1f);
+            _effect.Parameters["lightAmbient"].SetValue(0.8f);
+            _effect.Parameters["tex"]?.SetValue(atlas.AtlasTexture);
             
             // planet
-            planet = new Planet(64, 20, new VoxelVolumeRenderer(effect));
+            _planet = new Planet(64, 20, new VoxelVolumeRenderer(_effect));
             var generator = new PlanetTerrainGenerator();
-            planetGenerator = new PlanetGenerator(generator);
-            meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
-            generator.maxHeight = 16;
-            generator.grass = assetManager.FindAsset<IVoxelType>("core:grass")?.asset;
-            generator.stone = assetManager.FindAsset<IVoxelType>("core:stone")?.asset;
-            generator.dirt = assetManager.FindAsset<IVoxelType>("core:dirt")?.asset;
-            lightCalculator = new VoxelVolumeLightCalculator();
+            _planetGenerator = new PlanetGenerator(generator);
+            _meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
+            generator.MaxHeight = 16;
+            generator.Grass = _assetManager.FindAsset<IVoxelType>("core:grass")?.Value;
+            generator.Stone = _assetManager.FindAsset<IVoxelType>("core:stone")?.Value;
+            generator.Dirt = _assetManager.FindAsset<IVoxelType>("core:dirt")?.Value;
+            _lightCalculator = new VoxelVolumeLightCalculator();
 
-            input = new InputManager();
+            _inputManager = new InputManager();
 
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
-            var pos = new Vector3(0, planet.radius + generator.maxHeight, 0);
-            player = new PlayerEntity(pos, new MouseLook(center), input);
-            player.voxelTypeToPlace = assetManager.FindAsset<IVoxelType>("core:dirt")?.asset;
-            planet.AddEntity(player);
-            player.Freeze();
+            var pos = new Vector3(0, _planet.Radius + generator.MaxHeight, 0);
+            _player = new PlayerEntity(pos, new MouseLook(center), _inputManager);
+            _player.VoxelTypeToPlace = _assetManager.FindAsset<IVoxelType>("core:dirt")?.Value;
+            _planet.AddEntity(_player);
+            _player.Freeze();
 
-            planetGenerator.StartTask(planet);
+            _planetGenerator.StartTask(_planet);
             
             // selection wireframe
-            selectionWireframe = new SelectionWireframe(new BasicEffect(GraphicsDevice));
-            selectionWireframe.effect.DiffuseColor = Vector3.Zero;
-            selectionWireframe.effect.Projection = projMat;
+            _selectionWireframe = new SelectionWireframe(new BasicEffect(GraphicsDevice));
+            _selectionWireframe.Effect.DiffuseColor = Vector3.Zero;
+            _selectionWireframe.Effect.Projection = _projMat;
 
             // new VoxelVolumeMeshUpdater(GraphicsDevice).RegisterCallbacks(planet.volume);
-            sunDirection = Vector3.Down;
-            planet.StartThreads();
+            _sunDirection = Vector3.Down;
+            _planet.StartThreads();
         }
 
         protected override void Update(GameTime gameTime) {
@@ -112,23 +112,23 @@ namespace VoxelSpace {
             var deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
             IsMouseVisible = !IsActive;
             if (IsActive) {
-                planet.Update(gameTime);
+                _planet.Update(gameTime);
             }
-            if (planetGenerator.UpdateTask()) {
-                lightCalculator.StartTask(planet.volume);
+            if (_planetGenerator.UpdateTask()) {
+                _lightCalculator.StartTask(_planet.Volume);
             }
-            if (lightCalculator.UpdateTask()) {
-                meshGenerator.StartTask(planet.volume);
+            if (_lightCalculator.UpdateTask()) {
+                _meshGenerator.StartTask(_planet.Volume);
             }
-            if (meshGenerator.UpdateTask()) {
-                player.UnFreeze();
+            if (_meshGenerator.UpdateTask()) {
+                _player.UnFreeze();
             }
             // test day/night cycle
             float t = (float) gameTime.TotalGameTime.TotalSeconds;
             t /= 10; // 10 seconds a day
             t *= 2 * MathHelper.Pi;
             // Logger.Debug(this, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
-            sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+            _sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
         }
 
         protected override void OnExiting(Object sender, EventArgs args) {
@@ -137,13 +137,13 @@ namespace VoxelSpace {
 
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            effect.Parameters["lightDirection"].SetValue(sunDirection.Normalized());
-            effect.Parameters["view"].SetValue(player.viewMatrix);
-            effect.CurrentTechnique.Passes[0].Apply();
-            planet.Render(GraphicsDevice);
-            if (player.isAimValid) {
-                selectionWireframe.effect.View = player.viewMatrix;
-                selectionWireframe.Draw(player.aimedVoxel.coords, GraphicsDevice);
+            _effect.Parameters["lightDirection"].SetValue(_sunDirection.Normalized());
+            _effect.Parameters["view"].SetValue(_player.ViewMatrix);
+            _effect.CurrentTechnique.Passes[0].Apply();
+            _planet.Render(GraphicsDevice);
+            if (_player.IsAimValid) {
+                _selectionWireframe.Effect.View = _player.ViewMatrix;
+                _selectionWireframe.Draw(_player.AimedVoxel.Coords, GraphicsDevice);
             }
             // debugUi.Draw(gameTime);
         }

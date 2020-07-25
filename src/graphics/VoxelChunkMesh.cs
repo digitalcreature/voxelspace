@@ -7,63 +7,63 @@ namespace VoxelSpace {
 
     public partial class VoxelChunkMesh : IDisposable {
 
-        public VoxelChunk chunk { get; private set; }
+        public VoxelChunk Chunk { get; private set; }
 
-        VertexBuffer vertBuffer;
-        VertexBuffer lightBuffer;
-        IndexBuffer trisBuffer;
+        VertexBuffer _vertBuffer;
+        VertexBuffer _lightBuffer;
+        IndexBuffer _trisBuffer;
 
-        public bool areBuffersReady => vertBuffer != null && lightBuffer != null;
+        public bool AreBuffersReady => _vertBuffer != null && _lightBuffer != null;
 
         public VoxelChunkMesh(VoxelChunk chunk) {
-            this.chunk = chunk;
+            Chunk = chunk;
         }
 
         public void Dispose() {
-            vertBuffer?.Dispose();
-            lightBuffer?.Dispose();
-            trisBuffer?.Dispose();
-            vertBuffer = null;
-            lightBuffer = null;
-            trisBuffer = null;
+            _vertBuffer?.Dispose();
+            _lightBuffer?.Dispose();
+            _trisBuffer?.Dispose();
+            _vertBuffer = null;
+            _lightBuffer = null;
+            _trisBuffer = null;
         }
 
         public void ApplyChanges(GraphicsDevice graphics) {
-            if (geometryDirty) {
-                geometryDirty = false;
-                if (vertBuffer == null || vertBuffer.VertexCount != verts.Count) {
-                    if (vertBuffer != null) {
-                        vertBuffer.Dispose();
+            if (_geometryDirty) {
+                _geometryDirty = false;
+                if (_vertBuffer == null || _vertBuffer.VertexCount != _verts.Count) {
+                    if (_vertBuffer != null) {
+                        _vertBuffer.Dispose();
                     }
-                    vertBuffer = new VertexBuffer(graphics, VoxelVertex.declaration, verts.Count, BufferUsage.None);
+                    _vertBuffer = new VertexBuffer(graphics, VoxelVertex.declaration, _verts.Count, BufferUsage.None);
                 }
-                if (trisBuffer == null || trisBuffer.IndexCount != tris.Count) {
-                    if (trisBuffer != null) {
-                        trisBuffer.Dispose();
+                if (_trisBuffer == null || _trisBuffer.IndexCount != _tris.Count) {
+                    if (_trisBuffer != null) {
+                        _trisBuffer.Dispose();
                     }
-                    trisBuffer = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, tris.Count, BufferUsage.None);
+                    _trisBuffer = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, _tris.Count, BufferUsage.None);
                 }
                 
-                vertBuffer.SetData(0, verts.ToArray(), 0, vertBuffer.VertexCount, 0);
-                trisBuffer.SetData(0, tris.ToArray(), 0, trisBuffer.IndexCount);
+                _vertBuffer.SetData(0, _verts.ToArray(), 0, _vertBuffer.VertexCount, 0);
+                _trisBuffer.SetData(0, _tris.ToArray(), 0, _trisBuffer.IndexCount);
 
             }
-            if (lightDirty) {
-                lightDirty = false;
-                if (lightBuffer == null || lightBuffer.VertexCount != lights.Length) {
-                    if (lightBuffer != null) {
-                        lightBuffer.Dispose();
+            if (_lightDirty) {
+                _lightDirty = false;
+                if (_lightBuffer == null || _lightBuffer.VertexCount != _lights.Length) {
+                    if (_lightBuffer != null) {
+                        _lightBuffer.Dispose();
                     }
-                    lightBuffer = new VertexBuffer(graphics, VoxelLightVertex.declaration, lights.Length, BufferUsage.None);
+                    _lightBuffer = new VertexBuffer(graphics, VoxelLightVertex.declaration, _lights.Length, BufferUsage.None);
                 }
-                lightBuffer.SetData(0, lights, 0, lightBuffer.VertexCount, 0);
+                _lightBuffer.SetData(0, _lights, 0, _lightBuffer.VertexCount, 0);
             }
         }
 
         public void Draw(GraphicsDevice graphics) {
-            graphics.SetVertexBuffers(new VertexBufferBinding(vertBuffer, 0), new VertexBufferBinding(lightBuffer, 0));
-            graphics.Indices = trisBuffer;
-            graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, trisBuffer.IndexCount/3);
+            graphics.SetVertexBuffers(new VertexBufferBinding(_vertBuffer, 0), new VertexBufferBinding(_lightBuffer, 0));
+            graphics.Indices = _trisBuffer;
+            graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _trisBuffer.IndexCount/3);
         }
 
         public static readonly VertexDeclaration aoDeclaration = new VertexDeclaration(
@@ -75,16 +75,16 @@ namespace VoxelSpace {
     // vertex data for voxel meshs
     public struct VoxelVertex {
 
-        public Vector3 position;
-        public Vector3 normal;
-        public Vector2 uv;
-        public Coords coords;
+        public Vector3 Position;
+        public Vector3 Normal;
+        public Vector2 UV;
+        public Coords Coords;
 
         public VoxelVertex(Vector3 position, Vector3 normal, Vector2 uv, Coords coords) {
-            this.position = position;
-            this.normal = normal;
-            this.uv = uv;
-            this.coords = coords;
+            Position = position;
+            Normal = normal;
+            UV = uv;
+            Coords = coords;
         }
 
         public static readonly VertexDeclaration declaration = new VertexDeclaration(
@@ -101,31 +101,31 @@ namespace VoxelSpace {
     public struct VoxelLightVertex {
         
         public static readonly VoxelLightVertex zero = new VoxelLightVertex() {
-            sunP = Vector3.Zero,
-            sunN = Vector3.Zero,
-            point = 0
+            SunPositive = Vector3.Zero,
+            SunNegative = Vector3.Zero,
+            Point = 0
         };
 
 
-        public float ao;
+        public float AO;
 
-        public Vector3 sunP;
-        public Vector3 sunN;
-        public float point;
+        public Vector3 SunPositive;
+        public Vector3 SunNegative;
+        public float Point;
 
         public VoxelLightVertex(in VoxelLight light) {
-            sunP = new Vector3(
-                (float) light.sunXp /  VoxelLight.MAX_LIGHT,
-                (float) light.sunYp /  VoxelLight.MAX_LIGHT,
-                (float) light.sunZp /  VoxelLight.MAX_LIGHT
+            SunPositive = new Vector3(
+                (float) light.SunXp /  VoxelLight.MAX_LIGHT,
+                (float) light.SunYp /  VoxelLight.MAX_LIGHT,
+                (float) light.SunZp /  VoxelLight.MAX_LIGHT
             );
-            sunN = new Vector3(
-                (float) light.sunXn /  VoxelLight.MAX_LIGHT,
-                (float) light.sunYn /  VoxelLight.MAX_LIGHT,
-                (float) light.sunZn /  VoxelLight.MAX_LIGHT
+            SunNegative = new Vector3(
+                (float) light.SunXn /  VoxelLight.MAX_LIGHT,
+                (float) light.SunYn /  VoxelLight.MAX_LIGHT,
+                (float) light.SunZn /  VoxelLight.MAX_LIGHT
             );
-            point = (float) light.point / VoxelLight.MAX_LIGHT;
-            ao = 0;
+            Point = (float) light.Point / VoxelLight.MAX_LIGHT;
+            AO = 0;
         }
 
         public static readonly VertexDeclaration declaration = new VertexDeclaration(
@@ -138,15 +138,15 @@ namespace VoxelSpace {
 
         // used for effecient averaging
         public void AddLight(VoxelLightVertex a) {
-            sunP += a.sunP;
-            sunN += a.sunN;
-            point += a.point;
+            SunPositive += a.SunPositive;
+            SunNegative += a.SunNegative;
+            Point += a.Point;
         }
 
         public void DivideLight(float f) {
-            sunP /= f;
-            sunN /= f;
-            point /= f;
+            SunPositive /= f;
+            SunNegative /= f;
+            Point /= f;
         }
 
     }

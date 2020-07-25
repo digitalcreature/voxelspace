@@ -9,45 +9,45 @@ namespace VoxelSpace {
 
     public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid {
 
-        Dictionary<Coords, VoxelChunk> chunks;
-        HashSet<VoxelChunk> dirtyChunks;
+        Dictionary<Coords, VoxelChunk> _chunks;
+        HashSet<VoxelChunk> _dirtyChunks;
 
-        public int chunkCount => chunks.Count;
+        public int chunkCount => _chunks.Count;
 
         Region? _chunkRegion;
 
-        public Region chunkRegion {
+        public Region ChunkRegion {
             // if the region was invalidated, such as by removal of a chunk, recalculate it
             get => _chunkRegion ?? CalculateChunkRegion();
             private set => _chunkRegion = value;
         }
-        public Region voxelRegion => chunkRegion * VoxelChunk.chunkSize;
+        public Region VoxelRegion => ChunkRegion * VoxelChunk.SIZE;
 
-        public IVoxelOrientationField orientationField;
+        public IVoxelOrientationField OrientationField;
 
         public VoxelChunk this[Coords c]
-            => chunks.TryGetValue(c, out var chunk) ? chunk : null;
+            => _chunks.TryGetValue(c, out var chunk) ? chunk : null;
 
         public VoxelVolume(IVoxelOrientationField orientationField = null) {
-            chunks = new Dictionary<Coords, VoxelChunk>();
-            dirtyChunks = new HashSet<VoxelChunk>();
-            this.orientationField = orientationField;
-            chunkRegion = new Region();
+            _chunks = new Dictionary<Coords, VoxelChunk>();
+            _dirtyChunks = new HashSet<VoxelChunk>();
+            OrientationField = orientationField;
+            ChunkRegion = new Region();
         }
 
         public VoxelChunk AddChunk(Coords coords) {
             var chunk = new VoxelChunk(this, coords);
-            chunks.Add(coords, chunk);
-            var region = chunkRegion;
+            _chunks.Add(coords, chunk);
+            var region = ChunkRegion;
             region.ExpandToInclude(coords);
-            chunkRegion = region;
+            ChunkRegion = region;
             return chunk;
         }
 
         public bool RemoveChunk(Coords coords) {
-            if (chunks.TryGetValue(coords, out var chunk)) {
+            if (_chunks.TryGetValue(coords, out var chunk)) {
                 chunk.Dispose();
-                chunks.Remove(coords);
+                _chunks.Remove(coords);
                 // region isnt valid, so set it to null
                 _chunkRegion = null;
                 return true;
@@ -60,7 +60,7 @@ namespace VoxelSpace {
         // recalculate the chunk region
         Region CalculateChunkRegion() {
             Region chunkRegion = new Region();
-            foreach (var c in chunks.Keys) {
+            foreach (var c in _chunks.Keys) {
                 chunkRegion.ExpandToInclude(c);
             }
             _chunkRegion = chunkRegion;
@@ -69,18 +69,18 @@ namespace VoxelSpace {
 
         public void SetChunkDirty(VoxelChunk chunk) {
             if (chunk.volume == this) {
-                dirtyChunks.Add(chunk);
+                _dirtyChunks.Add(chunk);
             }
         }
 
         public void SetChunkClean(VoxelChunk chunk) {
             if (chunk.volume == this) {
-                dirtyChunks.Remove(chunk);
+                _dirtyChunks.Remove(chunk);
             }
         }
 
         public void Dispose() {
-            foreach (var chunk in chunks.Values) {
+            foreach (var chunk in _chunks.Values) {
                 chunk.Dispose();
             }
         }
@@ -88,7 +88,7 @@ namespace VoxelSpace {
         // get the coords of the chunk containing a set of global coordsinates
         public Coords GlobalToChunkCoords(Coords c) {
             Vector3 v = c;
-            v /= VoxelChunk.chunkSize;
+            v /= VoxelChunk.SIZE;
             return (Coords) v;
         }
 
@@ -129,34 +129,34 @@ namespace VoxelSpace {
         }
 
         public IEnumerable<VoxelChunk> GetDirtyChunks() {
-            foreach (var chunk in dirtyChunks) {
+            foreach (var chunk in _dirtyChunks) {
                 yield return chunk;
             }
         }
 
         public IEnumerator<VoxelChunk> GetEnumerator()
-            => chunks.Values.GetEnumerator();
+            => _chunks.Values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
         public bool CellIsSolid(Coords c)
-            => GetVoxel(c)?.isSolid ?? false;
+            => GetVoxel(c)?.IsSolid ?? false;
 
         public Orientation GetVoxelOrientation(Coords c)
-            => orientationField?.GetVoxelOrientation(c) ?? Orientation.Zero;
+            => OrientationField?.GetVoxelOrientation(c) ?? Orientation.Zero;
 
         public bool Raycast(Vector3 origin, Vector3 dir, float range, Predicate<Voxel> pred, out VoxelRaycastResult result) {            
             dir.Normalize();
             Coords current = (Coords) origin;
-            var voxel = GetVoxel(current) ?? Voxel.empty;
+            var voxel = GetVoxel(current) ?? Voxel.Empty;
             if (pred(voxel)) {
                 result = new VoxelRaycastResult() {
-                    volume = this,
-                    chunk = GetChunkContainingVolumeCoords(current),
-                    coords = current,
-                    normal = Vector3.Zero,
-                    voxel = voxel
+                    Volume = this,
+                    Chunk = GetChunkContainingVolumeCoords(current),
+                    Coords = current,
+                    Normal = Vector3.Zero,
+                    Voxel = voxel
                 };
                 return true;
             }
@@ -167,9 +167,9 @@ namespace VoxelSpace {
                 MathF.Sqrt(1 + (dir.X * dir.X + dir.Y * dir.Y) / (dir.Z * dir.Z))
             );
             var tMax = new Vector3(
-                (step.x > 0 ? (current.x + 1 - origin.X) : origin.X - current.x) * tDelta.X,
-                (step.y > 0 ? (current.y + 1 - origin.Y) : origin.Y - current.y) * tDelta.Y,
-                (step.z > 0 ? (current.z + 1 - origin.Z) : origin.Z - current.z) * tDelta.Z
+                (step.X > 0 ? (current.X + 1 - origin.X) : origin.X - current.X) * tDelta.X,
+                (step.Y > 0 ? (current.Y + 1 - origin.Y) : origin.Y - current.Y) * tDelta.Y,
+                (step.Z > 0 ? (current.Z + 1 - origin.Z) : origin.Z - current.Z) * tDelta.Z
             );
             if (dir.X == 0) tMax.X = float.PositiveInfinity;
             if (dir.Y == 0) tMax.Y = float.PositiveInfinity;
@@ -179,32 +179,32 @@ namespace VoxelSpace {
                 Vector3 normal = Vector3.Zero;
                 var min = tMax.Min();
                 if (min == tMax.X) {
-                    current.x += step.x;
+                    current.X += step.X;
                     tMax.X += tDelta.X;
-                    distance = (current.x - origin.X + (1 - step.x) / 2f) / dir.X;
-                    normal.X = -step.x;
+                    distance = (current.X - origin.X + (1 - step.X) / 2f) / dir.X;
+                    normal.X = -step.X;
                 }
                 else if (min == tMax.Y) {
-                    current.y += step.y;
+                    current.Y += step.Y;
                     tMax.Y += tDelta.Y;
-                    distance = (current.y - origin.Y + (1 - step.y) / 2f) / dir.Y;
-                    normal.Y = -step.y;
+                    distance = (current.Y - origin.Y + (1 - step.Y) / 2f) / dir.Y;
+                    normal.Y = -step.Y;
                 }
                 else if (min == tMax.Z) {
-                    current.z += step.z;
+                    current.Z += step.Z;
                     tMax.Z += tDelta.Z;
-                    distance = (current.z - origin.Z + (1 - step.z) / 2f) / dir.Z;
+                    distance = (current.Z - origin.Z + (1 - step.Z) / 2f) / dir.Z;
                     normal = Vector3.Backward;
-                    normal.Z = -step.z;
+                    normal.Z = -step.Z;
                 }
-                voxel = GetVoxel(current) ?? Voxel.empty;
+                voxel = GetVoxel(current) ?? Voxel.Empty;
                 if (distance < range && pred(voxel)) {
                     result = new VoxelRaycastResult() {
-                        voxel = voxel,
-                        coords = current,
-                        volume = this,
-                        normal = normal,
-                        chunk = GetChunkContainingVolumeCoords(current)
+                        Voxel = voxel,
+                        Coords = current,
+                        Volume = this,
+                        Normal = normal,
+                        Chunk = GetChunkContainingVolumeCoords(current)
                     };
                     return true;
                 }

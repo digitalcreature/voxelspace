@@ -7,18 +7,18 @@ namespace VoxelSpace {
 
     public abstract class VoxelVolumeGenerator : IMultiFrameTask<VoxelVolume> {
 
-        public VoxelVolume volume { get; private set; }
+        public VoxelVolume Volume { get; private set; }
 
-        public abstract bool isRunning { get; }
-        public abstract bool hasCompleted { get; }
+        public abstract bool IsRunning { get; }
+        public abstract bool HasCompleted { get; }
 
-        public abstract float progress { get; }
+        public abstract float Progress { get; }
 
         public VoxelVolumeGenerator() {}
 
         public void StartTask(VoxelVolume volume) {
             if (!this.HasStarted()) {
-                this.volume = volume;
+                Volume = volume;
                 StartGeneration();
             }
         }
@@ -26,7 +26,7 @@ namespace VoxelSpace {
         protected abstract void StartGeneration();
 
         public bool UpdateTask() {
-            if (isRunning) {
+            if (IsRunning) {
                 return UpdateGeneration();
             }
             return false;

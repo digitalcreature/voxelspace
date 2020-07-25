@@ -6,20 +6,20 @@ namespace VoxelSpace {
 
     public class SingleVoxelSkin : IVoxelSkin {
 
-        public TileTexture texture { get; protected set; }
+        public TileTexture Texture { get; protected set; }
 
-        public IEnumerable<TileTexture> textures {
+        public IEnumerable<TileTexture> Textures {
             get {
-                yield return texture;
+                yield return Texture;
             }
         }
 
         public SingleVoxelSkin(TileTexture texture) {
-            this.texture = texture;
+            this.Texture = texture;
         }
 
         public QuadUVs GetFaceUVs(Voxel voxel, Orientation voxelOrientation, Orientation faceNormal, Orientation faceUp, Orientation faceRight) {
-            return texture.uv;
+            return Texture.UV;
         }
     }
 

@@ -5,15 +5,15 @@ namespace VoxelSpace.Assets {
 
     public class VoxelType : IVoxelType {
 
-        public bool isSolid { get; private set; }
-        public bool isOpaque => isSolid;    // temporary. will change when we add transparency
-        public bool isMeshable => isSolid;
+        public bool IsSolid { get; private set; }
+        public bool IsOpaque => IsSolid;    // temporary. will change when we add transparency
+        public bool IsMeshable => IsSolid;
 
-        public IVoxelSkin skin { get; private set; }
+        public IVoxelSkin Skin { get; private set; }
 
         public VoxelType(bool isSolid, IVoxelSkin skin) {
-            this.skin = skin;
-            this.isSolid = isSolid;
+            Skin = skin;
+            IsSolid = isSolid;
         }
 
     }

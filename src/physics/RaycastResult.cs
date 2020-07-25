@@ -5,9 +5,9 @@ namespace VoxelSpace {
 
     public struct RaycastResult {
 
-        public Vector3 point;
-        public Vector3 normal;
-        public float distance;
+        public Vector3 Point;
+        public Vector3 Normal;
+        public float Distance;
 
     }
 

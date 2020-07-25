@@ -14,27 +14,27 @@ namespace VoxelSpace {
         //      c --- d
 
 
-        public Vector2 a;
-        public Vector2 b;
-        public Vector2 c;
-        public Vector2 d;
+        public Vector2 A;
+        public Vector2 B;
+        public Vector2 C;
+        public Vector2 D;
 
-        public QuadUVs rotatedCW => new QuadUVs(c, a, d, b);
-        public QuadUVs rotatedCCW => new QuadUVs(b, d, a, c);
-        public QuadUVs rotated180 => new QuadUVs(d, c, b, a);
+        public QuadUVs rotatedCW => new QuadUVs(C, A, D, B);
+        public QuadUVs rotatedCCW => new QuadUVs(B, D, A, C);
+        public QuadUVs rotated180 => new QuadUVs(D, C, B, A);
 
         public QuadUVs(Vector2 a, Vector2 d) {
-            this.a = a;
-            this.d = d;
-            this.b = new Vector2(d.X, a.Y);
-            this.c = new Vector2(a.X, d.Y);
+            A = a;
+            D = d;
+            B = new Vector2(d.X, a.Y);
+            C = new Vector2(a.X, d.Y);
         }
 
         public QuadUVs(Vector2 a, Vector2 b, Vector2 c, Vector2 d) {
-            this.a = a;
-            this.b = b;
-            this.c = c;
-            this.d = d;
+            A = a;
+            B = b;
+            C = c;
+            D = d;
         }
 
 

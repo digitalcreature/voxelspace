@@ -6,7 +6,7 @@ namespace VoxelSpace {
 
     public interface IVoxelSkin {
 
-        IEnumerable<TileTexture> textures { get; }
+        IEnumerable<TileTexture> Textures { get; }
 
         QuadUVs GetFaceUVs(Voxel voxel, Orientation voxelOrientation, Orientation faceNormal, Orientation faceUp, Orientation faceRight);
 

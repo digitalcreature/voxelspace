@@ -7,36 +7,36 @@ namespace VoxelSpace {
 
     public class FPSCamera {
 
-        public Vector2 look;
+        public Vector2 Look;
 
-        public float sensitivity = 5;
+        public float Sensitivity = 5;
 
-        public Matrix viewMatrix =>
-            Matrix.Invert(rotation);
+        public Matrix ViewMatrix =>
+            Matrix.Invert(Rotation);
 
-        Point screenCenter;
+        Point _screenCenter;
 
-        public Matrix rotation =>
-            Matrix.CreateRotationX(MathHelper.ToRadians(-look.Y)) *
-            Matrix.CreateRotationY(MathHelper.ToRadians(-look.X));
+        public Matrix Rotation =>
+            Matrix.CreateRotationX(MathHelper.ToRadians(-Look.Y)) *
+            Matrix.CreateRotationY(MathHelper.ToRadians(-Look.X));
 
         public FPSCamera(Point screenCenter) {
-            this.screenCenter = screenCenter;
+            _screenCenter = screenCenter;
             Mouse.SetPosition(screenCenter.X, screenCenter.Y);
         }
 
-        Vector3 input = Vector3.Zero;
+        Vector3 _input = Vector3.Zero;
 
         public void Update(float deltaTime) {
             var state = Mouse.GetState();
             var point = state.Position;
-            point -= screenCenter;
+            point -= _screenCenter;
             var delta = point.ToVector2();
-            delta *= deltaTime * sensitivity;
-            look.X += delta.X;
-            look.Y += delta.Y;
-            look.Y = MathHelper.Clamp(look.Y, -90, 90);
-            Mouse.SetPosition(screenCenter.X, screenCenter.Y);
+            delta *= deltaTime * Sensitivity;
+            Look.X += delta.X;
+            Look.Y += delta.Y;
+            Look.Y = MathHelper.Clamp(Look.Y, -90, 90);
+            Mouse.SetPosition(_screenCenter.X, _screenCenter.Y);
         }
 
     }

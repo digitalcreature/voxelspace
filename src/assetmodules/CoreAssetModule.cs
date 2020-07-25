@@ -4,7 +4,7 @@ namespace VoxelSpace.Assets {
 
     public class CoreAssetModule : AssetModule {
         
-        public override string name => "core";
+        public override string Name => "core";
 
         protected override void OnLoadContent() {
             LoadVoxelTexture("grassT");

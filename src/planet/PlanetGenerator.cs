@@ -7,27 +7,27 @@ namespace VoxelSpace {
 
     public class PlanetGenerator : IMultiFrameTask<Planet> {
 
-        public Planet planet { get; private set; }
+        public Planet Planet { get; private set; }
 
-        public bool isRunning => terrainGenerator.isRunning;
-        public bool hasCompleted => terrainGenerator.hasCompleted;
+        public bool IsRunning => _terrainGenerator.IsRunning;
+        public bool HasCompleted => _terrainGenerator.HasCompleted;
 
-        PlanetTerrainGenerator terrainGenerator;
+        PlanetTerrainGenerator _terrainGenerator;
 
         public PlanetGenerator(PlanetTerrainGenerator terrainGenerator) {
-            this.terrainGenerator = terrainGenerator;
+            _terrainGenerator = terrainGenerator;
         }
 
         public void StartTask(Planet planet) {
             if (!this.HasStarted()) {
-                this.planet = planet;
-                terrainGenerator.surfaceLevel = planet.radius;
-                terrainGenerator.StartTask(planet.volume);
+                Planet = planet;
+                _terrainGenerator.SurfaceLevel = planet.Radius;
+                _terrainGenerator.StartTask(planet.Volume);
             }
         }
 
         public bool UpdateTask() {
-            var isDone = terrainGenerator.UpdateTask();
+            var isDone = _terrainGenerator.UpdateTask();
             if (isDone) {
                 Logger.Info(this, "Generated Planet");
             }

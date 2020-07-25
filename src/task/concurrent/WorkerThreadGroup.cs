@@ -12,8 +12,8 @@ namespace VoxelSpace {
 
         public const int defaultWorkerCount = 4;
 
-        public bool hasCompleted { get; private set; }
-        public bool isRunning { get; private set; }
+        public bool HasCompleted { get; private set; }
+        public bool IsRunning { get; private set; }
 
         Stopwatch stopwatch;
 
@@ -32,16 +32,16 @@ namespace VoxelSpace {
         System.Func<T, R> processor;
 
         public WorkerThreadGroup(System.Func<T, R> processor) {
-            hasCompleted = false;
-            isRunning = false;
+            HasCompleted = false;
+            IsRunning = false;
             this.processor = processor;
         }
 
         public void StartTask(params T[] data) => StartTask(data as IEnumerable<T>);
         public void StartTask(IEnumerable<T> data) {
-            if (!isRunning && !hasCompleted) {
-                isRunning = true;
-                hasCompleted = false;
+            if (!IsRunning && !HasCompleted) {
+                IsRunning = true;
+                HasCompleted = false;
                 resultQueue = new ConcurrentQueue<R>();
                 stopwatch = Stopwatch.StartNew();
                 dataRemaining = 0;
@@ -63,7 +63,7 @@ namespace VoxelSpace {
         public bool UpdateTask() => UpdateTask(null);
 
         public bool UpdateTask(Action<R> resultProcessor) {
-            if (isRunning) {
+            if (IsRunning) {
                 if (resultProcessor != null) {
                     while (resultQueue.TryDequeue(out R result)) {
                         resultProcessor(result);
@@ -84,8 +84,8 @@ namespace VoxelSpace {
         }
 
         void Finish() {
-            isRunning = false;
-            hasCompleted = true;
+            IsRunning = false;
+            HasCompleted = true;
             completionTime = stopwatch.ElapsedMilliseconds / 1000f;
         }
 

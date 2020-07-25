@@ -4,10 +4,10 @@ namespace VoxelSpace {
 
     public static class Logger {
 
-        public static LogLevel logLevel = LogLevel.Debug;
+        public static LogLevel LogLevel = LogLevel.Debug;
 
         static void Log(LogLevel level, object user, object message) {
-            if (level <= logLevel) {
+            if (level <= LogLevel) {
                 Console.WriteLine($"<{level}>[{user.GetType().Name}] {message}");
             }
         }

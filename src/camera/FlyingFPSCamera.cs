@@ -6,56 +6,56 @@ namespace VoxelSpace {
 
     public class FlyingFPSCamera {
 
-        public Transform transform;
+        public Transform Transform;
 
-        Bounds bounds;
+        Bounds _bounds;
 
-        public float moveSpeed = 5;
-        public float moveSpeedIncrement = 1.5f;
-        public float smoothFactor = 10;
+        public float MoveSpeed = 5;
+        public float MoveSpeedIncrement = 1.5f;
+        public float SmoothFactor = 10;
 
-        public float sensitivity = 5;
+        public float Sensitivity = 5;
 
-        Point screenCenter;
-        int scroll;
-        float yLook;
+        Point _screenCenter;
+        int _scroll;
+        float _yLook;
 
-        ICollisionGrid grid;
+        ICollisionGrid _grid;
 
-        public Matrix viewMatrix =>
+        public Matrix ViewMatrix =>
             Matrix.Invert(
-                viewRotationMatrix * Matrix.CreateTranslation(transform.position)
+                ViewRotationMatrix * Matrix.CreateTranslation(Transform.Position)
             );
         
-        Matrix viewRotationMatrix =>
-            Matrix.CreateRotationX(MathHelper.ToRadians(-yLook)) * transform.rotationMatrix;
+        Matrix ViewRotationMatrix =>
+            Matrix.CreateRotationX(MathHelper.ToRadians(-_yLook)) * Transform.RotationMatrix;
 
         public FlyingFPSCamera(Vector3 position, Point screenCenter, ICollisionGrid grid) {
-            this.screenCenter = screenCenter;
+            _screenCenter = screenCenter;
             Mouse.SetPosition(screenCenter.X, screenCenter.Y);
-            transform = new Transform(position);
-            bounds = new Bounds(Vector3.One * 1.5f);
-            bounds.center = position;
-            scroll = Mouse.GetState().ScrollWheelValue;
-            this.grid = grid;
+            Transform = new Transform(position);
+            _bounds = new Bounds(Vector3.One * 1.5f);
+            _bounds.Center = position;
+            _scroll = Mouse.GetState().ScrollWheelValue;
+            _grid = grid;
         }
 
-        Vector3 input = Vector3.Zero;
+        Vector3 _input = Vector3.Zero;
 
         public void Update(float deltaTime) {
             var m = Mouse.GetState();
             var scroll = m.ScrollWheelValue;
-            if (scroll > this.scroll) moveSpeed *= moveSpeedIncrement;
-            if (scroll < this.scroll) moveSpeed /= moveSpeedIncrement;
-            this.scroll = scroll;
+            if (scroll > _scroll) MoveSpeed *= MoveSpeedIncrement;
+            if (scroll < _scroll) MoveSpeed /= MoveSpeedIncrement;
+            _scroll = scroll;
             var point = m.Position;
-            point -= screenCenter;
+            point -= _screenCenter;
             var lookDelta = point.ToVector2();
-            lookDelta *= deltaTime * sensitivity;
-            transform.Rotate(Quaternion.CreateFromAxisAngle(transform.up, MathHelper.ToRadians(-lookDelta.X)));
-            yLook += lookDelta.Y;
-            yLook = MathHelper.Clamp(yLook, -90, 90);
-            Mouse.SetPosition(screenCenter.X, screenCenter.Y);
+            lookDelta *= deltaTime * Sensitivity;
+            Transform.Rotate(Quaternion.CreateFromAxisAngle(Transform.Up, MathHelper.ToRadians(-lookDelta.X)));
+            _yLook += lookDelta.Y;
+            _yLook = MathHelper.Clamp(_yLook, -90, 90);
+            Mouse.SetPosition(_screenCenter.X, _screenCenter.Y);
             var targetInput = Vector3.Zero;
             var k = Keyboard.GetState();
             if (k.IsKeyDown(Keys.W)) targetInput.Z --;
@@ -67,11 +67,11 @@ namespace VoxelSpace {
             if (targetInput != Vector3.Zero) {
                 targetInput.Normalize();
             }
-            targetInput *= deltaTime * moveSpeed;
-            input = Vector3.Lerp(input, targetInput, deltaTime * smoothFactor);
-            var moveDelta = Vector3.TransformNormal(input, viewRotationMatrix);
-            bounds.MoveInCollisionGrid(moveDelta, grid);
-            transform.position = bounds.center;
+            targetInput *= deltaTime * MoveSpeed;
+            _input = Vector3.Lerp(_input, targetInput, deltaTime * SmoothFactor);
+            var moveDelta = Vector3.TransformNormal(_input, ViewRotationMatrix);
+            _bounds.MoveInCollisionGrid(moveDelta, _grid);
+            Transform.Position = _bounds.Center;
         }
 
     }

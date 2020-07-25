@@ -7,28 +7,28 @@ namespace VoxelSpace {
 
     public partial class VoxelChunkMesh {
 
-        List<VoxelVertex> verts;
-        List<uint> tris;
-        VoxelLightVertex[] lights;
+        List<VoxelVertex> _verts;
+        List<uint> _tris;
+        VoxelLightVertex[] _lights;
 
-        bool geometryDirty;
-        bool lightDirty;
+        bool _geometryDirty;
+        bool _lightDirty;
 
         public void GenerateGeometryAndLighting() {
-            var size = VoxelChunk.chunkSize;
-            geometryDirty = true;
-            lightDirty = true;
-            verts = new List<VoxelVertex>();
-            tris = new List<uint>();
+            var size = VoxelChunk.SIZE;
+            _geometryDirty = true;
+            _lightDirty = true;
+            _verts = new List<VoxelVertex>();
+            _tris = new List<uint>();
             for (int i = 0; i < size; i ++) {
                 for (int j = 0; j < size; j ++) {
                     for (int k = 0; k < size; k ++) {
-                        ref readonly var voxel = ref chunk.voxels[i,j,k];
-                        if (voxel.isMeshable) {
+                        ref readonly var voxel = ref Chunk.voxels[i,j,k];
+                        if (voxel.IsMeshable) {
                             var coords = new Coords(i, j, k);
-                            var orientation = chunk.volume.GetVoxelOrientation(chunk.LocalToVolumeCoords(coords));
+                            var orientation = Chunk.volume.GetVoxelOrientation(Chunk.LocalToVolumeCoords(coords));
                             // -x face
-                            if (!chunk.GetVoxelIncludingNeighbors(i - 1, j, k).isMeshable) {
+                            if (!Chunk.GetVoxelIncludingNeighbors(i - 1, j, k).IsMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -43,7 +43,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +x face
-                            if (!chunk.GetVoxelIncludingNeighbors(i + 1, j, k).isMeshable) {
+                            if (!Chunk.GetVoxelIncludingNeighbors(i + 1, j, k).IsMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -58,7 +58,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // -y face
-                            if (!chunk.GetVoxelIncludingNeighbors(i, j - 1, k).isMeshable) {
+                            if (!Chunk.GetVoxelIncludingNeighbors(i, j - 1, k).IsMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -73,7 +73,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +y face
-                            if (!chunk.GetVoxelIncludingNeighbors(i, j + 1, k).isMeshable) {
+                            if (!Chunk.GetVoxelIncludingNeighbors(i, j + 1, k).IsMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -88,7 +88,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // -z face
-                            if (!chunk.GetVoxelIncludingNeighbors(i, j, k - 1).isMeshable) {
+                            if (!Chunk.GetVoxelIncludingNeighbors(i, j, k - 1).IsMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -103,7 +103,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +z face
-                            if (!chunk.GetVoxelIncludingNeighbors(i, j, k + 1).isMeshable) {
+                            if (!Chunk.GetVoxelIncludingNeighbors(i, j, k + 1).IsMeshable) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -125,71 +125,71 @@ namespace VoxelSpace {
         }
 
         unsafe void CalculateLighting() {
-            lightDirty = true;
-            lights = new VoxelLightVertex[verts.Count];
-            for (int v = 0; v < verts.Count; v ++) {
-                var vert = verts[v];
-                var vc = vert.coords;
-                var pc = (Coords) vert.position;
-                Orientation normal = vert.normal.ToAxisAlignedOrientation();
-                Coords n = vc + (Coords) vert.normal;
-                var t = Coords.zero;
-                var bt = Coords.zero;
+            _lightDirty = true;
+            _lights = new VoxelLightVertex[_verts.Count];
+            for (int v = 0; v < _verts.Count; v ++) {
+                var vert = _verts[v];
+                var vc = vert.Coords;
+                var pc = (Coords) vert.Position;
+                Orientation normal = vert.Normal.ToAxisAlignedOrientation();
+                Coords n = vc + (Coords) vert.Normal;
+                var t = Coords.Zero;
+                var bt = Coords.Zero;
                 switch (normal) {
                     case Orientation.Xn:
                     case Orientation.Xp:
-                        t = new Coords(0, pc.y == vc.y ? -1 : 1, 0);
-                        bt = new Coords(0, 0, pc.z == vc.z ? -1 : 1);
+                        t = new Coords(0, pc.Y == vc.Y ? -1 : 1, 0);
+                        bt = new Coords(0, 0, pc.Z == vc.Z ? -1 : 1);
                         break;
                     case Orientation.Yn:
                     case Orientation.Yp:
-                        t = new Coords(pc.x == vc.x ? -1 : 1, 0, 0);
-                        bt = new Coords(0, 0, pc.z == vc.z ? -1 : 1);
+                        t = new Coords(pc.X == vc.X ? -1 : 1, 0, 0);
+                        bt = new Coords(0, 0, pc.Z == vc.Z ? -1 : 1);
                         break;
                     case Orientation.Zn:
                     case Orientation.Zp:
-                        t = new Coords(pc.x == vc.x ? -1 : 1, 0, 0);
-                        bt = new Coords(0, pc.y == vc.y ? -1 : 1, 0);
+                        t = new Coords(pc.X == vc.X ? -1 : 1, 0, 0);
+                        bt = new Coords(0, pc.Y == vc.Y ? -1 : 1, 0);
                         break;
                 }
                 // ao calculation with help from:
                 // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
-                Voxel top = chunk.GetVoxelIncludingNeighbors(n);
-                Voxel corner = chunk.GetVoxelIncludingNeighbors(n + t + bt);
-                Voxel sideA = chunk.GetVoxelIncludingNeighbors(n + t);
-                Voxel sideB = chunk.GetVoxelIncludingNeighbors(n + bt);
-                VoxelLight topLight = chunk.GetVoxelLightIncludingNeighbors(n);
-                VoxelLight cornerLight = chunk.GetVoxelLightIncludingNeighbors(n + t + bt);
-                VoxelLight sideALight = chunk.GetVoxelLightIncludingNeighbors(n + t);
-                VoxelLight sideBLight = chunk.GetVoxelLightIncludingNeighbors(n + bt);
+                Voxel top = Chunk.GetVoxelIncludingNeighbors(n);
+                Voxel corner = Chunk.GetVoxelIncludingNeighbors(n + t + bt);
+                Voxel sideA = Chunk.GetVoxelIncludingNeighbors(n + t);
+                Voxel sideB = Chunk.GetVoxelIncludingNeighbors(n + bt);
+                VoxelLight topLight = Chunk.GetVoxelLightIncludingNeighbors(n);
+                VoxelLight cornerLight = Chunk.GetVoxelLightIncludingNeighbors(n + t + bt);
+                VoxelLight sideALight = Chunk.GetVoxelLightIncludingNeighbors(n + t);
+                VoxelLight sideBLight = Chunk.GetVoxelLightIncludingNeighbors(n + bt);
                 var light = VoxelLightVertex.zero;
                 float count = 0;
-                if (!top.isOpaque && topLight.isValid) {
+                if (!top.IsOpaque && topLight.IsValid) {
                     light.AddLight(new VoxelLightVertex(topLight));
                     count ++;
                 }
                 float ao = 0;
-                if (sideA.isOpaque && sideB.isOpaque) {
+                if (sideA.IsOpaque && sideB.IsOpaque) {
                     ao = 1;
                 }
                 else {
-                    if (corner.isOpaque) ao ++;
+                    if (corner.IsOpaque) ao ++;
                     else {
-                        if (cornerLight.isValid) {
+                        if (cornerLight.IsValid) {
                             light.AddLight(new VoxelLightVertex(cornerLight));
                             count ++;
                         }
                     }
-                    if (sideA.isOpaque) ao ++;
+                    if (sideA.IsOpaque) ao ++;
                     else {
-                        if (sideALight.isValid) {
+                        if (sideALight.IsValid) {
                             light.AddLight(new VoxelLightVertex(sideALight));
                             count ++;
                         }
                     }
-                    if (sideB.isOpaque) ao ++;
+                    if (sideB.IsOpaque) ao ++;
                     else {
-                        if (sideBLight.isValid) {
+                        if (sideBLight.IsValid) {
                             light.AddLight(new VoxelLightVertex(sideBLight));
                             count ++;
                         }
@@ -197,26 +197,26 @@ namespace VoxelSpace {
                     ao /= 3;
                 }
                 light.DivideLight(count);
-                light.ao = 1 - ao;
-                lights[v] = light;
+                light.AO = 1 - ao;
+                _lights[v] = light;
             }
             // go back and flip any faces we need to for ao reasons
-            for (int i = 0; i < verts.Count; i += 4) {
-                 var aoA = lights[i  ].ao;
-                 var aoB = lights[i+1].ao;
-                 var aoC = lights[i+2].ao;
-                 var aoD = lights[i+3].ao;
+            for (int i = 0; i < _verts.Count; i += 4) {
+                 var aoA = _lights[i  ].AO;
+                 var aoB = _lights[i+1].AO;
+                 var aoC = _lights[i+2].AO;
+                 var aoD = _lights[i+3].AO;
                 if (aoA + aoD > aoB + aoC) {
-                    var tmp = verts[i];
-                    verts[i] = verts[i+1];
-                    verts[i+1] = verts[i+3];
-                    verts[i+3] = verts[i+2];
-                    verts[i+2] = tmp;
-                    var tmp2 = lights[i];
-                    lights[i] = lights[i+1];
-                    lights[i+1] = lights[i+3];
-                    lights[i+3] = lights[i+2];
-                    lights[i+2] = tmp2;
+                    var tmp = _verts[i];
+                    _verts[i] = _verts[i+1];
+                    _verts[i+1] = _verts[i+3];
+                    _verts[i+3] = _verts[i+2];
+                    _verts[i+2] = tmp;
+                    var tmp2 = _lights[i];
+                    _lights[i] = _lights[i+1];
+                    _lights[i+1] = _lights[i+3];
+                    _lights[i+3] = _lights[i+2];
+                    _lights[i+2] = tmp2;
                 }
             }
         }
@@ -231,19 +231,19 @@ namespace VoxelSpace {
         //      c --- d
         // 
         void AddQuad(VoxelVertex a, VoxelVertex b, VoxelVertex c, VoxelVertex d) {
-            uint i = (uint) verts.Count;
-            verts.Add(a);
-            verts.Add(b);
-            verts.Add(c);
-            verts.Add(d);
+            uint i = (uint) _verts.Count;
+            _verts.Add(a);
+            _verts.Add(b);
+            _verts.Add(c);
+            _verts.Add(d);
             // tri a b c
-            tris.Add(i);
-            tris.Add(i + 1);
-            tris.Add(i + 2);
+            _tris.Add(i);
+            _tris.Add(i + 1);
+            _tris.Add(i + 2);
             // tri b d c
-            tris.Add(i + 1);
-            tris.Add(i + 3);
-            tris.Add(i + 2);
+            _tris.Add(i + 1);
+            _tris.Add(i + 3);
+            _tris.Add(i + 2);
         }
 
         // add a square
@@ -259,13 +259,13 @@ namespace VoxelSpace {
                 Coords coords, Voxel voxel, Orientation orientation,
                 Vector3 a, Vector3 b, Vector3 c, Vector3 d,
                 Orientation n, Orientation u, Orientation r) {
-            var uv = voxel.type.skin.GetFaceUVs(voxel, orientation, n, u, r);
+            var uv = voxel.Type.Skin.GetFaceUVs(voxel, orientation, n, u, r);
             var normal = n.ToNormal();
             AddQuad(
-                new VoxelVertex(a, normal, uv.a, coords),
-                new VoxelVertex(b, normal, uv.b, coords),
-                new VoxelVertex(c, normal, uv.c, coords),
-                new VoxelVertex(d, normal, uv.d, coords)
+                new VoxelVertex(a, normal, uv.A, coords),
+                new VoxelVertex(b, normal, uv.B, coords),
+                new VoxelVertex(c, normal, uv.C, coords),
+                new VoxelVertex(d, normal, uv.D, coords)
             );
         }
 

@@ -5,41 +5,41 @@ namespace VoxelSpace {
 
     public class Transform {
 
-        public Vector3 position;
-        public Quaternion rotation;
+        public Vector3 Position;
+        public Quaternion Rotation;
 
-        public Matrix localToWorld => rotationMatrix * Matrix.CreateTranslation(position);
-        public Matrix worldToLocal => Matrix.Invert(localToWorld);
+        public Matrix LocalToWorld => RotationMatrix * Matrix.CreateTranslation(Position);
+        public Matrix WorldToLocal => Matrix.Invert(LocalToWorld);
 
-        public Matrix rotationMatrix => Matrix.CreateFromQuaternion(rotation);
+        public Matrix RotationMatrix => Matrix.CreateFromQuaternion(Rotation);
 
-        public Vector3 forward => Vector3.TransformNormal(Vector3.Forward, rotationMatrix);
-        public Vector3 right => Vector3.TransformNormal(Vector3.Right, rotationMatrix);
-        public Vector3 up => Vector3.TransformNormal(Vector3.Up, rotationMatrix);
+        public Vector3 Forward => Vector3.TransformNormal(Vector3.Forward, RotationMatrix);
+        public Vector3 Right => Vector3.TransformNormal(Vector3.Right, RotationMatrix);
+        public Vector3 Up => Vector3.TransformNormal(Vector3.Up, RotationMatrix);
 
         public Transform(Vector3 position, Quaternion rotation) {
-            this.position = position;
-            this.rotation = rotation;
+            Position = position;
+            Rotation = rotation;
         }
 
         public Transform(Vector3 position) {
-            this.position = position;
-            this.rotation = Quaternion.Identity;
+            Position = position;
+            Rotation = Quaternion.Identity;
         }
 
         public Transform(Quaternion rotation) {
-            this.position = Vector3.Zero;
-            this.rotation = rotation;
+            Position = Vector3.Zero;
+            Rotation = rotation;
         }
 
         public Transform() {
-            this.position = Vector3.Zero;
-            this.rotation = Quaternion.Identity;
+            Position = Vector3.Zero;
+            Rotation = Quaternion.Identity;
         }
 
         public void Rotate(Quaternion rotation) {
             rotation.Normalize();
-            this.rotation = rotation * this.rotation;
+            Rotation = rotation * Rotation;
         }
 
     }

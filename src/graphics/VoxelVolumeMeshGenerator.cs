@@ -10,32 +10,32 @@ namespace VoxelSpace {
     
     public class VoxelVolumeMeshGenerator : IMultiFrameTask<VoxelVolume> {
 
-        public VoxelVolume volume { get; private set; }
+        public VoxelVolume Volume { get; private set; }
 
-        WorkerThreadGroup<VoxelChunk, VoxelChunkMesh> chunkWorkerGroup;
+        WorkerThreadGroup<VoxelChunk, VoxelChunkMesh> _chunkWorkerGroup;
 
-        public bool isRunning => chunkWorkerGroup.isRunning;
-        public bool hasCompleted => chunkWorkerGroup.hasCompleted;
-        public float progress => chunkWorkerGroup.progress;
+        public bool IsRunning => _chunkWorkerGroup.IsRunning;
+        public bool HasCompleted => _chunkWorkerGroup.HasCompleted;
+        public float progress => _chunkWorkerGroup.progress;
 
-        GraphicsDevice graphics;
+        GraphicsDevice _graphics;
 
         public VoxelVolumeMeshGenerator(GraphicsDevice graphics) {
-            this.graphics = graphics;
-            chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk, VoxelChunkMesh>(GenerateChunkMesh);
+            _graphics = graphics;
+            _chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk, VoxelChunkMesh>(GenerateChunkMesh);
         }
 
         public void StartTask(VoxelVolume volume) {
             if (!this.HasStarted()) {
-                this.volume = volume;
-                chunkWorkerGroup.StartTask(volume.GetDirtyChunks());
+                Volume = volume;
+                _chunkWorkerGroup.StartTask(volume.GetDirtyChunks());
             }
         }
 
         public bool UpdateTask() {
-            bool isDone = chunkWorkerGroup.UpdateTask(ApplyGeneratedMesh);
+            bool isDone = _chunkWorkerGroup.UpdateTask(ApplyGeneratedMesh);
             if (isDone) {
-                Logger.Info(this, chunkWorkerGroup.GetCompletionMessage("Generated {0} chunk meshes"));
+                Logger.Info(this, _chunkWorkerGroup.GetCompletionMessage("Generated {0} chunk meshes"));
             }
             return isDone;
         }
@@ -47,8 +47,8 @@ namespace VoxelSpace {
         }
 
         void ApplyGeneratedMesh(VoxelChunkMesh mesh) {
-            mesh.ApplyChanges(graphics);
-            mesh.chunk.UpdateMesh(mesh);
+            mesh.ApplyChanges(_graphics);
+            mesh.Chunk.UpdateMesh(mesh);
         }
 
     }

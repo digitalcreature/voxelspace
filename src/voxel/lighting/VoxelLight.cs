@@ -2,33 +2,42 @@ using System;
 
 namespace VoxelSpace {
 
-    public struct VoxelLight {
+    public readonly struct VoxelLight {
 
         public const byte MAX_LIGHT = 255;
-        public static readonly VoxelLight fullSun = new VoxelLight() {
-            sunXp = MAX_LIGHT,
-            sunXn = MAX_LIGHT,
-            sunYp = MAX_LIGHT,
-            sunYn = MAX_LIGHT,
-            sunZp = MAX_LIGHT,
-            sunZn = MAX_LIGHT,
-            point = 0,
-            isValid = true
-        };
-        public static readonly VoxelLight INVALID = new VoxelLight() {
-            isValid = false,
-        };
+        public static readonly VoxelLight fullSun = new VoxelLight(
+            MAX_LIGHT,
+            MAX_LIGHT,
+            MAX_LIGHT,
+            MAX_LIGHT,
+            MAX_LIGHT,
+            MAX_LIGHT,
+            0,
+            true
+        );
+        public static readonly VoxelLight INVALID = new VoxelLight(0, 0, 0, 0, 0, 0, 0, false);
 
-        public byte sunXp;
-        public byte sunYp;
-        public byte sunZp;
-        public byte sunXn;
-        public byte sunYn;
-        public byte sunZn;
+        public readonly byte SunXp;
+        public readonly byte SunYp;
+        public readonly byte SunZp;
+        public readonly byte SunXn;
+        public readonly byte SunYn;
+        public readonly byte SunZn;
 
-        public byte point;
-        public bool isValid;
+        public readonly byte Point;
+        public readonly bool IsValid;
 
+        public VoxelLight(byte sunXp, byte sunYp, byte sunZp, byte sunXn, byte sunYn, byte sunZn, byte point, bool isValid) {
+            SunXp = sunXp;
+            SunYp = sunYp;
+            SunZp = sunZp;
+            SunXn = sunXn;
+            SunYn = sunYn;
+            SunZn = sunZn;
+
+            Point = point;
+            IsValid = isValid;
+        }
     }
 
     public enum VoxelLightChannel {
@@ -72,16 +81,16 @@ namespace VoxelSpace {
         // only used when we need to convert to AoS. pretty much only used in VoxelChunkMeshGenerator
         public VoxelLight GetVoxelLight(Coords c) {
             int offset = VoxelChunk.UnmanagedArray3<byte>.GetIndex(c);
-            return new VoxelLight() {
-                sunXp = *data[0][offset],
-                sunYp = *data[1][offset],
-                sunZp = *data[2][offset],
-                sunXn = *data[3][offset],
-                sunYn = *data[4][offset],
-                sunZn = *data[5][offset],
-                point = *data[6][offset],
-                isValid = true
-            };
+            return new VoxelLight(
+                *data[0][offset],
+                *data[1][offset],
+                *data[2][offset],
+                *data[3][offset],
+                *data[4][offset],
+                *data[5][offset],
+                *data[6][offset],
+                true
+            );
         }
 
     }

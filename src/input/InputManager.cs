@@ -6,66 +6,66 @@ namespace VoxelSpace {
 
     public class InputManager {
 
-        KeyboardState keyboardState;
-        KeyboardState lastKeyboardState;
+        KeyboardState _keyboardState;
+        KeyboardState _lastKeyboardState;
 
-        MouseState mouseState;
-        MouseState lastMouseState;
+        MouseState _mouseState;
+        MouseState _lastMouseState;
 
-        public bool blockMouse;
-        public bool blockKeyboard;
+        public bool BlockMouse;
+        public bool BlockKeyboard;
 
         public void Update() {
-            lastKeyboardState = keyboardState;
-            keyboardState = Keyboard.GetState();
-            lastMouseState = mouseState;
-            mouseState = Mouse.GetState();
+            _lastKeyboardState = _keyboardState;
+            _keyboardState = Keyboard.GetState();
+            _lastMouseState = _mouseState;
+            _mouseState = Mouse.GetState();
         }
 
-        public bool IsKeyDown(Keys key) => !blockKeyboard && keyboardState.IsKeyDown(key);
-        public bool IsKeyUp(Keys key) => !blockKeyboard && keyboardState.IsKeyUp(key);
+        public bool IsKeyDown(Keys key) => !BlockKeyboard && _keyboardState.IsKeyDown(key);
+        public bool IsKeyUp(Keys key) => !BlockKeyboard && _keyboardState.IsKeyUp(key);
 
         public bool WasKeyPressed(Keys key)
-            => !blockKeyboard && keyboardState.IsKeyDown(key) && !lastKeyboardState.IsKeyDown(key);
+            => !BlockKeyboard && _keyboardState.IsKeyDown(key) && !_lastKeyboardState.IsKeyDown(key);
         public bool WasKeyReleased(Keys key)
-            => !blockKeyboard && keyboardState.IsKeyUp(key) && !lastKeyboardState.IsKeyUp(key);
+            => !BlockKeyboard && _keyboardState.IsKeyUp(key) && !_lastKeyboardState.IsKeyUp(key);
 
         public bool IsMouseButtonDown(MouseButton button) {
-            if (blockMouse) return false;
+            if (BlockMouse) return false;
             switch (button) {
-                case MouseButton.Left: return mouseState.LeftButton == ButtonState.Pressed;
-                case MouseButton.Right: return mouseState.RightButton == ButtonState.Pressed;
-                case MouseButton.Middle: return mouseState.MiddleButton == ButtonState.Pressed;
+                case MouseButton.Left: return _mouseState.LeftButton == ButtonState.Pressed;
+                case MouseButton.Right: return _mouseState.RightButton == ButtonState.Pressed;
+                case MouseButton.Middle: return _mouseState.MiddleButton == ButtonState.Pressed;
             }
             return false;
         }
 
         public bool IsMouseButtonUp(MouseButton button) {
-            if (blockMouse) return false;
+            if (BlockMouse) return false;
             switch (button) {
-                case MouseButton.Left: return mouseState.LeftButton == ButtonState.Released;
-                case MouseButton.Right: return mouseState.RightButton == ButtonState.Released;
-                case MouseButton.Middle: return mouseState.MiddleButton == ButtonState.Released;
+                case MouseButton.Left: return _mouseState.LeftButton == ButtonState.Released;
+                case MouseButton.Right: return _mouseState.RightButton == ButtonState.Released;
+                case MouseButton.Middle: return _mouseState.MiddleButton == ButtonState.Released;
             }
             return false;
         }
 
         public bool WasMouseButtonPressed(MouseButton button) {
-            if (blockMouse) return false;
+            if (BlockMouse) return false;
             switch (button) {
-                case MouseButton.Left: return mouseState.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton != ButtonState.Pressed;
-                case MouseButton.Right: return mouseState.RightButton == ButtonState.Pressed && lastMouseState.RightButton != ButtonState.Pressed;
-                case MouseButton.Middle: return mouseState.MiddleButton == ButtonState.Pressed && lastMouseState.MiddleButton != ButtonState.Pressed;
+                case MouseButton.Left: return _mouseState.LeftButton == ButtonState.Pressed && _lastMouseState.LeftButton != ButtonState.Pressed;
+                case MouseButton.Right: return _mouseState.RightButton == ButtonState.Pressed && _lastMouseState.RightButton != ButtonState.Pressed;
+                case MouseButton.Middle: return _mouseState.MiddleButton == ButtonState.Pressed && _lastMouseState.MiddleButton != ButtonState.Pressed;
             }
             return false;
         }
 
         public bool WasMouseButtonReleased(MouseButton button) {
-            if (blockMouse) return false;
+            if (BlockMouse) return false;
             switch (button) {
-                case MouseButton.Left: return mouseState.LeftButton == ButtonState.Released && lastMouseState.LeftButton != ButtonState.Released;
-                case MouseButton.Right: return mouseState.RightButton == ButtonState.Released && lastMouseState.RightButton != ButtonState.Released;
-                case MouseButton.Middle: return mouseState.MiddleButton == ButtonState.Released && lastMouseState.MiddleButton != ButtonState.Released;
+                case MouseButton.Left: return _mouseState.LeftButton == ButtonState.Released && _lastMouseState.LeftButton != ButtonState.Released;
+                case MouseButton.Right: return _mouseState.RightButton == ButtonState.Released && _lastMouseState.RightButton != ButtonState.Released;
+                case MouseButton.Middle: return _mouseState.MiddleButton == ButtonState.Released && _lastMouseState.MiddleButton != ButtonState.Released;
             }
             return false;
         }

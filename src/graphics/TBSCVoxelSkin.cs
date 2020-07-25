@@ -8,59 +8,59 @@ namespace VoxelSpace {
     // with 4 textures, we can texture any block that orients itself with its orientation, including non-axis alignment
     public class TBSCVoxelSkin : IVoxelSkin {
 
-        public TileTexture topTexture { get; protected set; }
-        public TileTexture bottomTexture { get; protected set; }
-        public TileTexture sideTexture { get; protected set; }
-        public TileTexture cornerTexture { get; protected set; }
+        public TileTexture TopTexture { get; protected set; }
+        public TileTexture BottomTexture { get; protected set; }
+        public TileTexture SideTexture { get; protected set; }
+        public TileTexture CornerTexture { get; protected set; }
 
-        public IEnumerable<TileTexture> textures {
+        public IEnumerable<TileTexture> Textures {
             get {
-                yield return topTexture;
-                yield return bottomTexture;
-                yield return sideTexture;
-                yield return cornerTexture;
+                yield return TopTexture;
+                yield return BottomTexture;
+                yield return SideTexture;
+                yield return CornerTexture;
             }
         }
 
         public TBSCVoxelSkin(TileTexture topTexture, TileTexture bottomTexture, TileTexture sideTexture, TileTexture cornerTexture) {
-            this.topTexture = topTexture;
-            this.bottomTexture = bottomTexture;
-            this.sideTexture = sideTexture;
-            this.cornerTexture = cornerTexture;
+            TopTexture = topTexture;
+            BottomTexture = bottomTexture;
+            SideTexture = sideTexture;
+            CornerTexture = cornerTexture;
         }
 
         // convenience for types that use the same texture on top and bottom (a lot of natural materials, for example)
         public TBSCVoxelSkin(TileTexture topBottomTexture, TileTexture sideTexture, TileTexture cornerTexture) {
-            this.topTexture = topBottomTexture;
-            this.bottomTexture = topBottomTexture;
-            this.sideTexture = sideTexture;
-            this.cornerTexture = cornerTexture;
+            TopTexture = topBottomTexture;
+            BottomTexture = topBottomTexture;
+            SideTexture = sideTexture;
+            CornerTexture = cornerTexture;
         }
 
         public QuadUVs GetFaceUVs(Voxel voxel, Orientation o, Orientation n, Orientation u, Orientation r) {
             if ((o & n) != 0) {
-                return topTexture.uv;
+                return TopTexture.UV;
             }
             var ni = n.Inverse();
             if (o == ni) {
-                return bottomTexture.uv;
+                return BottomTexture.UV;
             }
             var fo = o & ~ni;
             if (fo.IsAxisAligned()) {
-                if (fo == u) return sideTexture.uv;
-                if (fo == r) return sideTexture.uv.rotatedCW;
+                if (fo == u) return SideTexture.UV;
+                if (fo == r) return SideTexture.UV.rotatedCW;
                 fo = fo.Inverse();
-                if (fo == u) return sideTexture.uv.rotated180;
-                if (fo == r) return sideTexture.uv.rotatedCCW;
-                return bottomTexture.uv;
+                if (fo == u) return SideTexture.UV.rotated180;
+                if (fo == r) return SideTexture.UV.rotatedCCW;
+                return BottomTexture.UV;
             }
             else {
-                if (fo == (u | r)) return cornerTexture.uv;
+                if (fo == (u | r)) return CornerTexture.UV;
                 var ui = u.Inverse();
-                if (fo == (ui | r)) return cornerTexture.uv.rotatedCW;
+                if (fo == (ui | r)) return CornerTexture.UV.rotatedCW;
                 var ri = r.Inverse();
-                if (fo == (ui | ri)) return cornerTexture.uv.rotated180;
-                return cornerTexture.uv.rotatedCCW;
+                if (fo == (ui | ri)) return CornerTexture.UV.rotated180;
+                return CornerTexture.UV.rotatedCCW;
             }
         }
     }

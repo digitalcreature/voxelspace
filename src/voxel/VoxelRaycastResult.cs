@@ -5,11 +5,11 @@ namespace VoxelSpace {
 
     public struct VoxelRaycastResult {
 
-        public Voxel voxel;
-        public Coords coords;
-        public VoxelVolume volume;
-        public VoxelChunk chunk;
-        public Vector3 normal;
+        public Voxel Voxel;
+        public Coords Coords;
+        public VoxelVolume Volume;
+        public VoxelChunk Chunk;
+        public Vector3 Normal;
 
     }
 

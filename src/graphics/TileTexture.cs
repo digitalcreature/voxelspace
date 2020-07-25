@@ -7,23 +7,23 @@ namespace VoxelSpace {
 
     public class TileTexture : IDisposable {
 
-        public TextureAtlas atlas { get; private set; }
-        public Texture2D texture { get; private set; }
+        public TextureAtlas Atlas { get; private set; }
+        public Texture2D Texture { get; private set; }
 
-        public QuadUVs uv;
+        public QuadUVs UV;
 
         public TileTexture(Texture2D texture) {
-            this.texture = texture;
+            Texture = texture;
         }
 
         public void AddToAtlas(TextureAtlas atlas, QuadUVs uv) {
-            this.atlas = atlas;
-            this.uv = uv;
+            Atlas = atlas;
+            UV = uv;
         }
 
         public void Dispose() {
-            if (texture != null) {
-                texture.Dispose();
+            if (Texture != null) {
+                Texture.Dispose();
             }
         }
 

@@ -6,8 +6,8 @@ namespace VoxelSpace {
     // T: data to operate on
     public interface IMultiFrameTask<T> {
 
-        bool isRunning { get; }
-        bool hasCompleted { get; }
+        bool IsRunning { get; }
+        bool HasCompleted { get; }
 
         void StartTask(T data);
 
@@ -20,7 +20,7 @@ namespace VoxelSpace {
 
         // returns true if the task has been started
         public static bool HasStarted<T>(this IMultiFrameTask<T> task) {
-            return task.isRunning || task.hasCompleted;
+            return task.IsRunning || task.HasCompleted;
         }
 
     }

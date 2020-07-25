@@ -8,7 +8,7 @@ namespace VoxelSpace.Assets {
 
     public abstract class AssetModule {
 
-        public abstract string name { get; }
+        public abstract string Name { get; }
 
         public virtual IEnumerable<string> dependencies {
             get {
@@ -16,29 +16,29 @@ namespace VoxelSpace.Assets {
             }
         }
 
-        public bool isLoaded { get; private set; }
+        public bool IsLoaded { get; private set; }
 
-        public int assetCount => assets.Count;
-        public int contentCount => content.Count;
+        public int AssetCount => _assets.Count;
+        public int ContentCount => _content.Count;
 
-        Dictionary<string, IContent> content;
-        Dictionary<string, IAsset> assets;
+        Dictionary<string, IContent> _content;
+        Dictionary<string, IAsset> _assets;
 
-        protected ContentManager contentManager;
-        AssetManager assetManager;
+        protected ContentManager _contentManager;
+        AssetManager _assetManager;
 
         public AssetModule() {
-            assets = new Dictionary<string, IAsset>();
-            content = new Dictionary<string, IContent>();
+            _assets = new Dictionary<string, IAsset>();
+            _content = new Dictionary<string, IContent>();
         }
 
         public Asset<T>? FindAsset<T>(string name) where T : class {
-            if (assets.ContainsKey(name)) {
-                var meta = assets[name];
+            if (_assets.ContainsKey(name)) {
+                var meta = _assets[name];
                 if (meta is Asset<T> typedMeta) {
                     return typedMeta;
                 }
-                else if (meta.asset is T) {
+                else if (meta.Value is T) {
                     // if the asset container isnt typed as the rewquested type,
                     // but the asset inside it derives from it, then we can "cast" it to the right type
                    return new Asset<T>(meta);
@@ -48,8 +48,8 @@ namespace VoxelSpace.Assets {
         }
 
         public Content<T>? FindContent<T>(string name) where T : class {
-            if (content.ContainsKey(name)) {
-                var meta = this.content[name];
+            if (_content.ContainsKey(name)) {
+                var meta = _content[name];
                 if (meta is Content<T> typedMeta) {
                     return typedMeta;
                 }
@@ -59,16 +59,16 @@ namespace VoxelSpace.Assets {
 
         // used for reverse asset lookup; we have an asset, but we want it's metadata
         public Asset<T>? FindAsset<T>(T asset) where T : class {
-            foreach (var meta in this.assets.Values) {
-                if (meta.asset == asset) {
+            foreach (var meta in _assets.Values) {
+                if (meta.Value == asset) {
                     return new Asset<T>(meta);
                 }
             }
             return null;
         }
         public Content<T>? FindContent<T>(T content) where T : class {
-            foreach (var meta in this.content.Values) {
-                if (meta is Content<T> typedMeta && meta.content == content) {
+            foreach (var meta in _content.Values) {
+                if (meta is Content<T> typedMeta && meta.Value == content) {
                     return typedMeta;
                 }
             }
@@ -76,11 +76,11 @@ namespace VoxelSpace.Assets {
         }
 
         public IEnumerable<Asset<T>> GetAssets<T>() where T : class {
-            foreach (var meta in assets.Values) {
+            foreach (var meta in _assets.Values) {
                 if (meta is Asset<T> typedMeta) {
                     yield return typedMeta;
                 }
-                else if (meta.asset is T) {
+                else if (meta.Value is T) {
                     // if the asset container isnt typed as the rewquested type,
                     // but the asset inside it derives from it, then we can "cast" it to the right type
                     yield return new Asset<T>(meta);
@@ -89,7 +89,7 @@ namespace VoxelSpace.Assets {
         }
 
         public IEnumerable<Content<T>> GetContent<T>() where T : class{
-            foreach (var meta in this.content.Values) {
+            foreach (var meta in _content.Values) {
                 if (meta is Content<T> typedMeta) {
                     yield return typedMeta;
                 }
@@ -99,32 +99,32 @@ namespace VoxelSpace.Assets {
         // convenience method to get an asset while loading
         protected T A<T>(string name) where T : class {
             if (AssetManager.IsNameQualified(name)) {
-                return assetManager.FindAsset<T>(name)?.asset;
+                return _assetManager.FindAsset<T>(name)?.Value;
             }
             else {
-                return FindAsset<T>(name)?.asset;
+                return FindAsset<T>(name)?.Value;
             }
         }
         // convenience method to get content while loading
         protected T C<T>(string name) where T : class {
             if (AssetManager.IsNameQualified(name)) {
-                return assetManager.FindContent<T>(name)?.content;
+                return _assetManager.FindContent<T>(name)?.Value;
             }
             else {
-                return FindContent<T>(name)?.content;
+                return FindContent<T>(name)?.Value;
             }
         }
 
         protected T AddAsset<T>(string name, T asset) where T : class {
             CheckAssetNameConflict<T>(name);
-            assets[name] = (new Asset<T>(this, name, asset));
+            _assets[name] = (new Asset<T>(this, name, asset));
             return asset;
         }
 
         // only use with custom types not supported by LoadContent<T>()
         protected T AddContent<T>(string name, T content) where T : class {
             CheckContentNameConflict<T>(name);
-            this.content[name] = (new Content<T>(this, name, content));
+            _content[name] = (new Content<T>(this, name, content));
             return content;
         }
 
@@ -136,7 +136,7 @@ namespace VoxelSpace.Assets {
         protected T LoadContent<T>(string directory, string name) where T : class {
             // check for name conflict at the start, before we load anything
             CheckContentNameConflict<T>(name);
-            var contentPath = this.name + "/" + directory + "/" + name;
+            var contentPath = Name + "/" + directory + "/" + name;
             T content;
             var type = typeof(T);
             var methods = type.FindMembers(MemberTypes.Method, BindingFlags.Public | BindingFlags.Static, (member, _) => {
@@ -155,10 +155,10 @@ namespace VoxelSpace.Assets {
                 return false;
             }, null);
             if (methods.Length == 1 && methods[0] is MethodInfo method) {
-                content = method.Invoke(null, new object[]{contentPath, contentManager}) as T;
+                content = method.Invoke(null, new object[]{contentPath, _contentManager}) as T;
             }
             else {
-                content = contentManager.Load<T>(contentPath);
+                content = _contentManager.Load<T>(contentPath);
             }
             AddContent(name, content);
             return content;
@@ -168,32 +168,30 @@ namespace VoxelSpace.Assets {
         public TileTexture LoadVoxelTexture(string name) => LoadContent<TileTexture>("voxel", name);
 
         public void LoadContent(ContentManager contentManager) {
-            this.contentManager = contentManager;
+            _contentManager = contentManager;
             OnLoadContent();
         }
 
         public void LoadAssets(AssetManager assetManager) {
-            this.assetManager = assetManager;
+            _assetManager = assetManager;
             OnLoadAssets();
-            this.isLoaded = true;
+            IsLoaded = true;
         }
 
         protected abstract void OnLoadAssets();
         protected abstract void OnLoadContent();
 
         void CheckAssetNameConflict<T>(string name) where T : class {
-            if (assets.ContainsKey(name)) {
-                var existing = assets[name];
-                throw new AssetException(this, "Asset name conflict: {0} {1} trying to replace {2} {1}",
-                    typeof(T).Name, name, existing.asset.GetType().Name);
+            if (_assets.ContainsKey(name)) {
+                var existing = _assets[name];
+                throw new AssetException($"Asset name conflict: {typeof(T).Name} {name} trying to replace {existing.ValueType.Name} {name}");
             }
         }
         
         void CheckContentNameConflict<T>(string name) where T : class {
-            if (this.content.ContainsKey(name)) {
-                var existing = this.content[name];
-                throw new AssetException(this, "Content name conflict: {0} {1} trying to replace {2} {1}",
-                    typeof(T).Name, name, existing.content.GetType().Name);
+            if (_content.ContainsKey(name)) {
+                var existing = _content[name];
+                throw new AssetException($"Content name conflict: {typeof(T).Name} {name} trying to replace {existing.ValueType.Name} {name}");
             }
         }
 

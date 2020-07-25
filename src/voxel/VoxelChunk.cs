@@ -7,7 +7,7 @@ namespace VoxelSpace {
 
     public class VoxelChunk : IDisposable {
 
-        public const int chunkSize = 32;
+        public const int SIZE = 32;
 
         public VoxelVolume volume { get; private set; }
         public Coords coords { get; private set; }
@@ -20,8 +20,8 @@ namespace VoxelSpace {
         public VoxelChunk(VoxelVolume volume, Coords coords) {
             this.volume = volume;
             this.coords = coords;
-            voxels = new Voxel[chunkSize, chunkSize, chunkSize];
-            lights = new VoxelLight[chunkSize, chunkSize, chunkSize];
+            voxels = new Voxel[SIZE, SIZE, SIZE];
+            lights = new VoxelLight[SIZE, SIZE, SIZE];
             lightData = new VoxelChunkLightData();
         }
 
@@ -30,7 +30,7 @@ namespace VoxelSpace {
         }
 
         public void UpdateMesh(VoxelChunkMesh mesh) {
-            if (!mesh.areBuffersReady) {
+            if (!mesh.AreBuffersReady) {
                 throw new ArgumentException($"Cannot update chunk mesh for chunk at {coords}: Mesh buffers aren't ready!");
             }
             if (this.mesh != null && this.mesh != mesh) {
@@ -48,27 +48,27 @@ namespace VoxelSpace {
 
         public static bool AreLocalCoordsInBounds(Coords c) {
             var min = 0;
-            var max = chunkSize - 1;
-            return c.x >= min && c.x < max
-                && c.y >= min && c.y < max
-                && c.z >= min && c.z < max;
+            var max = SIZE - 1;
+            return c.X >= min && c.X < max
+                && c.Y >= min && c.Y < max
+                && c.Z >= min && c.Z < max;
         }
 
         public Coords LocalToVolumeCoords(Coords c) 
-            => coords * chunkSize + c;
+            => coords * SIZE + c;
         public Coords VolumeToLocalCoords(Coords c)
-            => c - (coords * chunkSize);
+            => c - (coords * SIZE);
         public Vector3 LocalToVolumeVector(Vector3 c) 
-            => coords * chunkSize + c;
+            => coords * SIZE + c;
         public Vector3 VolumeToLocalVector(Vector3 c)
-            => c - (coords * chunkSize);
+            => c - (coords * SIZE);
         
         public Voxel GetVoxelIncludingNeighbors(Coords c) {
             if (AreLocalCoordsInBounds(c)) {
                 return voxels[c];
             }
             else {
-                return volume?.GetVoxel(LocalToVolumeCoords(c)) ?? Voxel.empty;
+                return volume?.GetVoxel(LocalToVolumeCoords(c)) ?? Voxel.Empty;
             }
         }
         public Voxel GetVoxelIncludingNeighbors(int i, int j, int k)
@@ -106,14 +106,14 @@ namespace VoxelSpace {
             T* data;
 
             public T* this[int x, int y, int z]
-                => &data[x + y * chunkSize + z * chunkSize * chunkSize];
+                => &data[x + y * SIZE + z * SIZE * SIZE];
             public T* this[Coords c]
-                => &data[c.x + c.y * chunkSize + c.z * chunkSize * chunkSize];
+                => &data[c.X + c.Y * SIZE + c.Z * SIZE * SIZE];
             public T* this[int offset]
                 => &data[offset];
 
             public UnmanagedArray3() {
-                int size = Marshal.SizeOf<T>() * chunkSize * chunkSize * chunkSize;
+                int size = Marshal.SizeOf<T>() * SIZE * SIZE * SIZE;
                 data = (T*) Marshal.AllocHGlobal(size);
                 while (size > 0) {
                     ((byte*) data)[--size] = 0;
@@ -131,8 +131,8 @@ namespace VoxelSpace {
                 }
             }
 
-            public static int GetIndex(int x, int y, int z) => x + y * chunkSize + z * chunkSize * chunkSize;
-            public static int GetIndex(Coords c) => c.x + c.y * chunkSize + c.z * chunkSize * chunkSize;
+            public static int GetIndex(int x, int y, int z) => x + y * SIZE + z * SIZE * SIZE;
+            public static int GetIndex(Coords c) => c.X + c.Y * SIZE + c.Z * SIZE * SIZE;
 
         }
     }

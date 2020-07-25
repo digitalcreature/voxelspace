@@ -10,36 +10,35 @@ namespace VoxelSpace.Input {
     // currently windows only
     public static class Mouse {
 
+        static MouseWindow _mouseWindow;
 
-        static MouseWindow mouseWindow;
-
-        public static bool IsRawInputAvailable => mouseWindow?.IsRawInputAvailable ?? false;
+        public static bool IsRawInputAvailable => _mouseWindow?.IsRawInputAvailable ?? false;
 
         public static void Initialize(Game game) {
-            mouseWindow = new MouseWindow(game.Window);
+            _mouseWindow = new MouseWindow(game.Window);
         }
 
         // note: does not change cursor position. only resets the internally stored mouse position
         // this can be used to calculate deltas over a period of events
         public static void SetRawPositionState(Vector2 p) => SetRawPositionState((int) p.X, (int) p.Y);
         public static void SetRawPositionState(int x = 0, int y = 0) {
-            if (mouseWindow != null) {
-                lock (mouseWindow) {
-                    mouseWindow.RawXValue = x;
-                    mouseWindow.RawYValue = y;
+            if (_mouseWindow != null) {
+                lock (_mouseWindow) {
+                    _mouseWindow.RawXValue = x;
+                    _mouseWindow.RawYValue = y;
                 }
             }
         }
 
         public static Vector2 GetRawPositionState() {
-            if (mouseWindow != null) {
-                return new Vector2(mouseWindow.RawXValue, mouseWindow.RawYValue);
+            if (_mouseWindow != null) {
+                return new Vector2(_mouseWindow.RawXValue, _mouseWindow.RawYValue);
             }
             return Vector2.Zero;
         }
 
         public static void ClipCursor(Rectangle? rect) {
-            mouseWindow.SetClip(rect);
+            _mouseWindow.SetClip(rect);
         }
 
 
@@ -51,7 +50,7 @@ namespace VoxelSpace.Input {
             public bool IsRawInputAvailable { get; private set; }
             public bool HasFocus { get; private set; }
 
-            Rectangle? cursorClip;
+            Rectangle? _cursorClip;
 
             public MouseWindow(GameWindow window) {
                 AssignHandle(window.Handle);
@@ -82,13 +81,13 @@ namespace VoxelSpace.Input {
             }
 
             public void SetClip(Rectangle? rect) {
-                cursorClip = rect;
+                _cursorClip = rect;
                 UpdateClip();
             }
 
             unsafe void UpdateClip() {
                 if (HasFocus) {
-                    if (cursorClip is Rectangle r) {
+                    if (_cursorClip is Rectangle r) {
                         ClipCursor(&r);
                     }
                     else {

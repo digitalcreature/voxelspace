@@ -5,14 +5,14 @@ namespace VoxelSpace {
 
     public class LinearVoxelOrientationField : IVoxelOrientationField {
 
-        public Orientation orientation;
+        public Orientation Orientation;
 
         public LinearVoxelOrientationField(Orientation orientation) {
-            this.orientation = orientation;
+            this.Orientation = orientation;
         }
 
         public Orientation GetVoxelOrientation(Coords c) { {
-            return orientation;
+            return Orientation;
         }
 
         }

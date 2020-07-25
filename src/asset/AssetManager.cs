@@ -8,24 +8,24 @@ namespace VoxelSpace.Assets {
 
     public class AssetManager {
 
-        Dictionary<string, AssetModule> modules;
+        Dictionary<string, AssetModule> _modules;
 
         public AssetManager() {
-            modules = new Dictionary<string, AssetModule>();
+            _modules = new Dictionary<string, AssetModule>();
         }
 
         public void AddModule(AssetModule module) {
-            if (modules.ContainsKey(module.name)) {
-                throw new AssetException(this, "Cannot add module with duplicate name {0}.", module.name);
+            if (_modules.ContainsKey(module.Name)) {
+                throw new AssetException($"Cannot add module with duplicate name {module.Name}.");
             }
             else {
-                modules[module.name] = module;
+                _modules[module.Name] = module;
             }
         }
 
         public AssetModule GetModule(string name) {
-            if (modules.ContainsKey(name)) {
-                return modules[name];
+            if (_modules.ContainsKey(name)) {
+                return _modules[name];
             }
             return null;
         }
@@ -52,14 +52,14 @@ namespace VoxelSpace.Assets {
         }
 
         public IEnumerable<Asset<T>> GetAssets<T>() where T : class {
-            foreach (var module in modules.Values) {
+            foreach (var module in _modules.Values) {
                 foreach (var asset in module.GetAssets<T>()) {
                     yield return asset;
                 }
             }
         }
         public IEnumerable<Content<T>> GetContent<T>() where T : class {
-            foreach (var module in modules.Values) {
+            foreach (var module in _modules.Values) {
                 foreach (var content in module.GetContent<T>()) {
                     yield return content;
                 }
@@ -68,8 +68,8 @@ namespace VoxelSpace.Assets {
 
 
         public void LoadModules(ContentManager content) {
-            foreach (var module in modules.Values) {
-                if (!module.isLoaded) {
+            foreach (var module in _modules.Values) {
+                if (!module.IsLoaded) {
                     LoadModule(module, content);
                 }
             }
@@ -77,19 +77,19 @@ namespace VoxelSpace.Assets {
 
         void LoadModule(AssetModule module, ContentManager content) {
             foreach (var depName in module.dependencies) {
-                if (modules.ContainsKey(depName)) {
-                    var depMod = modules[depName];
-                    if (!depMod.isLoaded) {
+                if (_modules.ContainsKey(depName)) {
+                    var depMod = _modules[depName];
+                    if (!depMod.IsLoaded) {
                         LoadModule(depMod, content);
                     }
                 }
                 else {
-                    throw new AssetException(this, "Asset module dependency unsatisfied! {0} depends on {1} (missing)", module.name, depName);
+                    throw new AssetException($"Asset module dependency unsatisfied! {module.Name} depends on {depName} (missing)");
                 }
             }
             module.LoadContent(content);
             module.LoadAssets(this);
-            Logger.Info(this, $"Loaded asset module {module.name} ({module.contentCount} content, {module.assetCount} assets)");
+            Logger.Info(this, $"Loaded asset module {module.Name} ({module.ContentCount} content, {module.AssetCount} assets)");
         }
 
         public static bool IsNameQualified(string name) {

@@ -6,176 +6,176 @@ namespace VoxelSpace {
 
     public class PlayerEntity : IEntity {
 
-        public VoxelBody voxelBody { get; private set; }
+        public VoxelBody VoxelBody { get; private set; }
 
-        public Transform transform { get; private set; }
-        public MouseLook mouseLook { get; private set; }
+        public Transform Transform { get; private set; }
+        public MouseLook MouseLook { get; private set; }
 
-        public float walkSpeed = 8;
+        public float WalkSpeed = 8;
+        public float JumpHeight = 1.25f;
 
-        Bounds bounds;
+        Bounds _bounds;
 
-        public IVoxelType voxelTypeToPlace;
+        public IVoxelType VoxelTypeToPlace;
 
         // which direction is up?
-        public Orientation orientation { get; private set; }
-        public Vector3 orientationNormal { get; private set; }
+        public Orientation Orientation { get; private set; }
+        public Vector3 OrientationNormal { get; private set; }
 
-        public VoxelRaycastResult aimedVoxel { get; private set; }
-        public bool isAimValid { get; private set; }
+        public VoxelRaycastResult AimedVoxel { get; private set; }
+        public bool IsAimValid { get; private set; }
 
-        const float playerWidth = 0.9f;
-        const float playerHeight = 1.8f;
+        public bool IsGrounded { get; private set; }
+        public bool IsFrozen { get; private set; }
 
-        const float jumpHeight = 1.25f;
+        const float _playerWidth = 0.9f;
+        const float _playerHeight = 1.8f;
 
-        const float cameraHeight = 1.5f;
+        const float _cameraHeight = 1.5f;
 
-        InputManager input;
+        InputManager _input;
 
-        float vSpeed;
-        bool isGrounded;
-        bool isFrozen;
+        float _vSpeed;
 
-        public Matrix viewMatrix =>
+        public Matrix ViewMatrix =>
             Matrix.Invert(
-                Matrix.CreateRotationX(MathHelper.ToRadians(-mouseLook.look.Y)) * 
-                Matrix.CreateTranslation(0, cameraHeight - (playerWidth / 2), 0) *
-                transform.rotationMatrix *
-                Matrix.CreateTranslation(transform.position)
+                Matrix.CreateRotationX(MathHelper.ToRadians(-MouseLook.Look.Y)) * 
+                Matrix.CreateTranslation(0, _cameraHeight - (_playerWidth / 2), 0) *
+                Transform.RotationMatrix *
+                Matrix.CreateTranslation(Transform.Position)
             );
         
-        public Vector3 headPosition =>
-            transform.position + transform.up * (cameraHeight - (playerWidth / 2));
-        public Vector3 aimDirection =>
+        public Vector3 HeadPosition =>
+            Transform.Position + Transform.Up * (_cameraHeight - (_playerWidth / 2));
+        public Vector3 AimDirection =>
             Vector3.TransformNormal(Vector3.Forward, 
-                Matrix.CreateRotationX(MathHelper.ToRadians(-mouseLook.look.Y)) *
-                transform.rotationMatrix
+                Matrix.CreateRotationX(MathHelper.ToRadians(-MouseLook.Look.Y)) *
+                Transform.RotationMatrix
             );
 
         public PlayerEntity(Vector3 position, MouseLook mouseLook, InputManager input) {
-            transform = new Transform(position);
-            this.mouseLook = mouseLook;
-            this.input = input;
-            isGrounded = false;
+            Transform = new Transform(position);
+            MouseLook = mouseLook;
+            _input = input;
+            IsGrounded = false;
         }
 
         public void Update(GameTime time) {
-            input.Update();
-            var g = voxelBody.gravity.GetGravityStrength(transform.position);
-            var gDir = voxelBody.gravity.GetGravityDirection(transform.position);
+            _input.Update();
+            var g = VoxelBody.Gravity.GetGravityStrength(Transform.Position);
+            var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.Position);
             UpdateOrientation();
-            voxelBody.gravity.AlignToGravity(transform);
+            VoxelBody.Gravity.AlignToGravity(Transform);
             var deltaTime = (float) time.ElapsedGameTime.TotalSeconds;
-            var lookDelta = mouseLook.Update(time);
-            transform.Rotate(Quaternion.CreateFromAxisAngle(transform.up, MathHelper.ToRadians(-lookDelta.X)));
-            if (!isFrozen) {
+            var lookDelta = MouseLook.Update(time);
+            Transform.Rotate(Quaternion.CreateFromAxisAngle(Transform.Up, MathHelper.ToRadians(-lookDelta.X)));
+            if (!IsFrozen) {
                 // figure out horizontal movement and move horizontally
                 var moveH = Vector3.Zero;
-                if (input.IsKeyDown(Keys.W)) moveH.Z --;
-                if (input.IsKeyDown(Keys.S)) moveH.Z ++;
-                if (input.IsKeyDown(Keys.D)) moveH.X ++;
-                if (input.IsKeyDown(Keys.A)) moveH.X --;
+                if (_input.IsKeyDown(Keys.W)) moveH.Z --;
+                if (_input.IsKeyDown(Keys.S)) moveH.Z ++;
+                if (_input.IsKeyDown(Keys.D)) moveH.X ++;
+                if (_input.IsKeyDown(Keys.A)) moveH.X --;
                 if (moveH != Vector3.Zero) {
                     moveH.Normalize();
                 }
-                moveH *= walkSpeed;
+                moveH *= WalkSpeed;
                 Matrix alignMatrix;
-                if (isGrounded) {
-                    alignMatrix = transform.forward.CreateAlignmentMatrix(orientationNormal);
+                if (IsGrounded) {
+                    alignMatrix = Transform.Forward.CreateAlignmentMatrix(OrientationNormal);
                 }
                 else {
-                    alignMatrix = transform.rotationMatrix;
+                    alignMatrix = Transform.RotationMatrix;
                 }
                 moveH = Vector3.TransformNormal(moveH, alignMatrix);
                 moveH *= deltaTime;
-                bounds.MoveInCollisionGrid(moveH, voxelBody.volume);
+                _bounds.MoveInCollisionGrid(moveH, VoxelBody.Volume);
                 // update vertical speed and move vertically
-                if (isGrounded && input.IsKeyDown(Keys.Space)) {
+                if (IsGrounded && _input.IsKeyDown(Keys.Space)) {
                     // jump height depends on gravity direction
                     // we jump higher near the edges so we can still jump the same block height
-                    var heightScalar = gDir.ProjectScalar(-orientationNormal);
-                    vSpeed = MathF.Sqrt(2 * g * jumpHeight / heightScalar);
+                    var heightScalar = gDir.ProjectScalar(-OrientationNormal);
+                    _vSpeed = MathF.Sqrt(2 * g * JumpHeight / heightScalar);
                 }
-                vSpeed -= g * deltaTime;
-                var moveV = -gDir * vSpeed * deltaTime;
+                _vSpeed -= g * deltaTime;
+                var moveV = -gDir * _vSpeed * deltaTime;
                 MoveVertical(moveV);
             }
             UpdateTransformFromBounds();
-            if (voxelBody.volume.Raycast(headPosition, aimDirection, 5, (v) => v.isSolid, out var result)) {
-                isAimValid = true;
-                aimedVoxel = result;
-                if (input.WasMouseButtonPressed(MouseButton.Left)) {
-                    voxelBody.changeManager.RequestSingleChange(aimedVoxel.coords, null);
+            if (VoxelBody.Volume.Raycast(HeadPosition, AimDirection, 5, (v) => v.IsSolid, out var result)) {
+                IsAimValid = true;
+                AimedVoxel = result;
+                if (_input.WasMouseButtonPressed(MouseButton.Left)) {
+                    VoxelBody.ChangeManager.RequestSingleChange(AimedVoxel.Coords, null);
                 }
-                else if (input.WasMouseButtonPressed(MouseButton.Right) && aimedVoxel.normal != Vector3.Zero) {
-                    var coords = aimedVoxel.coords + (Coords) aimedVoxel.normal;
-                    voxelBody.changeManager.RequestSingleChange(coords, voxelTypeToPlace);
+                else if (_input.WasMouseButtonPressed(MouseButton.Right) && AimedVoxel.Normal != Vector3.Zero) {
+                    var coords = AimedVoxel.Coords + (Coords) AimedVoxel.Normal;
+                    VoxelBody.ChangeManager.RequestSingleChange(coords, VoxelTypeToPlace);
                 }
             }
             else {
-                isAimValid = false;
+                IsAimValid = false;
             }
         }
 
         void MoveVertical(Vector3 delta) {
             // first move along orientation axis
-            var vDelta = delta.Project(orientationNormal);
-            var actualMove = bounds.MoveInCollisionGrid(vDelta, voxelBody.volume);
+            var vDelta = delta.Project(OrientationNormal);
+            var actualMove = _bounds.MoveInCollisionGrid(vDelta, VoxelBody.Volume);
             if (actualMove != vDelta) {
-                if (vSpeed < 0) {
+                if (_vSpeed < 0) {
                     // if we were moving down, we are grounded now
-                    isGrounded = true;
+                    IsGrounded = true;
                 }
                 // if we didnt move vertically, cancel vertical speed
-                vSpeed = 0;
+                _vSpeed = 0;
             }
             else {
                 // if we moved vertically, we are not grounded
-                isGrounded = false;
+                IsGrounded = false;
                 // move horizontally
                 // we only do this if we aren't grounded so we dont slide around
                 var hDelta = delta - vDelta;
-                bounds.MoveInCollisionGrid(hDelta, voxelBody.volume);
+                _bounds.MoveInCollisionGrid(hDelta, VoxelBody.Volume);
             }
         }
 
         void UpdateOrientation() {
-            var gDir = voxelBody.gravity.GetGravityDirection(transform.position);
-            orientation = (-gDir).ToAxisAlignedOrientation();;
-            orientationNormal = orientation.ToNormal();
-            bounds.size = Vector3.One * playerWidth;
-            switch (orientation) {
+            var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.Position);
+            Orientation = (-gDir).ToAxisAlignedOrientation();;
+            OrientationNormal = Orientation.ToNormal();
+            _bounds.Size = Vector3.One * _playerWidth;
+            switch (Orientation) {
                 case Orientation.Xp:
                 case Orientation.Xn:
-                    bounds.size.X = playerHeight;
+                    _bounds.Size.X = _playerHeight;
                     break;
                 case Orientation.Yp:
                 case Orientation.Yn:
-                    bounds.size.Y = playerHeight;
+                    _bounds.Size.Y = _playerHeight;
                     break;
                 case Orientation.Zp:
                 case Orientation.Zn:
-                    bounds.size.Z = playerHeight;
+                    _bounds.Size.Z = _playerHeight;
                     break;
             }
-            bounds.center = transform.position + orientationNormal * (playerHeight - playerWidth) / 2;
+            _bounds.Center = Transform.Position + OrientationNormal * (_playerHeight - _playerWidth) / 2;
         }
 
         void UpdateTransformFromBounds() {
-            transform.position = bounds.center - orientationNormal * (playerHeight - playerWidth) / 2;
+            Transform.Position = _bounds.Center - OrientationNormal * (_playerHeight - _playerWidth) / 2;
         }
 
         public void Freeze() {
-            isFrozen = true;
+            IsFrozen = true;
         }
 
         public void UnFreeze() {
-            isFrozen = false;
+            IsFrozen = false;
         }
 
-        public void _SetVoxelWorld(VoxelBody world) {
-            this.voxelBody = world;
+        public void _SetVoxelBody(VoxelBody world) {
+            VoxelBody = world;
         }
     }
 

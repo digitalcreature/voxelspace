@@ -9,46 +9,46 @@ namespace VoxelSpace {
 
     public class PlanetTerrainGenerator : VoxelVolumeGenerator {
 
-        public Vector3 noiseOffset = new Vector3(12.4f, -385.46f, 1356.231f);
-        public float noiseFrequency = 0.05f;
-        public float surfaceLevel = 64;
-        public float maxHeight = 16;
+        public Vector3 NoiseOffset = new Vector3(12.4f, -385.46f, 1356.231f);
+        public float NoiseFrequency = 0.05f;
+        public float SurfaceLevel = 64;
+        public float MaxHeight = 16;
 
-        public Vector3 caveNoiseOffset = new Vector3(54.1f, -53.5f, -5043.2f);
-        public float caveNoiseFrequency = 0.1f;
-        public float caveNoiseThreshold = 0.4f;
+        public Vector3 CaveNoiseOffset = new Vector3(54.1f, -53.5f, -5043.2f);
+        public float CaveNoiseFrequency = 0.1f;
+        public float CaveNoiseThreshold = 0.4f;
 
-        WorkerThreadGroup<VoxelChunk> chunkWorkerGroup;
+        WorkerThreadGroup<VoxelChunk> _chunkWorkerGroup;
 
-        public override bool isRunning => chunkWorkerGroup.isRunning;
-        public override bool hasCompleted => chunkWorkerGroup.hasCompleted;
-        public override float progress => chunkWorkerGroup.progress;
+        public override bool IsRunning => _chunkWorkerGroup.IsRunning;
+        public override bool HasCompleted => _chunkWorkerGroup.HasCompleted;
+        public override float Progress => _chunkWorkerGroup.progress;
 
-        public IVoxelType stone;
-        public IVoxelType dirt;
-        public IVoxelType grass;
+        public IVoxelType Stone;
+        public IVoxelType Dirt;
+        public IVoxelType Grass;
 
         public PlanetTerrainGenerator() {
-            chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk>(GenerateChunk);
+            _chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk>(GenerateChunk);
         }
 
         protected override void StartGeneration() {
-            float radius = surfaceLevel + maxHeight;
-            int chunkRadius = (int) MathF.Ceiling(radius / VoxelChunk.chunkSize);
+            float radius = SurfaceLevel + MaxHeight;
+            int chunkRadius = (int) MathF.Ceiling(radius / VoxelChunk.SIZE);
             for (int i = -chunkRadius; i < chunkRadius; i ++) {
                 for (int j = -chunkRadius; j < chunkRadius; j ++) {
                     for (int k = -chunkRadius; k < chunkRadius; k ++) {
-                        var chunk = volume.AddChunk(new Coords(i, j, k));
+                        var chunk = Volume.AddChunk(new Coords(i, j, k));
                     }
                 }
             }
-            chunkWorkerGroup.StartTask(volume);
+            _chunkWorkerGroup.StartTask(Volume);
         }
 
         protected override bool UpdateGeneration() {
-            bool isDone = chunkWorkerGroup.UpdateTask();
+            bool isDone = _chunkWorkerGroup.UpdateTask();
             if (isDone) {
-                Logger.Info(this, chunkWorkerGroup.GetCompletionMessage("Generated {0} chunks"));
+                Logger.Info(this, _chunkWorkerGroup.GetCompletionMessage("Generated {0} chunks"));
             }
             return isDone;
         }
@@ -56,26 +56,26 @@ namespace VoxelSpace {
         void GenerateChunk(VoxelChunk chunk) {
             var sw = System.Diagnostics.Stopwatch.StartNew();
             if (ChunkIsInterior(chunk)) {
-                for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
-                    for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
-                        for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
+                for (int i = 0; i < VoxelChunk.SIZE; i ++) {
+                    for (int j = 0; j < VoxelChunk.SIZE; j ++) {
+                        for (int k = 0; k < VoxelChunk.SIZE; k ++) {
                             if (IsInCave(chunk.LocalToVolumeCoords(new Coords(i, j, k)))) {
-                                chunk.voxels[i, j, k] = Voxel.empty;
+                                chunk.voxels[i, j, k] = Voxel.Empty;
                             }
                             else {
-                                chunk.voxels[i, j, k] = new Voxel(stone);
+                                chunk.voxels[i, j, k] = new Voxel(Stone);
                             }
                         }
                     }
                 }
             }
             else {
-                for (int i = 0; i < VoxelChunk.chunkSize; i ++) {
-                    for (int j = 0; j < VoxelChunk.chunkSize; j ++) {
-                        for (int k = 0; k < VoxelChunk.chunkSize; k ++) {
+                for (int i = 0; i < VoxelChunk.SIZE; i ++) {
+                    for (int j = 0; j < VoxelChunk.SIZE; j ++) {
+                        for (int k = 0; k < VoxelChunk.SIZE; k ++) {
                             var vc = chunk.LocalToVolumeCoords(new Coords(i, j, k));
                             if (IsInCave(vc)) {
-                                chunk.voxels[i, j, k] = Voxel.empty;
+                                chunk.voxels[i, j, k] = Voxel.Empty;
                             }
                             else {
                                 var vpos = vc + Vector3.One * 0.5f;
@@ -86,22 +86,22 @@ namespace VoxelSpace {
                                 );
                                 var max = MathF.Max(vposMag.X, MathF.Max(vposMag.Y, vposMag.Z));
                                 vpos.Normalize();
-                                var noise = Perlin.Noise(vpos * surfaceLevel * noiseFrequency);
+                                var noise = Perlin.Noise(vpos * SurfaceLevel * NoiseFrequency);
                                 noise = (noise + 1) / 2f;
-                                float height = surfaceLevel + noise * maxHeight;
+                                float height = SurfaceLevel + noise * MaxHeight;
                                 int stack = (int) MathF.Ceiling(height) - (int) MathF.Ceiling(max);
                                 IVoxelType type;
                                 if (stack < 0) {
                                     type = null;
                                 }
                                 else if (stack == 0) {
-                                    type = grass;
+                                    type = Grass;
                                 }
                                 else if (stack < 3) {
-                                    type = dirt;
+                                    type = Dirt;
                                 }
                                 else {
-                                    type = stone;
+                                    type = Stone;
                                 }
                                 chunk.voxels[i, j, k] = new Voxel(type);
                             }
@@ -109,22 +109,22 @@ namespace VoxelSpace {
                     }
                 }
             }
-            lock (volume) {
-                volume.SetChunkDirty(chunk);
+            lock (Volume) {
+                Volume.SetChunkDirty(chunk);
             }
         }
 
         // return true of a set of global coords are inside the empty space of a cave
         bool IsInCave(Coords c) {
-            var noise = Perlin.Noise((Vector3) c * caveNoiseFrequency);
+            var noise = Perlin.Noise((Vector3) c * CaveNoiseFrequency);
             noise = (noise + 1 ) / 2;
-            return noise < caveNoiseThreshold;
+            return noise < CaveNoiseThreshold;
         }
 
         // return true if chunk is below the heightmapped surface, meaning it is completely
         // solid and doesnt need to be generated
         bool ChunkIsInterior(VoxelChunk chunk) {
-            var pos = (chunk.coords * VoxelChunk.chunkSize) + (Vector3.One * VoxelChunk.chunkSize / 2f);
+            var pos = (chunk.coords * VoxelChunk.SIZE) + (Vector3.One * VoxelChunk.SIZE / 2f);
             var max = MathF.Max(
                 MathF.Abs(pos.X),
                 MathF.Max(
@@ -132,7 +132,7 @@ namespace VoxelSpace {
                     MathF.Abs(pos.Z)
                 )
             );
-            return max + VoxelChunk.chunkSize / 2f < surfaceLevel;
+            return max + VoxelChunk.SIZE / 2f < SurfaceLevel;
         }
     }
 

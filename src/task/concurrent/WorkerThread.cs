@@ -10,48 +10,48 @@ namespace VoxelSpace {
 
     public class WorkerThread<T, R> : IMultiFrameTask<T> {
 
-        public bool isRunning { get; private set; }
+        public bool IsRunning { get; private set; }
 
-        public bool hasCompleted { get; private set; }
+        public bool HasCompleted { get; private set; }
 
-        Func<T, R> action;
-        Stopwatch stopwatch;
+        Func<T, R> _action;
+        Stopwatch _stopwatch;
 
-        R result;
+        R _result;
 
-        float completionTime;
-        bool resultAvailable;
+        float _completionTime;
+        bool _resultAvailable;
 
         public WorkerThread(Func<T, R> action) {
-            this.action = action;
-            isRunning = false;
-            hasCompleted = false;
+            _action = action;
+            IsRunning = false;
+            HasCompleted = false;
         }
 
         public void StartTask(T data) {
-            if (!isRunning && !hasCompleted) {
-                isRunning = true;
-                hasCompleted = false;
-                stopwatch = Stopwatch.StartNew();
-                resultAvailable = false;
+            if (!IsRunning && !HasCompleted) {
+                IsRunning = true;
+                HasCompleted = false;
+                _stopwatch = Stopwatch.StartNew();
+                _resultAvailable = false;
                 ThreadPool.QueueUserWorkItem(Worker, data);
             }
         }
 
         void Worker(object data) {
-            result = action((T) data);
-            resultAvailable = true;
+            _result = _action((T) data);
+            _resultAvailable = true;
         }
 
 
         public bool UpdateTask() => UpdateTask(null);
         public bool UpdateTask(Action<R> resultProcessor) {
-            if (isRunning) {
-                if (resultAvailable) {
-                    resultProcessor?.Invoke(result);
-                    isRunning = false;
-                    hasCompleted = true;
-                    completionTime = stopwatch.ElapsedMilliseconds / 1000f;
+            if (IsRunning) {
+                if (_resultAvailable) {
+                    resultProcessor?.Invoke(_result);
+                    IsRunning = false;
+                    HasCompleted = true;
+                    _completionTime = _stopwatch.ElapsedMilliseconds / 1000f;
                     return true;
                 }
             }
@@ -59,7 +59,7 @@ namespace VoxelSpace {
         }
 
         public string GetCompletionMessage(string message) {
-            return string.Format("{0} ({1}s)", message, completionTime);
+            return string.Format("{0} ({1}s)", message, _completionTime);
         }
     }
 

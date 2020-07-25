@@ -7,30 +7,30 @@ namespace VoxelSpace {
 
     public class DebugDraw {
 
-        GraphicsDevice graphics;
+        GraphicsDevice _graphics;
 
-        DebugVertex[] line;
+        DebugVertex[] _line;
 
-        public BasicEffect effect { get; private set; }
+        public BasicEffect Effect { get; private set; }
 
         public DebugDraw(GraphicsDevice graphics) {
-            this.graphics = graphics;
-            line = new DebugVertex[2];
-            effect = new BasicEffect(graphics);
+            _graphics = graphics;
+            _line = new DebugVertex[2];
+            Effect = new BasicEffect(graphics);
         }
 
         public void SetMatrices(Matrix model, Matrix view, Matrix proj) {
-            effect.World = model;
-            effect.View = view;
-            effect.Projection = proj;
+            Effect.World = model;
+            Effect.View = view;
+            Effect.Projection = proj;
         }
 
         public void Ray(Vector3 orig, Vector3 dir) {
             if (dir != Vector3.Zero) dir.Normalize();
-            line[0].position = orig;
-            line[1].position = orig + dir;
-            effect.CurrentTechnique.Passes[0].Apply();
-            graphics.DrawUserPrimitives(PrimitiveType.LineList, line, 0, 1);
+            _line[0].position = orig;
+            _line[1].position = orig + dir;
+            Effect.CurrentTechnique.Passes[0].Apply();
+            _graphics.DrawUserPrimitives(PrimitiveType.LineList, _line, 0, 1);
         }
 
         struct DebugVertex : IVertexType {

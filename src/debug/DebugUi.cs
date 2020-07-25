@@ -8,22 +8,22 @@ namespace VoxelSpace.Debug {
 
     public class DebugUi {
 
-        ImGuiRenderer guiRenderer;
-        Game game;
+        ImGuiRenderer _renderer;
+        Game _game;
 
         public DebugUi(Game game) {
-            this.game = game;
-            guiRenderer = new ImGuiRenderer(game);
+            _game = game;
+            _renderer = new ImGuiRenderer(game);
         }
 
         public void Initialize() {
-            guiRenderer.RebuildFontAtlas();
+            _renderer.RebuildFontAtlas();
         }
 
         public void Draw(GameTime time) {
-            guiRenderer.BeforeLayout(time);
+            _renderer.BeforeLayout(time);
             ImGui.Text("Hello world!");
-            guiRenderer.AfterLayout();
+            _renderer.AfterLayout();
         }
 
     }

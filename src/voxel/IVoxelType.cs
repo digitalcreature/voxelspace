@@ -5,11 +5,11 @@ namespace VoxelSpace {
 
     public interface IVoxelType {
 
-        bool isSolid { get; }
-        bool isOpaque { get; }
-        bool isMeshable { get; }
+        bool IsSolid { get; }
+        bool IsOpaque { get; }
+        bool IsMeshable { get; }
 
-        IVoxelSkin skin { get; }
+        IVoxelSkin Skin { get; }
 
     }
 

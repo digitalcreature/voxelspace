@@ -13,9 +13,9 @@ namespace VoxelSpace {
 
         public static bool CheckBounds(this ICollisionGrid grid, Bounds bounds, Region exclude) {
             var region = bounds.GetBoundingRegion();
-            for (int i = region.min.x; i < region.max.x; i ++) {
-                for (int j = region.min.y; j < region.max.y; j ++) {
-                    for (int k = region.min.z; k < region.max.z; k ++) {
+            for (int i = region.Min.X; i < region.Max.X; i ++) {
+                for (int j = region.Min.Y; j < region.Max.Y; j ++) {
+                    for (int k = region.Min.Z; k < region.Max.Z; k ++) {
                         var c = new Coords(i, j, k);
                         if (!exclude.Contains(c) && grid.CellIsSolid(c)) {
                             return true;
@@ -28,9 +28,9 @@ namespace VoxelSpace {
 
         public static bool CheckBounds(this ICollisionGrid grid, Bounds bounds) {
             var region = bounds.GetBoundingRegion();
-            for (int i = region.min.x; i < region.max.x; i ++) {
-                for (int j = region.min.y; j < region.max.y; j ++) {
-                    for (int k = region.min.z; k < region.max.z; k ++) {
+            for (int i = region.Min.X; i < region.Max.X; i ++) {
+                for (int j = region.Min.Y; j < region.Max.Y; j ++) {
+                    for (int k = region.Min.Z; k < region.Max.Z; k ++) {
                         var c = new Coords(i, j, k);
                         if (grid.CellIsSolid(c)) {
                             return true;
