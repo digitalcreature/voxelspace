@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,28 +12,41 @@ namespace VoxelSpace {
     // use to calculate the lights after voxel volume generation/deserialization
     public class VoxelVolumeLightCalculator : IMultiFrameTask<VoxelVolume> {
 
-        WorkerThreadGroup<(VoxelVolume, int)> workerThreadGroup;
-
-        public bool isRunning => workerThreadGroup.isRunning;
-        public bool hasCompleted => workerThreadGroup.hasCompleted;
+        public bool isRunning { get; private set; }
+        public bool hasCompleted { get; private set; }
         // public float progress => workerThread.progress;
 
+        Task calculationTask;
+
         public VoxelVolumeLightCalculator() {
-            workerThreadGroup = new WorkerThreadGroup<(VoxelVolume, int)>(CalculateLight);
+            isRunning = false;
+            hasCompleted = false;
         }
 
         public void StartTask(VoxelVolume volume) {
-            if (!this.HasStarted()) {
-                workerThreadGroup.StartTask((volume, 0), (volume, 1), (volume, 2), (volume, 3), (volume, 4), (volume, 5));
+            if (calculationTask == null) {
+                hasCompleted = false;
+                isRunning = true;
+                calculationTask = Task.WhenAll(
+                    Task.Factory.StartNew(() => CalculateLight(volume, 0)),
+                    Task.Factory.StartNew(() => CalculateLight(volume, 1)),
+                    Task.Factory.StartNew(() => CalculateLight(volume, 2)),
+                    Task.Factory.StartNew(() => CalculateLight(volume, 3)),
+                    Task.Factory.StartNew(() => CalculateLight(volume, 4)),
+                    Task.Factory.StartNew(() => CalculateLight(volume, 5))
+                );
             }
         }
 
         public bool UpdateTask() {
-            bool isDone = workerThreadGroup.UpdateTask();
-            if (isDone) {
-                Logger.Info(this, workerThreadGroup.GetCompletionMessage("Calculated lighting for volume"));
+            if (calculationTask != null && calculationTask.IsCompleted) {
+                calculationTask.Wait();
+                calculationTask = null;
+                hasCompleted = true;
+                Logger.Info(this, "Calculated lighting for volume");
+                return true;
             }
-            return isDone;
+            return false;
         }
 
         struct LightNode {
@@ -40,13 +54,13 @@ namespace VoxelSpace {
             public Coords lCoords;
         }
 
-        void CalculateLight((VoxelVolume, int) data) {
-            var (volume, channel) = data;
+        void CalculateLight(VoxelVolume volume, int channel) {
             Queue<LightNode> q = new Queue<LightNode>();
             SeedSunLight(volume, channel, q);
             PropogateSunlight(volume, channel, q);
         }
 
+        // seeds sunlight over an entire volume, queueing nodes for propogation
         unsafe void SeedSunLight(VoxelVolume volume, int channel, Queue<LightNode> q) {
             var cRegion = volume.chunkRegion;
             int axis = channel % 3; // x = 0, y = 1, z = 2

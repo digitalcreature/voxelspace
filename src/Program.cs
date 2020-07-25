@@ -8,6 +8,7 @@ public class Program {
     static void Main() {
         var game = new VoxelSpaceGame();
         game.Run();
+        // varnew VoxelSpace.Tasks.Task();
     }
 
 }
