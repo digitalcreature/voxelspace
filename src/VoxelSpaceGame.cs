@@ -128,7 +128,7 @@ namespace VoxelSpace {
             t /= 10; // 10 seconds a day
             t *= 2 * MathHelper.Pi;
             // Logger.Debug(this, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
-            _sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+            // _sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
         }
 
         protected override void OnExiting(Object sender, EventArgs args) {

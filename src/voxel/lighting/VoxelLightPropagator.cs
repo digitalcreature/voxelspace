@@ -17,6 +17,9 @@ namespace VoxelSpace {
 
         public IReadOnlyCollection<VoxelChunk> AlteredChunks => _alteredChunks;
 
+        public IChannel this[int channel] => _channels[channel];
+        public IChannel this[VoxelLightChannel channel] => _channels[(int) channel];
+
         public VoxelLightPropagator(VoxelVolume volume) {
             Volume = volume;
             _alteredChunks = new HashSet<VoxelChunk>();
@@ -114,7 +117,7 @@ namespace VoxelSpace {
             }
         }
 
-        public void StartPropagationTask() {
+        public Task StartPropagationTask() {
             PropogationTask = Task.WhenAll(
                 _channels[0].StartPropagationTask(),
                 _channels[1].StartPropagationTask(),
@@ -123,13 +126,22 @@ namespace VoxelSpace {
                 _channels[4].StartPropagationTask(),
                 _channels[5].StartPropagationTask()
             );
+            return PropogationTask;
         }
 
         public void Wait() {
             PropogationTask.Wait();
         }
 
-        class PropagationChannel {
+        public interface IChannel {
+
+            void QueueForPropagation(VoxelChunk chunk, Coords c);
+
+            void PropagateSunlight();
+
+        }
+
+        class PropagationChannel : IChannel {
 
             VoxelLightPropagator _propagator;
             VoxelVolume _volume;
@@ -161,17 +173,17 @@ namespace VoxelSpace {
             }
 
             public Task StartPropagationTask() {
-                return Task.Factory.StartNew(PropagateSunLight);
+                return Task.Factory.StartNew(PropagateSunlight);
             }
 
-            public unsafe void PropagateSunLight() {
+            public unsafe void PropagateSunlight() {
                 // see VoxelLightChannel enum
                 int channel = (int) _channel;
                 // these values are used when checking if the current axis in question is the same as the sunlight direction.
                 // we have one value for positive axes and one for negative
                 int lAxisP = channel;           // the first three are positive
                 int lAxisN = channel - 3;       // the second three are negative
-                // depropogate
+                // depropagate
                 while (_depropQueue.TryDequeue(out var node)) {
                     byte lightLevel = node.OriginalLight;
                     // positive direction
@@ -197,7 +209,6 @@ namespace VoxelSpace {
                                 else if (neighborLight >= lightLevel) {
                                     _propQueue.Enqueue(new PropNode(neighbor.Chunk, neighbor.Coords));
                                 }
-                                _depropQueue.Enqueue(neighbor);
                             }
                         }
                     }
@@ -224,15 +235,14 @@ namespace VoxelSpace {
                                 else if (neighborLight >= lightLevel) {
                                     _propQueue.Enqueue(new PropNode(neighbor.Chunk, neighbor.Coords));
                                 }
-                                _depropQueue.Enqueue(neighbor);
                             }
                         }
                     }
                 }
-                // propogate
+                // propagate
                 while (_propQueue.TryDequeue(out var node)) {
                     byte lightLevel = *node.Chunk.LightData[channel][node.Coords];
-                    int neighborLightLevel = lightLevel - VoxelLight.MAX_LIGHT / 8;
+                    int neighborLightLevel = lightLevel - VoxelLight.LIGHT_DECREMENT;
                     if (neighborLightLevel > 0) {
                         // positive direction
                         for (int axis = 0; axis < 3; axis ++) {

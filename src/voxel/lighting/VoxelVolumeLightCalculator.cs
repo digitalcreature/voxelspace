@@ -27,14 +27,10 @@ namespace VoxelSpace {
             if (_calculationTask == null) {
                 HasCompleted = false;
                 IsRunning = true;
-                _calculationTask = Task.WhenAll(
-                    Task.Factory.StartNew(() => CalculateLight(volume, 0)),
-                    Task.Factory.StartNew(() => CalculateLight(volume, 1)),
-                    Task.Factory.StartNew(() => CalculateLight(volume, 2)),
-                    Task.Factory.StartNew(() => CalculateLight(volume, 3)),
-                    Task.Factory.StartNew(() => CalculateLight(volume, 4)),
-                    Task.Factory.StartNew(() => CalculateLight(volume, 5))
-                );
+                _calculationTask = Task.Factory.StartNew(() => {
+                    var propagator = new VoxelLightPropagator(volume);
+                    Parallel.For(0, 6, (i) => CalculateSunlight(volume, i, propagator[i]));
+                });                
             }
         }
 
@@ -49,19 +45,8 @@ namespace VoxelSpace {
             return false;
         }
 
-        struct LightNode {
-            public VoxelChunk Chunk;
-            public Coords Coords;
-        }
-
-        void CalculateLight(VoxelVolume volume, int channel) {
-            Queue<LightNode> q = new Queue<LightNode>();
-            SeedSunLight(volume, channel, q);
-            PropogateSunlight(volume, channel, q);
-        }
-
         // seeds sunlight over an entire volume, queueing nodes for propogation
-        unsafe void SeedSunLight(VoxelVolume volume, int channel, Queue<LightNode> q) {
+        unsafe void CalculateSunlight(VoxelVolume volume, int channel, VoxelLightPropagator.IChannel propagationChannel) {
             var cRegion = volume.ChunkRegion;
             int axis = channel % 3; // x = 0, y = 1, z = 2
             var neg = channel >= 3;
@@ -101,10 +86,7 @@ namespace VoxelSpace {
                                     (&lCoords.X)[ai] = la;
                                     (&lCoords.X)[bi] = lb;
                                     *chunk.LightData[channel][lCoords] = VoxelLight.MAX_LIGHT;
-                                    q.Enqueue(new LightNode() {
-                                        Chunk = chunk,
-                                        Coords = lCoords,
-                                    });
+                                    propagationChannel.QueueForPropagation(chunk, lCoords);
                                 }
                             }
                             break;
@@ -112,69 +94,8 @@ namespace VoxelSpace {
                     }
                 }
             }
+            propagationChannel.PropagateSunlight();
         }
-
-        unsafe void PropogateSunlight(VoxelVolume volume, int channel, Queue<LightNode> q) {
-            int lAxis = channel % 3;
-            bool lIsNeg = channel >= 3;
-            while (q.TryDequeue(out var node)) {
-                byte lightLevel = *node.Chunk.LightData[channel][node.Coords];
-                int neighborLightLevel = lightLevel - VoxelLight.MAX_LIGHT / 8;
-                if (neighborLightLevel > 0) {
-                    // positive direction
-                    for (int axis = 0; axis < 3; axis ++) {
-                        var neighbor = node;
-                        (&neighbor.Coords.X)[axis] ++;
-                        if ((&neighbor.Coords.X)[axis] == VoxelChunk.SIZE) {
-                            var neighborChunkCoords = node.Chunk.Coords;
-                            (&neighborChunkCoords.X)[axis] ++;
-                            neighbor.Chunk = volume[neighborChunkCoords];
-                            (&neighbor.Coords.X)[axis] = 0;
-                        }
-                        if (neighbor.Chunk != null) {
-                            byte* light = neighbor.Chunk.LightData[channel][neighbor.Coords];
-                            if (!neighbor.Chunk.Voxels[neighbor.Coords].IsOpaque && *light < neighborLightLevel) {
-                                byte l;
-                                if (axis == lAxis && !lIsNeg && lightLevel == VoxelLight.MAX_LIGHT) {
-                                    l = VoxelLight.MAX_LIGHT;
-                                }
-                                else {
-                                    l = (byte) neighborLightLevel;
-                                }
-                                *light = l;
-                                q.Enqueue(neighbor);
-                            }
-                        }
-                    }
-                    // negative direction
-                    for (int axis = 0; axis < 3; axis ++) {
-                        var neighbor = node;
-                        (&neighbor.Coords.X)[axis] --;
-                        if ((&neighbor.Coords.X)[axis] == -1) {
-                            var neighborChunkCoords = node.Chunk.Coords;
-                            (&neighborChunkCoords.X)[axis] --;
-                            neighbor.Chunk = volume[neighborChunkCoords];
-                            (&neighbor.Coords.X)[axis] = VoxelChunk.SIZE - 1;
-                        }
-                        if (neighbor.Chunk != null) {
-                            byte* light = neighbor.Chunk.LightData[channel][neighbor.Coords];
-                            if (!neighbor.Chunk.Voxels[neighbor.Coords].IsOpaque && *light < neighborLightLevel) {
-                                byte l;
-                                if (axis == lAxis && lIsNeg && lightLevel == VoxelLight.MAX_LIGHT) {
-                                    l = VoxelLight.MAX_LIGHT;
-                                }
-                                else {
-                                    l = (byte) neighborLightLevel;
-                                }
-                                *light = l;
-                                q.Enqueue(neighbor);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
 
     }
 

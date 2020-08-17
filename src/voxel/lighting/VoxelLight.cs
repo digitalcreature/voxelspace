@@ -5,6 +5,8 @@ namespace VoxelSpace {
     public readonly struct VoxelLight {
 
         public const int CHANNEL_COUNT = 6; //7; // we are only concerned with sunlight rn
+        
+        public const byte LIGHT_DECREMENT = MAX_LIGHT / 16;
 
         public const byte MAX_LIGHT = 255;
         public static readonly VoxelLight fullSun = new VoxelLight(
