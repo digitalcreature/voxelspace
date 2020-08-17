@@ -1,14 +1,12 @@
-float4x4 model;
-float4x4 view;
-float4x4 proj;
+#include "geometry.fxh"
 
-float3 lightDirection;
-float lightIntensity;
-float lightAmbient;
+float3 sunDirection;
+float sunIntensity;
+float ambientIntensity;
 
-uniform texture tex;
-sampler2D texSampler = sampler_state {
-    Texture = (tex);
+uniform texture _tex_atlas;
+sampler2D textureAtlas = sampler_state {
+    Texture = (_tex_atlas);
     MagFilter = Point;
     MinFilter = Point;
     AddressU = Clamp;
@@ -34,13 +32,13 @@ struct v2f {
 
 v2f vert(a2v a) {
     v2f o;
-    float4 world = mul(a.position, model);
-    o.position = mul(mul(world, view), proj);
-    float4 worldNormal = mul(model, a.normal);
-    o.light = clamp(dot(worldNormal.xyz, -lightDirection), 0, 1) * lightIntensity + lightAmbient;
+    float4 world = mul(a.position, _mat_model);
+    o.position = mul(mul(world, _mat_view), _mat_proj);
+    float4 worldNormal = mul(_mat_model, a.normal);
+    o.light = clamp(dot(worldNormal.xyz, -sunDirection), 0, 1) * sunIntensity + ambientIntensity;
     o.ao = 1 - (1 - a.ao) * .5;
     o.uv = a.uv;
-    float3 sunDir = lightDirection;
+    float3 sunDir = sunDirection;
     // normalize so that the sum == 1
     sunDir /= abs(sunDir.x) + abs(sunDir.y) + abs(sunDir.z);
     float3 sun = lerp(a.lightSunN, a.lightSunP, clamp(sign(sunDir), 0, 1)) * abs(sunDir);
@@ -51,13 +49,13 @@ v2f vert(a2v a) {
 }
 
 float4 frag(v2f v) : COLOR {
-    float4 color = tex2D(texSampler, v.uv);
+    float4 color = tex2D(textureAtlas, v.uv);
     clip(color.a - 0.5);
     return v.light * v.ao * color;
 }
 
-technique Terrain {
-    pass Pass {
+technique Geometry {
+    pass Geometry {
         VertexShader = compile vs_4_0 vert();
         PixelShader = compile ps_4_0 frag();
     }

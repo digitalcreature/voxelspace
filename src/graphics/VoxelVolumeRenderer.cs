@@ -2,21 +2,23 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using VoxelSpace.Graphics;
+
 namespace VoxelSpace {
 
     public class VoxelVolumeRenderer : IDisposable {
         
-        public Effect Effect { get; private set; }
+        public VoxelTerrainMaterial Material { get; private set; }
 
-        public VoxelVolumeRenderer(Effect terrainEffect) {
-            Effect = terrainEffect;
+        public VoxelVolumeRenderer(VoxelTerrainMaterial material) {
+            Material = material;
         }
 
         public void Render(GraphicsDevice graphics, VoxelVolume volume, Matrix modelMat) {
             foreach (var chunk in volume) {
                 if (chunk.Mesh != null) {
-                    Effect.Parameters["model"].SetValue(Matrix.CreateTranslation(chunk.Coords * VoxelChunk.SIZE) * modelMat);
-                    Effect.CurrentTechnique.Passes[0].Apply();
+                    Material.ModelMatrix = Matrix.CreateTranslation(chunk.Coords * VoxelChunk.SIZE) * modelMat;
+                    Material.Bind();
                     chunk.Mesh.Draw(graphics);
                 }
             }

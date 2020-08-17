@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 
 using VoxelSpace.Assets;
+using VoxelSpace.Graphics;
 using VoxelSpace.Input;
 
 namespace VoxelSpace {
@@ -16,7 +17,7 @@ namespace VoxelSpace {
 
         Matrix _projMat;
 
-        Effect _effect;
+        VoxelTerrainMaterial _terrainMaterial;
 
         Planet _planet;
 
@@ -67,15 +68,15 @@ namespace VoxelSpace {
             }
             atlas.CreateAtlasTexture(GraphicsDevice);
             
-            // terrain shader
-            _effect = Content.Load<Effect>("shader/terrain");
-            _effect.Parameters["proj"].SetValue(_projMat);
-            _effect.Parameters["lightIntensity"].SetValue(0.1f);
-            _effect.Parameters["lightAmbient"].SetValue(0.8f);
-            _effect.Parameters["tex"]?.SetValue(atlas.AtlasTexture);
+            // terrain material
+            _terrainMaterial = new VoxelTerrainMaterial(Content);
+            _terrainMaterial.ProjectionMatrix = _projMat;
+            _terrainMaterial.SunIntensity = 0.1f;
+            _terrainMaterial.AmbientIntensity = 0.8f;
+            _terrainMaterial.TextureAtlas = atlas.AtlasTexture;
             
             // planet
-            _planet = new Planet(64, 20, new VoxelVolumeRenderer(_effect));
+            _planet = new Planet(64, 20, new VoxelVolumeRenderer(_terrainMaterial));
             var generator = new PlanetTerrainGenerator();
             _planetGenerator = new PlanetGenerator(generator);
             _meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
@@ -137,9 +138,8 @@ namespace VoxelSpace {
 
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            _effect.Parameters["lightDirection"].SetValue(_sunDirection.Normalized());
-            _effect.Parameters["view"].SetValue(_player.ViewMatrix);
-            _effect.CurrentTechnique.Passes[0].Apply();
+            _terrainMaterial.SunDirection = _sunDirection.Normalized();
+            _terrainMaterial.ViewMatrix = _player.ViewMatrix;
             _planet.Render(GraphicsDevice);
             if (_player.IsAimValid) {
                 _selectionWireframe.Effect.View = _player.ViewMatrix;
