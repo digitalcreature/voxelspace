@@ -23,14 +23,24 @@ namespace VoxelSpace.Graphics {
             set => this["sunDirection"].SetValue(value);
         }
 
-        public float SunIntensity {
-            get => this["sunIntensity"].GetValueSingle();
-            set => this["sunIntensity"].SetValue(value);
+        public float DiffuseIntensity {
+            get => this["diffuseIntensity"].GetValueSingle();
+            set => this["diffuseIntensity"].SetValue(value);
         }
 
         public float AmbientIntensity {
             get => this["ambientIntensity"].GetValueSingle();
             set => this["ambientIntensity"].SetValue(value);
+        }
+
+        public Color SunlightColor {
+            get => new Color(this["sunlightColor"].GetValueVector3());
+            set => this["sunlightColor"].SetValue(value.ToVector3());
+        }
+        
+        public Color StarlightColor {
+            get => new Color(this["starlightColor"].GetValueVector3());
+            set => this["starlightColor"].SetValue(value.ToVector3());
         }
 
     }

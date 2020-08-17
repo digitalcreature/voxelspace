@@ -71,9 +71,11 @@ namespace VoxelSpace {
             // terrain material
             _terrainMaterial = new VoxelTerrainMaterial(Content);
             _terrainMaterial.ProjectionMatrix = _projMat;
-            _terrainMaterial.SunIntensity = 0.1f;
+            _terrainMaterial.DiffuseIntensity = 0.1f;
             _terrainMaterial.AmbientIntensity = 0.8f;
             _terrainMaterial.TextureAtlas = atlas.AtlasTexture;
+            _terrainMaterial.SunlightColor = new Color(255, 255, 192);
+            _terrainMaterial.StarlightColor = new Color(0, 20, 70);
             
             // planet
             _planet = new Planet(64, 20, new VoxelVolumeRenderer(_terrainMaterial));
@@ -129,7 +131,7 @@ namespace VoxelSpace {
             t /= 10; // 10 seconds a day
             t *= 2 * MathHelper.Pi;
             // Logger.Debug(this, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
-            // _sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+            _sunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
         }
 
         protected override void OnExiting(Object sender, EventArgs args) {
