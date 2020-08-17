@@ -14,10 +14,10 @@ namespace VoxelSpace {
 
         public void Render(GraphicsDevice graphics, VoxelVolume volume, Matrix modelMat) {
             foreach (var chunk in volume) {
-                if (chunk.mesh != null) {
-                    Effect.Parameters["model"].SetValue(Matrix.CreateTranslation(chunk.coords * VoxelChunk.SIZE) * modelMat);
+                if (chunk.Mesh != null) {
+                    Effect.Parameters["model"].SetValue(Matrix.CreateTranslation(chunk.Coords * VoxelChunk.SIZE) * modelMat);
                     Effect.CurrentTechnique.Passes[0].Apply();
-                    chunk.mesh.Draw(graphics);
+                    chunk.Mesh.Draw(graphics);
                 }
             }
         }

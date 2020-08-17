@@ -48,7 +48,7 @@ namespace VoxelSpace {
 
         void ApplyGeneratedMesh(VoxelChunkMesh mesh) {
             mesh.ApplyChanges(_graphics);
-            mesh.Chunk.UpdateMesh(mesh);
+            mesh.Chunk.SetMesh(mesh);
         }
 
     }

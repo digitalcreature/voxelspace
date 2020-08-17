@@ -29,35 +29,29 @@ namespace VoxelSpace {
         }
 
         public void ApplyChanges(GraphicsDevice graphics) {
-            if (_geometryDirty) {
-                _geometryDirty = false;
-                if (_vertBuffer == null || _vertBuffer.VertexCount != _verts.Count) {
-                    if (_vertBuffer != null) {
-                        _vertBuffer.Dispose();
-                    }
-                    _vertBuffer = new VertexBuffer(graphics, VoxelVertex.declaration, _verts.Count, BufferUsage.None);
+            if (_vertBuffer == null || _vertBuffer.VertexCount != _verts.Count) {
+                if (_vertBuffer != null) {
+                    _vertBuffer.Dispose();
                 }
-                if (_trisBuffer == null || _trisBuffer.IndexCount != _tris.Count) {
-                    if (_trisBuffer != null) {
-                        _trisBuffer.Dispose();
-                    }
-                    _trisBuffer = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, _tris.Count, BufferUsage.None);
+                _vertBuffer = new VertexBuffer(graphics, VoxelVertex.declaration, _verts.Count, BufferUsage.None);
+            }
+            if (_trisBuffer == null || _trisBuffer.IndexCount != _tris.Count) {
+                if (_trisBuffer != null) {
+                    _trisBuffer.Dispose();
                 }
-                
-                _vertBuffer.SetData(0, _verts.ToArray(), 0, _vertBuffer.VertexCount, 0);
-                _trisBuffer.SetData(0, _tris.ToArray(), 0, _trisBuffer.IndexCount);
+                _trisBuffer = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, _tris.Count, BufferUsage.None);
+            }
+            
+            _vertBuffer.SetData(0, _verts.ToArray(), 0, _vertBuffer.VertexCount, 0);
+            _trisBuffer.SetData(0, _tris.ToArray(), 0, _trisBuffer.IndexCount);
 
-            }
-            if (_lightDirty) {
-                _lightDirty = false;
-                if (_lightBuffer == null || _lightBuffer.VertexCount != _lights.Length) {
-                    if (_lightBuffer != null) {
-                        _lightBuffer.Dispose();
-                    }
-                    _lightBuffer = new VertexBuffer(graphics, VoxelLightVertex.declaration, _lights.Length, BufferUsage.None);
+            if (_lightBuffer == null || _lightBuffer.VertexCount != _lights.Length) {
+                if (_lightBuffer != null) {
+                    _lightBuffer.Dispose();
                 }
-                _lightBuffer.SetData(0, _lights, 0, _lightBuffer.VertexCount, 0);
+                _lightBuffer = new VertexBuffer(graphics, VoxelLightVertex.declaration, _lights.Length, BufferUsage.None);
             }
+            _lightBuffer.SetData(0, _lights, 0, _lightBuffer.VertexCount, 0);
         }
 
         public void Draw(GraphicsDevice graphics) {

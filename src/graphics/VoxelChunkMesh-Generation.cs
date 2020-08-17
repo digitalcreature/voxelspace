@@ -11,22 +11,17 @@ namespace VoxelSpace {
         List<uint> _tris;
         VoxelLightVertex[] _lights;
 
-        bool _geometryDirty;
-        bool _lightDirty;
-
         public void GenerateGeometryAndLighting() {
             var size = VoxelChunk.SIZE;
-            _geometryDirty = true;
-            _lightDirty = true;
             _verts = new List<VoxelVertex>();
             _tris = new List<uint>();
             for (int i = 0; i < size; i ++) {
                 for (int j = 0; j < size; j ++) {
                     for (int k = 0; k < size; k ++) {
-                        ref readonly var voxel = ref Chunk.voxels[i,j,k];
+                        ref readonly var voxel = ref Chunk.Voxels[i,j,k];
                         if (voxel.IsMeshable) {
                             var coords = new Coords(i, j, k);
-                            var orientation = Chunk.volume.GetVoxelOrientation(Chunk.LocalToVolumeCoords(coords));
+                            var orientation = Chunk.Volume.GetVoxelOrientation(Chunk.LocalToVolumeCoords(coords));
                             // -x face
                             if (!Chunk.GetVoxelIncludingNeighbors(i - 1, j, k).IsMeshable) {
                                 AddVoxelFace(
@@ -121,12 +116,11 @@ namespace VoxelSpace {
                     }
                 }
             }
-            CalculateLighting();
+            GenerateLighting();
         }
 
-        unsafe void CalculateLighting() {
-            _lightDirty = true;
-            _lights = new VoxelLightVertex[_verts.Count];
+        public unsafe void GenerateLighting() {
+            var lights = new VoxelLightVertex[_verts.Count];
             for (int v = 0; v < _verts.Count; v ++) {
                 var vert = _verts[v];
                 var vc = vert.Coords;
@@ -198,27 +192,28 @@ namespace VoxelSpace {
                 }
                 light.DivideLight(count);
                 light.AO = 1 - ao;
-                _lights[v] = light;
+                lights[v] = light;
             }
             // go back and flip any faces we need to for ao reasons
             for (int i = 0; i < _verts.Count; i += 4) {
-                 var aoA = _lights[i  ].AO;
-                 var aoB = _lights[i+1].AO;
-                 var aoC = _lights[i+2].AO;
-                 var aoD = _lights[i+3].AO;
+                 var aoA = lights[i  ].AO;
+                 var aoB = lights[i+1].AO;
+                 var aoC = lights[i+2].AO;
+                 var aoD = lights[i+3].AO;
                 if (aoA + aoD > aoB + aoC) {
                     var tmp = _verts[i];
                     _verts[i] = _verts[i+1];
                     _verts[i+1] = _verts[i+3];
                     _verts[i+3] = _verts[i+2];
                     _verts[i+2] = tmp;
-                    var tmp2 = _lights[i];
-                    _lights[i] = _lights[i+1];
-                    _lights[i+1] = _lights[i+3];
-                    _lights[i+3] = _lights[i+2];
-                    _lights[i+2] = tmp2;
+                    var tmp2 = lights[i];
+                    lights[i] = lights[i+1];
+                    lights[i+1] = lights[i+3];
+                    lights[i+3] = lights[i+2];
+                    lights[i+2] = tmp2;
                 }
             }
+            _lights = lights;
         }
 
         // add a quad

@@ -60,10 +60,10 @@ namespace VoxelSpace {
                     for (int j = 0; j < VoxelChunk.SIZE; j ++) {
                         for (int k = 0; k < VoxelChunk.SIZE; k ++) {
                             if (IsInCave(chunk.LocalToVolumeCoords(new Coords(i, j, k)))) {
-                                chunk.voxels[i, j, k] = Voxel.Empty;
+                                chunk.Voxels[i, j, k] = Voxel.Empty;
                             }
                             else {
-                                chunk.voxels[i, j, k] = new Voxel(Stone);
+                                chunk.Voxels[i, j, k] = new Voxel(Stone);
                             }
                         }
                     }
@@ -75,7 +75,7 @@ namespace VoxelSpace {
                         for (int k = 0; k < VoxelChunk.SIZE; k ++) {
                             var vc = chunk.LocalToVolumeCoords(new Coords(i, j, k));
                             if (IsInCave(vc)) {
-                                chunk.voxels[i, j, k] = Voxel.Empty;
+                                chunk.Voxels[i, j, k] = Voxel.Empty;
                             }
                             else {
                                 var vpos = vc + Vector3.One * 0.5f;
@@ -103,7 +103,7 @@ namespace VoxelSpace {
                                 else {
                                     type = Stone;
                                 }
-                                chunk.voxels[i, j, k] = new Voxel(type);
+                                chunk.Voxels[i, j, k] = new Voxel(type);
                             }
                         }
                     }
@@ -124,7 +124,7 @@ namespace VoxelSpace {
         // return true if chunk is below the heightmapped surface, meaning it is completely
         // solid and doesnt need to be generated
         bool ChunkIsInterior(VoxelChunk chunk) {
-            var pos = (chunk.coords * VoxelChunk.SIZE) + (Vector3.One * VoxelChunk.SIZE / 2f);
+            var pos = (chunk.Coords * VoxelChunk.SIZE) + (Vector3.One * VoxelChunk.SIZE / 2f);
             var max = MathF.Max(
                 MathF.Abs(pos.X),
                 MathF.Max(

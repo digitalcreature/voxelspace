@@ -32,8 +32,8 @@ namespace VoxelSpace {
 
         public void RequestSingleChange(Coords volumeCoords, IVoxelType type) {
             _changeRequests.Enqueue(new VoxelChangeRequest(){
-                coords = volumeCoords,
-                type = type
+                Coords = volumeCoords,
+                VoxelType = type
             });
             _changeRequested.Set();
         }
@@ -58,64 +58,83 @@ namespace VoxelSpace {
         public void UpdateChunkMeshes(GraphicsDevice graphics) {
             while (_dirtyMeshes.TryDequeue(out var mesh)) {
                 mesh.ApplyChanges(graphics);
-                mesh.Chunk.UpdateMesh(mesh);
+                mesh.Chunk.SetMesh(mesh);
             }
         }
 
         void WorkerThread() {
             var requests = new Stack<VoxelChangeRequest>();
             var chunksToRemesh = new HashSet<VoxelChunk>();
+            var propagator = new VoxelLightPropagator(Volume);
             while (!_abortRequested) {
+                _changeRequested.WaitOne();
                 while (_changeRequests.TryDequeue(out var request)) {
                     requests.Push(request);
                 }
                 while (requests.TryPop(out var request)) {
-                    var chunkCoords = Volume.GlobalToChunkCoords(request.coords);
+                    var chunkCoords = Volume.GlobalToChunkCoords(request.Coords);
                     var chunk = Volume[chunkCoords];
                     if (chunk != null) {
-                        var localCoords = chunk.VolumeToLocalCoords(request.coords);
-                        chunk.voxels[localCoords] = new Voxel(request.type);
+                        var localCoords = chunk.VolumeToLocalCoords(request.Coords);
+                        var oldOpacity = chunk.Voxels[localCoords].IsOpaque;
+                        var newOpacity = request.VoxelType?.IsOpaque ?? false;
+                        if (oldOpacity != newOpacity) {
+                            if (newOpacity) {
+                                propagator.QueueForDepropagation(chunk, localCoords);
+                            }
+                            else {
+                                propagator.QueueNeighborsForPropagation(chunk, localCoords);
+                            }
+                        }
+                        chunk.Voxels[localCoords] = new Voxel(request.VoxelType);
                         chunksToRemesh.Add(chunk);
                         if (localCoords.X == 0) {
-                            var neighbor = Volume[chunk.coords + new Coords(-1, 0, 0)];
+                            var neighbor = Volume[chunk.Coords + new Coords(-1, 0, 0)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
                         if (localCoords.X == VoxelChunk.SIZE - 1) {
-                            var neighbor = Volume[chunk.coords + new Coords(1, 0, 0)];
+                            var neighbor = Volume[chunk.Coords + new Coords(1, 0, 0)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
                         if (localCoords.Y == 0) {
-                            var neighbor = Volume[chunk.coords + new Coords(0, -1, 0)];
+                            var neighbor = Volume[chunk.Coords + new Coords(0, -1, 0)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
                         if (localCoords.Y == VoxelChunk.SIZE - 1) {
-                            var neighbor = Volume[chunk.coords + new Coords(0, 1, 0)];
+                            var neighbor = Volume[chunk.Coords + new Coords(0, 1, 0)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
                         if (localCoords.Z == 0) {
-                            var neighbor = Volume[chunk.coords + new Coords(0, 0, -1)];
+                            var neighbor = Volume[chunk.Coords + new Coords(0, 0, -1)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
                         if (localCoords.Z == VoxelChunk.SIZE - 1) {
-                            var neighbor = Volume[chunk.coords + new Coords(0, 0, 1)];
+                            var neighbor = Volume[chunk.Coords + new Coords(0, 0, 1)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
                     }
                 }
+                propagator.StartPropagationTask();
                 Parallel.ForEach(chunksToRemesh, (chunk) => {
-                    var meshGenerator = new VoxelChunkMesh(chunk);
-                    meshGenerator.GenerateGeometryAndLighting();
-                    _dirtyMeshes.Enqueue(meshGenerator);
+                    var mesh = chunk.Mesh ?? new VoxelChunkMesh(chunk);
+                    mesh.GenerateGeometryAndLighting();
+                    _dirtyMeshes.Enqueue(mesh);
                 });
+                propagator.Wait();
+                Parallel.ForEach(propagator.AlteredChunks, (chunk) => {
+                    var mesh = chunk.Mesh;
+                    mesh.GenerateLighting();
+                    _dirtyMeshes.Enqueue(mesh);
+                });
+                propagator.Clear();
                 chunksToRemesh.Clear();
-                _changeRequested.WaitOne();
             }
         }
 
         struct VoxelChangeRequest {
 
-            public Coords coords;
-            public IVoxelType type;
+            public Coords Coords;
+            public IVoxelType VoxelType;
 
         }
 

@@ -100,7 +100,7 @@ namespace VoxelSpace {
                                 for (int lb = 0; lb < VoxelChunk.SIZE; lb ++) {
                                     (&lCoords.X)[ai] = la;
                                     (&lCoords.X)[bi] = lb;
-                                    *chunk.lightData[channel][lCoords] = VoxelLight.MAX_LIGHT;
+                                    *chunk.LightData[channel][lCoords] = VoxelLight.MAX_LIGHT;
                                     q.Enqueue(new LightNode() {
                                         Chunk = chunk,
                                         Coords = lCoords,
@@ -118,7 +118,7 @@ namespace VoxelSpace {
             int lAxis = channel % 3;
             bool lIsNeg = channel >= 3;
             while (q.TryDequeue(out var node)) {
-                byte lightLevel = *node.Chunk.lightData[channel][node.Coords];
+                byte lightLevel = *node.Chunk.LightData[channel][node.Coords];
                 int neighborLightLevel = lightLevel - VoxelLight.MAX_LIGHT / 8;
                 if (neighborLightLevel > 0) {
                     // positive direction
@@ -126,14 +126,14 @@ namespace VoxelSpace {
                         var neighbor = node;
                         (&neighbor.Coords.X)[axis] ++;
                         if ((&neighbor.Coords.X)[axis] == VoxelChunk.SIZE) {
-                            var neighborChunkCoords = node.Chunk.coords;
+                            var neighborChunkCoords = node.Chunk.Coords;
                             (&neighborChunkCoords.X)[axis] ++;
                             neighbor.Chunk = volume[neighborChunkCoords];
                             (&neighbor.Coords.X)[axis] = 0;
                         }
                         if (neighbor.Chunk != null) {
-                            byte* light = neighbor.Chunk.lightData[channel][neighbor.Coords];
-                            if (!neighbor.Chunk.voxels[neighbor.Coords].IsOpaque && *light < neighborLightLevel) {
+                            byte* light = neighbor.Chunk.LightData[channel][neighbor.Coords];
+                            if (!neighbor.Chunk.Voxels[neighbor.Coords].IsOpaque && *light < neighborLightLevel) {
                                 byte l;
                                 if (axis == lAxis && !lIsNeg && lightLevel == VoxelLight.MAX_LIGHT) {
                                     l = VoxelLight.MAX_LIGHT;
@@ -151,14 +151,14 @@ namespace VoxelSpace {
                         var neighbor = node;
                         (&neighbor.Coords.X)[axis] --;
                         if ((&neighbor.Coords.X)[axis] == -1) {
-                            var neighborChunkCoords = node.Chunk.coords;
+                            var neighborChunkCoords = node.Chunk.Coords;
                             (&neighborChunkCoords.X)[axis] --;
                             neighbor.Chunk = volume[neighborChunkCoords];
                             (&neighbor.Coords.X)[axis] = VoxelChunk.SIZE - 1;
                         }
                         if (neighbor.Chunk != null) {
-                            byte* light = neighbor.Chunk.lightData[channel][neighbor.Coords];
-                            if (!neighbor.Chunk.voxels[neighbor.Coords].IsOpaque && *light < neighborLightLevel) {
+                            byte* light = neighbor.Chunk.LightData[channel][neighbor.Coords];
+                            if (!neighbor.Chunk.Voxels[neighbor.Coords].IsOpaque && *light < neighborLightLevel) {
                                 byte l;
                                 if (axis == lAxis && lIsNeg && lightLevel == VoxelLight.MAX_LIGHT) {
                                     l = VoxelLight.MAX_LIGHT;

@@ -68,13 +68,13 @@ namespace VoxelSpace {
         }
 
         public void SetChunkDirty(VoxelChunk chunk) {
-            if (chunk.volume == this) {
+            if (chunk.Volume == this) {
                 _dirtyChunks.Add(chunk);
             }
         }
 
         public void SetChunkClean(VoxelChunk chunk) {
-            if (chunk.volume == this) {
+            if (chunk.Volume == this) {
                 _dirtyChunks.Remove(chunk);
             }
         }
@@ -95,20 +95,20 @@ namespace VoxelSpace {
         // get the voxel at a specific set of global coords
         public Voxel? GetVoxel(Coords c) {
             var chunk = GetChunkContainingVolumeCoords(c);
-            return chunk?.voxels[chunk.VolumeToLocalCoords(c)];
+            return chunk?.Voxels[chunk.VolumeToLocalCoords(c)];
         }
         
         // get the voxel light at a specific set of global coords
         public VoxelLight GetVoxelLight(Coords c) {
             var chunk = GetChunkContainingVolumeCoords(c);
-            return chunk?.lightData.GetVoxelLight(chunk.VolumeToLocalCoords(c)) ?? VoxelLight.INVALID;
+            return chunk?.LightData.GetVoxelLight(chunk.VolumeToLocalCoords(c)) ?? VoxelLight.INVALID;
         }
 
         public unsafe byte* GetVoxelLightData(Coords c, VoxelLightChannel channel) => GetVoxelLightData(c, (int) channel);
         public unsafe byte* GetVoxelLightData(Coords c, int channel) {
             var chunk = GetChunkContainingVolumeCoords(c);
             if (chunk != null) {
-                return chunk.lightData[channel][chunk.VolumeToLocalCoords(c)];
+                return chunk.LightData[channel][chunk.VolumeToLocalCoords(c)];
             }
             else {
                 return null;
@@ -120,7 +120,7 @@ namespace VoxelSpace {
         public void SetVoxel(Coords c, Voxel v) {
             var chunk = GetChunkContainingVolumeCoords(c) ?? AddChunk(GlobalToChunkCoords(c));
             var localCoords = chunk.VolumeToLocalCoords(c);
-            chunk.voxels[localCoords] = v;
+            chunk.Voxels[localCoords] = v;
         }
 
         // return the chunk containing the voxel at a set of coords
