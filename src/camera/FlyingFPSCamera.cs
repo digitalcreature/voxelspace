@@ -2,11 +2,11 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
+using VoxelSpace.Scene;
+
 namespace VoxelSpace {
 
-    public class FlyingFPSCamera {
-
-        public Transform Transform;
+    public class FlyingFPSCamera : SceneObject {
 
         Bounds _bounds;
 
@@ -24,16 +24,17 @@ namespace VoxelSpace {
 
         public Matrix ViewMatrix =>
             Matrix.Invert(
-                ViewRotationMatrix * Matrix.CreateTranslation(Transform.Position)
+                ViewRotationMatrix * Matrix.CreateTranslation(Transform.LocalPosition)
             );
         
         Matrix ViewRotationMatrix =>
-            Matrix.CreateRotationX(MathHelper.ToRadians(-_yLook)) * Transform.RotationMatrix;
+            Matrix.CreateRotationX(MathHelper.ToRadians(-_yLook)) * Transform.LocalRotationMatrix;
 
-        public FlyingFPSCamera(Vector3 position, Point screenCenter, ICollisionGrid grid) {
+        public FlyingFPSCamera(Vector3 position, Point screenCenter, ICollisionGrid grid)
+            : base() {
             _screenCenter = screenCenter;
             Mouse.SetPosition(screenCenter.X, screenCenter.Y);
-            Transform = new Transform(position);
+            Transform.LocalPosition = position;
             _bounds = new Bounds(Vector3.One * 1.5f);
             _bounds.Center = position;
             _scroll = Mouse.GetState().ScrollWheelValue;
@@ -52,7 +53,7 @@ namespace VoxelSpace {
             point -= _screenCenter;
             var lookDelta = point.ToVector2();
             lookDelta *= deltaTime * Sensitivity;
-            Transform.Rotate(Quaternion.CreateFromAxisAngle(Transform.Up, MathHelper.ToRadians(-lookDelta.X)));
+            Transform.Rotate(Quaternion.CreateFromAxisAngle(Transform.LocalUp, MathHelper.ToRadians(-lookDelta.X)));
             _yLook += lookDelta.Y;
             _yLook = MathHelper.Clamp(_yLook, -90, 90);
             Mouse.SetPosition(_screenCenter.X, _screenCenter.Y);
@@ -71,7 +72,7 @@ namespace VoxelSpace {
             _input = Vector3.Lerp(_input, targetInput, deltaTime * SmoothFactor);
             var moveDelta = Vector3.TransformNormal(_input, ViewRotationMatrix);
             _bounds.MoveInCollisionGrid(moveDelta, _grid);
-            Transform.Position = _bounds.Center;
+            Transform.LocalPosition = _bounds.Center;
         }
 
     }

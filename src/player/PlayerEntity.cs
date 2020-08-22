@@ -2,13 +2,14 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
+using VoxelSpace.Scene;
+
 namespace VoxelSpace {
 
-    public class PlayerEntity : IEntity {
+    public class PlayerEntity : SceneObject,  IEntity {
 
         public VoxelBody VoxelBody { get; private set; }
 
-        public Transform Transform { get; private set; }
         public MouseLook MouseLook { get; private set; }
 
         public float WalkSpeed = 8;
@@ -41,20 +42,21 @@ namespace VoxelSpace {
             Matrix.Invert(
                 Matrix.CreateRotationX(MathHelper.ToRadians(-MouseLook.Look.Y)) * 
                 Matrix.CreateTranslation(0, _cameraHeight - (_playerWidth / 2), 0) *
-                Transform.RotationMatrix *
-                Matrix.CreateTranslation(Transform.Position)
+                Transform.LocalRotationMatrix *
+                Matrix.CreateTranslation(Transform.LocalPosition)
             );
         
         public Vector3 HeadPosition =>
-            Transform.Position + Transform.Up * (_cameraHeight - (_playerWidth / 2));
+            Transform.LocalPosition + Transform.LocalUp * (_cameraHeight - (_playerWidth / 2));
         public Vector3 AimDirection =>
             Vector3.TransformNormal(Vector3.Forward, 
                 Matrix.CreateRotationX(MathHelper.ToRadians(-MouseLook.Look.Y)) *
-                Transform.RotationMatrix
+                Transform.LocalRotationMatrix
             );
 
-        public PlayerEntity(Vector3 position, MouseLook mouseLook, InputManager input) {
-            Transform = new Transform(position);
+        public PlayerEntity(Vector3 position, MouseLook mouseLook, InputManager input) 
+            : base() {
+            Transform.LocalPosition = position;
             MouseLook = mouseLook;
             _input = input;
             IsGrounded = false;
@@ -62,13 +64,13 @@ namespace VoxelSpace {
 
         public void Update(GameTime time) {
             _input.Update();
-            var g = VoxelBody.Gravity.GetGravityStrength(Transform.Position);
-            var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.Position);
+            var g = VoxelBody.Gravity.GetGravityStrength(Transform.LocalPosition);
+            var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.LocalPosition);
             UpdateOrientation();
             VoxelBody.Gravity.AlignToGravity(Transform);
             var deltaTime = (float) time.ElapsedGameTime.TotalSeconds;
             var lookDelta = MouseLook.Update(time);
-            Transform.Rotate(Quaternion.CreateFromAxisAngle(Transform.Up, MathHelper.ToRadians(-lookDelta.X)));
+            Transform.Rotate(Quaternion.CreateFromAxisAngle(Transform.LocalUp, MathHelper.ToRadians(-lookDelta.X)));
             if (!IsFrozen) {
                 // figure out horizontal movement and move horizontally
                 var moveH = Vector3.Zero;
@@ -82,10 +84,10 @@ namespace VoxelSpace {
                 moveH *= WalkSpeed;
                 Matrix alignMatrix;
                 if (IsGrounded) {
-                    alignMatrix = Transform.Forward.CreateAlignmentMatrix(OrientationNormal);
+                    alignMatrix = Transform.LocalForward.CreateAlignmentMatrix(OrientationNormal);
                 }
                 else {
-                    alignMatrix = Transform.RotationMatrix;
+                    alignMatrix = Transform.LocalRotationMatrix;
                 }
                 moveH = Vector3.TransformNormal(moveH, alignMatrix);
                 moveH *= deltaTime;
@@ -141,7 +143,7 @@ namespace VoxelSpace {
         }
 
         void UpdateOrientation() {
-            var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.Position);
+            var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.LocalPosition);
             Orientation = (-gDir).ToAxisAlignedOrientation();;
             OrientationNormal = Orientation.ToNormal();
             _bounds.Size = Vector3.One * _playerWidth;
@@ -159,11 +161,11 @@ namespace VoxelSpace {
                     _bounds.Size.Z = _playerHeight;
                     break;
             }
-            _bounds.Center = Transform.Position + OrientationNormal * (_playerHeight - _playerWidth) / 2;
+            _bounds.Center = Transform.LocalPosition + OrientationNormal * (_playerHeight - _playerWidth) / 2;
         }
 
         void UpdateTransformFromBounds() {
-            Transform.Position = _bounds.Center - OrientationNormal * (_playerHeight - _playerWidth) / 2;
+            Transform.LocalPosition = _bounds.Center - OrientationNormal * (_playerHeight - _playerWidth) / 2;
         }
 
         public void Freeze() {
