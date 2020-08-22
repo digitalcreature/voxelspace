@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using VoxelSpace.Graphics;
+
 namespace VoxelSpace {
 
-    public partial class VoxelChunkMesh {
+    public partial class VoxelChunkMesh : Mesh {
 
         List<VoxelVertex> _verts;
         List<uint> _tris;

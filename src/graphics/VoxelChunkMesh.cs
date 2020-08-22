@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using VoxelSpace.Graphics;
+
 namespace VoxelSpace {
 
-    public partial class VoxelChunkMesh : IDisposable {
+    public partial class VoxelChunkMesh : Mesh {
 
         public VoxelChunk Chunk { get; private set; }
 
@@ -19,7 +21,7 @@ namespace VoxelSpace {
             Chunk = chunk;
         }
 
-        public void Dispose() {
+        public override void Dispose() {
             _vertBuffer?.Dispose();
             _lightBuffer?.Dispose();
             _trisBuffer?.Dispose();
@@ -54,7 +56,7 @@ namespace VoxelSpace {
             _lightBuffer.SetData(0, _lights, 0, _lightBuffer.VertexCount, 0);
         }
 
-        public void Draw(GraphicsDevice graphics) {
+        public override void Draw(GraphicsDevice graphics) {
             graphics.SetVertexBuffers(new VertexBufferBinding(_vertBuffer, 0), new VertexBufferBinding(_lightBuffer, 0));
             graphics.Indices = _trisBuffer;
             graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _trisBuffer.IndexCount/3);
