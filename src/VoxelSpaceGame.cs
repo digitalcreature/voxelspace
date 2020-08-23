@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
@@ -116,7 +117,11 @@ namespace VoxelSpace {
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, _planet.Radius + generator.MaxHeight, 0);
             _player = new PlayerEntity(pos, new MouseLook(center), _inputManager);
-            _player.VoxelTypeToPlace = _assetManager.FindAsset<VoxelType>("core:grass")?.Value;
+            var types = new List<VoxelType>();
+            types.Add(_assetManager.FindAsset<VoxelType>("core:grass")?.Value);
+            types.Add(_assetManager.FindAsset<VoxelType>("core:stone")?.Value);
+            types.Add(_assetManager.FindAsset<VoxelType>("core:dirt")?.Value);
+            _player.PlaceableVoxelTypes = types;
             _planet.AddEntity(_player);
             _player.Freeze();
 

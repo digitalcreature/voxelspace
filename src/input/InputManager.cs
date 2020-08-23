@@ -15,11 +15,16 @@ namespace VoxelSpace {
         public bool BlockMouse;
         public bool BlockKeyboard;
 
+        public int ScrollDelta { get; private set; }
+
         public void Update() {
             _lastKeyboardState = _keyboardState;
             _keyboardState = Keyboard.GetState();
             _lastMouseState = _mouseState;
             _mouseState = Mouse.GetState();
+            ScrollDelta = 0;
+            if (_mouseState.ScrollWheelValue > _lastMouseState.ScrollWheelValue) ScrollDelta ++;
+            if (_mouseState.ScrollWheelValue < _lastMouseState.ScrollWheelValue) ScrollDelta --;
         }
 
         public bool IsKeyDown(Keys key) => !BlockKeyboard && _keyboardState.IsKeyDown(key);

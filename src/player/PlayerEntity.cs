@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -17,7 +18,23 @@ namespace VoxelSpace {
 
         Bounds _bounds;
 
-        public VoxelType VoxelTypeToPlace;
+        public VoxelType VoxelTypeToPlace {
+            get {
+                if (PlaceableVoxelTypes == null) {
+                    return null;
+                }
+                else {
+                    if (_selectedIndex >= PlaceableVoxelTypes.Count) {
+                        _selectedIndex = PlaceableVoxelTypes.Count - 1;
+                    }
+                    return PlaceableVoxelTypes[_selectedIndex];
+                }
+            }
+        }
+
+        public IList<VoxelType> PlaceableVoxelTypes;
+
+        int _selectedIndex;
 
         // which direction is up?
         public Orientation Orientation { get; private set; }
@@ -104,6 +121,13 @@ namespace VoxelSpace {
                 MoveVertical(moveV);
             }
             UpdateTransformFromBounds();
+            _selectedIndex += _input.ScrollDelta;
+            if (_selectedIndex < 0) {
+                _selectedIndex += PlaceableVoxelTypes.Count;
+            }
+            if (_selectedIndex >= PlaceableVoxelTypes.Count) {
+                _selectedIndex %= PlaceableVoxelTypes.Count;
+            }
             if (VoxelBody.Volume.Raycast(HeadPosition, AimDirection, 5, (v) => v.IsSolid, out var result)) {
                 IsAimValid = true;
                 AimedVoxel = result;
@@ -111,8 +135,10 @@ namespace VoxelSpace {
                     VoxelBody.ChangeManager.RequestSingleChange(AimedVoxel.Coords, null);
                 }
                 else if (_input.WasMouseButtonPressed(MouseButton.Right) && AimedVoxel.Normal != Vector3.Zero) {
-                    var coords = AimedVoxel.Coords + (Coords) AimedVoxel.Normal;
-                    VoxelBody.ChangeManager.RequestSingleChange(coords, VoxelTypeToPlace);
+                    if (VoxelTypeToPlace != null) {
+                        var coords = AimedVoxel.Coords + (Coords) AimedVoxel.Normal;
+                        VoxelBody.ChangeManager.RequestSingleChange(coords, VoxelTypeToPlace);
+                    }
                 }
             }
             else {
