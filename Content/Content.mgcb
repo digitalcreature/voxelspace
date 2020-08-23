@@ -667,3 +667,9 @@
 /processorParam:DebugMode=Auto
 /build:shader/terrain.fx
 
+#begin shader/ui/voxel.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:shader/ui/voxel.fx
+

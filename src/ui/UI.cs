@@ -20,11 +20,11 @@ namespace VoxelSpace.UI {
 
         GraphicsDevice _graphics;
 
-        BasicEffect _voxelEffect;
+        UIVoxelMaterial _voxelMaterial;
 
-        public UI(GraphicsDevice graphics, float height, BasicEffect voxelEffect) {
+        public UI(GraphicsDevice graphics, float height, UIVoxelMaterial voxelMaterial) {
             _graphics = graphics;
-            _voxelEffect = voxelEffect;
+            _voxelMaterial = voxelMaterial;
             SetHeight(height);
         }
 
@@ -63,13 +63,11 @@ namespace VoxelSpace.UI {
             var mesh = type.UIVoxelMesh;
             Vector3 pos = new Vector3(position, 0);
             var worldMat = UIVoxelMesh.CORNER_ON_MAT * Matrix.CreateScale(width) * Matrix.CreateTranslation(pos);
-            _voxelEffect.World = worldMat;
-            _voxelEffect.View = Matrix.Identity;
-            _voxelEffect.Projection = _projMat;
-            foreach (var pass in _voxelEffect.CurrentTechnique.Passes) {
-                pass.Apply();
-                mesh.Draw(_graphics);
-            }
+            _voxelMaterial.ModelMatrix = worldMat;
+            _voxelMaterial.ProjectionMatrix = _projMat;
+            _voxelMaterial.ViewMatrix = Matrix.Identity;
+            _voxelMaterial.Bind();
+            mesh.Draw(_graphics);
         }
 
 

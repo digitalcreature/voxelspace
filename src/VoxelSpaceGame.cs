@@ -76,20 +76,6 @@ namespace VoxelSpace {
             foreach (var voxelType in _assetManager.GetAssets<VoxelType>()) {
                 voxelType.Value.CreateUIVoxelMesh(GraphicsDevice);
             }
-            
-            // ui
-            var uiVoxelEffect = new BasicEffect(GraphicsDevice);
-            uiVoxelEffect.Texture = atlas.AtlasTexture;
-            uiVoxelEffect.TextureEnabled = true;
-            uiVoxelEffect.LightingEnabled = true;
-            var uivl = uiVoxelEffect.DirectionalLight0;
-            uivl.Enabled = true;
-            uivl.Direction = -new Vector3(2, 3, 1).Normalized() * 0.25f;
-            uivl.DiffuseColor = Color.White.ToVector3();
-            uiVoxelEffect.AmbientLightColor = Vector3.One * 0.75f;
-            _ui = new UI.UI(GraphicsDevice, 1080, uiVoxelEffect);
-            // _ui = new UI.UI(GraphicsDevice, 640, uiVoxelEffect);
-            
 
             // terrain material
             _terrainMaterial = new VoxelTerrainMaterial(Content);
@@ -99,6 +85,15 @@ namespace VoxelSpace {
             _terrainMaterial.TextureAtlas = atlas.AtlasTexture;
             _terrainMaterial.SunlightColor = new Color(255, 255, 192);
             _terrainMaterial.StarlightColor = new Color(0, 20, 70);
+
+            // ui
+            var _uiVoxelMaterial = new UI.UIVoxelMaterial(Content);
+            _uiVoxelMaterial.TextureAtlas = atlas.AtlasTexture;
+            _uiVoxelMaterial.DiffuseIntensity = _terrainMaterial.DiffuseIntensity;
+            _uiVoxelMaterial.AmbientIntensity = _terrainMaterial.AmbientIntensity;
+            _uiVoxelMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
+            var uiVoxelEffect = new BasicEffect(GraphicsDevice);
+            _ui = new UI.UI(GraphicsDevice, 1080, _uiVoxelMaterial);
             
             // planet
             _planet = new Planet(64, 20, new VoxelVolumeRenderer(_terrainMaterial));
