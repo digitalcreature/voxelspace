@@ -30,7 +30,7 @@ namespace VoxelSpace {
             _changeRequested = new AutoResetEvent(false);
         }
 
-        public void RequestSingleChange(Coords volumeCoords, IVoxelType type) {
+        public void RequestSingleChange(Coords volumeCoords, VoxelType type) {
             _changeRequests.Enqueue(new VoxelChangeRequest(){
                 Coords = volumeCoords,
                 VoxelType = type
@@ -134,7 +134,7 @@ namespace VoxelSpace {
         struct VoxelChangeRequest {
 
             public Coords Coords;
-            public IVoxelType VoxelType;
+            public VoxelType VoxelType;
 
         }
 

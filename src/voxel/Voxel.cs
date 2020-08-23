@@ -8,9 +8,9 @@ namespace VoxelSpace {
 
         public static readonly Voxel Empty = new Voxel(null);
 
-        public IVoxelType Type;
+        public VoxelType Type;
 
-        public Voxel(IVoxelType type) {
+        public Voxel(VoxelType type) {
             Type = type;
         }
 

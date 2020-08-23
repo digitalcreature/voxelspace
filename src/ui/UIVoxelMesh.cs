@@ -10,7 +10,12 @@ namespace VoxelSpace.UI {
     // a simple cube mesh used to render items in inventories and on the ui (minecraft style)
     public class UIVoxelMesh : Mesh {
 
-        public IVoxelType VoxelType { get; private set; }
+        public static readonly Matrix CORNER_ON_MAT
+            = Matrix.CreateRotationY(MathHelper.ToRadians(45))
+            * Matrix.CreateRotationX(MathHelper.ToRadians(30))
+            * Matrix.CreateScale(1 / MathF.Sqrt(2));
+
+        public VoxelType VoxelType { get; private set; }
 
         VertexBuffer _vertBuffer;
         IndexBuffer _trisBuffer;
@@ -18,7 +23,8 @@ namespace VoxelSpace.UI {
         static Vertex[] _verts =  new Vertex[24];
         static int[] _tris = new int[36];
 
-        public UIVoxelMesh(GraphicsDevice graphics, IVoxelType type) {
+
+        public UIVoxelMesh(GraphicsDevice graphics, VoxelType type) {
             VoxelType = type;
             _vertBuffer = new VertexBuffer(graphics, Vertex.declaration, 24, BufferUsage.None);
             _trisBuffer = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, 36, BufferUsage.None);
@@ -28,9 +34,9 @@ namespace VoxelSpace.UI {
         void generate() {
             int v = 0;
             int t = 0;
-            var (i, j, k) = (0.5f, 0.5f, 0.5f);
+            var (i, j, k) = (-0.5f, -0.5f, -0.5f);
             var voxel = new Voxel(VoxelType);
-            var orientation = Orientation.Yn;
+            var orientation = Orientation.Yp;
             // -x face;
             addVoxelFace(
                 ref v, ref t,
@@ -69,7 +75,7 @@ namespace VoxelSpace.UI {
                 Orientation.Yn,
                 Orientation.Zn,
                 Orientation.Xn
-                );
+            );
             // +y face
             addVoxelFace(
                 ref v, ref t,
@@ -82,7 +88,7 @@ namespace VoxelSpace.UI {
                 Orientation.Yp,
                 Orientation.Zn,
                 Orientation.Xp
-                );
+            );
             // -z face
             addVoxelFace(
                 ref v, ref t,
@@ -95,7 +101,7 @@ namespace VoxelSpace.UI {
                 Orientation.Zn,
                 Orientation.Yp,
                 Orientation.Xn
-                );
+            );
             // +z face
             addVoxelFace(
                 ref v, ref t,

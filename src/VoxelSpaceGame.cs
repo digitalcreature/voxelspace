@@ -33,6 +33,8 @@ namespace VoxelSpace {
         Debug.DebugUi _debugUi;
         InputManager _inputManager;
 
+        UI.UI _ui;
+
         public VoxelSpaceGame() {
             _graphics = new GraphicsDeviceManager(this);
             _assetManager = new AssetManager();
@@ -61,13 +63,33 @@ namespace VoxelSpace {
             _assetManager.AddModule(coreModule);
             _assetManager.LoadModules(Content);
 
+            // stich textures into atlas
             var atlas = new TextureAtlas();
             foreach (var tile in _assetManager.GetContent<TileTexture>()) {
                 var tex = tile.Value;
                 atlas.AddTileTexture(tile.Value);
             }
             atlas.CreateAtlasTexture(GraphicsDevice);
+
+            // create ui meshes for voxel types
+            foreach (var voxelType in _assetManager.GetAssets<VoxelType>()) {
+                voxelType.Value.CreateUIVoxelMesh(GraphicsDevice);
+            }
             
+            // ui
+            var uiVoxelEffect = new BasicEffect(GraphicsDevice);
+            uiVoxelEffect.Texture = atlas.AtlasTexture;
+            uiVoxelEffect.TextureEnabled = true;
+            uiVoxelEffect.LightingEnabled = true;
+            var uivl = uiVoxelEffect.DirectionalLight0;
+            uivl.Enabled = true;
+            uivl.Direction = -new Vector3(2, 3, 1).Normalized() * 0.25f;
+            uivl.DiffuseColor = Color.White.ToVector3();
+            uiVoxelEffect.AmbientLightColor = Vector3.One * 0.75f;
+            _ui = new UI.UI(GraphicsDevice, 1080, uiVoxelEffect);
+            // _ui = new UI.UI(GraphicsDevice, 640, uiVoxelEffect);
+            
+
             // terrain material
             _terrainMaterial = new VoxelTerrainMaterial(Content);
             _terrainMaterial.ProjectionMatrix = _projMat;
@@ -83,9 +105,9 @@ namespace VoxelSpace {
             _planetGenerator = new PlanetGenerator(generator);
             _meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
             generator.MaxHeight = 16;
-            generator.Grass = _assetManager.FindAsset<IVoxelType>("core:grass")?.Value;
-            generator.Stone = _assetManager.FindAsset<IVoxelType>("core:stone")?.Value;
-            generator.Dirt = _assetManager.FindAsset<IVoxelType>("core:dirt")?.Value;
+            generator.Grass = _assetManager.FindAsset<VoxelType>("core:grass")?.Value;
+            generator.Stone = _assetManager.FindAsset<VoxelType>("core:stone")?.Value;
+            generator.Dirt = _assetManager.FindAsset<VoxelType>("core:dirt")?.Value;
             _lightCalculator = new VoxelVolumeLightCalculator();
 
             _inputManager = new InputManager();
@@ -94,7 +116,7 @@ namespace VoxelSpace {
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, _planet.Radius + generator.MaxHeight, 0);
             _player = new PlayerEntity(pos, new MouseLook(center), _inputManager);
-            _player.VoxelTypeToPlace = _assetManager.FindAsset<IVoxelType>("core:dirt")?.Value;
+            _player.VoxelTypeToPlace = _assetManager.FindAsset<VoxelType>("core:grass")?.Value;
             _planet.AddEntity(_player);
             _player.Freeze();
 
@@ -147,6 +169,11 @@ namespace VoxelSpace {
                 _selectionWireframe.Effect.View = _player.ViewMatrix;
                 _selectionWireframe.Draw(_player.AimedVoxel.Coords, GraphicsDevice);
             }
+            _ui.StartDraw();
+            float iconSize = 150;
+            // _ui.DrawVoxelType(_player.VoxelTypeToPlace, _ui.Anchors.TopRight - new Vector2(-iconSize, 0), iconSize);
+            _ui.DrawVoxelType(_player.VoxelTypeToPlace, _ui.Anchors.BottomRight + new Vector2(-1, 1) * iconSize, iconSize);
+            _ui.EndDraw();
             // debugUi.Draw(gameTime);
         }
     }

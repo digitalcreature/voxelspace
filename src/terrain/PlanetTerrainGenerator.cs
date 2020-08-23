@@ -24,9 +24,9 @@ namespace VoxelSpace {
         public override bool HasCompleted => _chunkWorkerGroup.HasCompleted;
         public override float Progress => _chunkWorkerGroup.progress;
 
-        public IVoxelType Stone;
-        public IVoxelType Dirt;
-        public IVoxelType Grass;
+        public VoxelType Stone;
+        public VoxelType Dirt;
+        public VoxelType Grass;
 
         public PlanetTerrainGenerator() {
             _chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk>(GenerateChunk);
@@ -90,7 +90,7 @@ namespace VoxelSpace {
                                 noise = (noise + 1) / 2f;
                                 float height = SurfaceLevel + noise * MaxHeight;
                                 int stack = (int) MathF.Ceiling(height) - (int) MathF.Ceiling(max);
-                                IVoxelType type;
+                                VoxelType type;
                                 if (stack < 0) {
                                     type = null;
                                 }

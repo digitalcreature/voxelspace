@@ -17,7 +17,7 @@ namespace VoxelSpace {
 
         Bounds _bounds;
 
-        public IVoxelType VoxelTypeToPlace;
+        public VoxelType VoxelTypeToPlace;
 
         // which direction is up?
         public Orientation Orientation { get; private set; }
