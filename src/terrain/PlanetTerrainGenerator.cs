@@ -1,13 +1,15 @@
 using System;
 using System.Threading;
+using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Threading.Tasks;
 
 namespace VoxelSpace {
 
-    public class PlanetTerrainGenerator : VoxelVolumeGenerator {
+    public class PlanetTerrainGenerator : VoxelVolumeProducer {
 
         public Vector3 NoiseOffset = new Vector3(12.4f, -385.46f, 1356.231f);
         public float NoiseFrequency = 0.05f;
@@ -20,38 +22,45 @@ namespace VoxelSpace {
 
         WorkerThreadGroup<VoxelChunk> _chunkWorkerGroup;
 
-        public override bool IsRunning => _chunkWorkerGroup.IsRunning;
-        public override bool HasCompleted => _chunkWorkerGroup.HasCompleted;
-        public override float Progress => _chunkWorkerGroup.progress;
-
         public VoxelType Stone;
         public VoxelType Dirt;
         public VoxelType Grass;
 
-        public PlanetTerrainGenerator() {
+        public PlanetTerrainGenerator() : base() {
             _chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk>(GenerateChunk);
         }
 
-        protected override void StartGeneration() {
+        protected override void CreateChunks(VoxelVolume volume) {
             float radius = SurfaceLevel + MaxHeight;
             int chunkRadius = (int) MathF.Ceiling(radius / VoxelChunk.SIZE);
             for (int i = -chunkRadius; i < chunkRadius; i ++) {
                 for (int j = -chunkRadius; j < chunkRadius; j ++) {
                     for (int k = -chunkRadius; k < chunkRadius; k ++) {
-                        var chunk = Volume.AddChunk(new Coords(i, j, k));
+                        var chunk = volume.AddChunk(new Coords(i, j, k));
                     }
                 }
             }
-            _chunkWorkerGroup.StartTask(Volume);
         }
 
-        protected override bool UpdateGeneration() {
-            bool isDone = _chunkWorkerGroup.UpdateTask();
-            if (isDone) {
-                Logger.Info(this, _chunkWorkerGroup.GetCompletionMessage("Generated {0} chunks"));
+        protected override Task StartTask() {
+            var tasks = new List<Task>();
+            foreach (var chunk in Volume) {
+                tasks.Add(Task.Factory.StartNew(() => GenerateChunk(chunk)));
             }
-            return isDone;
+            return Task.WhenAll(tasks);
         }
+
+        // protected override void StartGeneration() {
+        //     _chunkWorkerGroup.StartTask(Volume);
+        // }
+
+        // protected override bool UpdateGeneration() {
+        //     bool isDone = _chunkWorkerGroup.UpdateTask();
+        //     if (isDone) {
+        //         Logger.Info(this, _chunkWorkerGroup.GetCompletionMessage("Generated {0} chunks"));
+        //     }
+        //     return isDone;
+        // }
 
         void GenerateChunk(VoxelChunk chunk) {
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -109,6 +118,7 @@ namespace VoxelSpace {
                     }
                 }
             }
+            EmitChunk(chunk);
             lock (Volume) {
                 Volume.SetChunkDirty(chunk);
             }
@@ -134,6 +144,8 @@ namespace VoxelSpace {
             );
             return max + VoxelChunk.SIZE / 2f < SurfaceLevel;
         }
+
+        
     }
 
 }

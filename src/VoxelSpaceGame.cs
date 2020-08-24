@@ -22,7 +22,7 @@ namespace VoxelSpace {
 
         Planet _planet;
 
-        PlanetGenerator _planetGenerator;
+        PlanetTerrainGenerator _terrainGenerator;
         VoxelVolumeLightCalculator _lightCalculator;
         VoxelVolumeMeshGenerator _meshGenerator;
         PlayerEntity _player;
@@ -97,20 +97,19 @@ namespace VoxelSpace {
             
             // planet
             _planet = new Planet(64, 20, new VoxelVolumeRenderer(_terrainMaterial));
-            var generator = new PlanetTerrainGenerator();
-            _planetGenerator = new PlanetGenerator(generator);
-            _meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
-            generator.MaxHeight = 16;
-            generator.Grass = _assetManager.FindAsset<VoxelType>("core:grass")?.Value;
-            generator.Stone = _assetManager.FindAsset<VoxelType>("core:stone")?.Value;
-            generator.Dirt = _assetManager.FindAsset<VoxelType>("core:dirt")?.Value;
+            _terrainGenerator = new PlanetTerrainGenerator();
+            _terrainGenerator.MaxHeight = 16;
+            _terrainGenerator.Grass = _assetManager.FindAsset<VoxelType>("core:grass")?.Value;
+            _terrainGenerator.Stone = _assetManager.FindAsset<VoxelType>("core:stone")?.Value;
+            _terrainGenerator.Dirt = _assetManager.FindAsset<VoxelType>("core:dirt")?.Value;
             _lightCalculator = new VoxelVolumeLightCalculator();
+            _meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
 
             _inputManager = new InputManager();
 
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
-            var pos = new Vector3(0, _planet.Radius + generator.MaxHeight, 0);
+            var pos = new Vector3(0, _planet.Radius + _terrainGenerator.MaxHeight, 0);
             _player = new PlayerEntity(pos, new MouseLook(center), _inputManager);
             var types = new List<VoxelType>();
             types.Add(_assetManager.FindAsset<VoxelType>("core:grass")?.Value);
@@ -120,8 +119,12 @@ namespace VoxelSpace {
             _planet.AddEntity(_player);
             _player.Freeze();
 
-            _planetGenerator.StartTask(_planet);
-            
+            _terrainGenerator.Start(_planet.Volume);
+            _lightCalculator.Start(_terrainGenerator);
+            _meshGenerator.Start(_lightCalculator);
+
+            _meshGenerator.Task.ContinueWith((_) => _player.UnFreeze());
+
             // selection wireframe
             _selectionWireframe = new SelectionWireframe(new BasicEffect(GraphicsDevice));
             _selectionWireframe.Effect.DiffuseColor = Vector3.Zero;
@@ -139,15 +142,9 @@ namespace VoxelSpace {
             if (IsActive) {
                 _planet.Update(gameTime);
             }
-            if (_planetGenerator.UpdateTask()) {
-                _lightCalculator.StartTask(_planet.Volume);
-            }
-            if (_lightCalculator.UpdateTask()) {
-                _meshGenerator.StartTask(_planet.Volume);
-            }
-            if (_meshGenerator.UpdateTask()) {
-                _player.UnFreeze();
-            }
+            _terrainGenerator.Update();
+            _lightCalculator.Update();
+            _meshGenerator.Update();
             // test day/night cycle
             float t = (float) gameTime.TotalGameTime.TotalSeconds;
             t /= 10; // 10 seconds a day

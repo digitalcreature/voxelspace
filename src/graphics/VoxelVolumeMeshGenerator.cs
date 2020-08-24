@@ -5,39 +5,33 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Threading.Tasks;
 
 namespace VoxelSpace {
     
-    public class VoxelVolumeMeshGenerator : IMultiFrameTask<VoxelVolume> {
-
-        public VoxelVolume Volume { get; private set; }
-
-        WorkerThreadGroup<VoxelChunk, VoxelChunkMesh> _chunkWorkerGroup;
-
-        public bool IsRunning => _chunkWorkerGroup.IsRunning;
-        public bool HasCompleted => _chunkWorkerGroup.HasCompleted;
-        public float progress => _chunkWorkerGroup.progress;
+    public class VoxelVolumeMeshGenerator : VoxelVolumeProcessor {
 
         GraphicsDevice _graphics;
 
+        ConcurrentQueue<VoxelChunkMesh> _dirtyMeshes;
+
         public VoxelVolumeMeshGenerator(GraphicsDevice graphics) {
+            _dirtyMeshes = new ConcurrentQueue<VoxelChunkMesh>();
             _graphics = graphics;
-            _chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk, VoxelChunkMesh>(GenerateChunkMesh);
         }
 
-        public void StartTask(VoxelVolume volume) {
-            if (!this.HasStarted()) {
-                Volume = volume;
-                _chunkWorkerGroup.StartTask(volume.GetDirtyChunks());
-            }
-        }
-
-        public bool UpdateTask() {
-            bool isDone = _chunkWorkerGroup.UpdateTask(ApplyGeneratedMesh);
-            if (isDone) {
-                Logger.Info(this, _chunkWorkerGroup.GetCompletionMessage("Generated {0} chunk meshes"));
-            }
-            return isDone;
+        protected override Task StartTask() {
+            return Task.Factory.StartNew(() => {
+                var tasks = new Task[Volume.ChunkCount];
+                int i = 0;
+                while (Input.WaitForChunk(out var chunk)) {
+                    tasks[i++] = (Task.Factory.StartNew(() => {
+                        var mesh = GenerateChunkMesh(chunk);
+                        _dirtyMeshes.Enqueue(mesh);
+                    }));
+                }
+                Task.WaitAll(tasks);
+            });
         }
 
         VoxelChunkMesh GenerateChunkMesh(VoxelChunk chunk) {
@@ -46,9 +40,12 @@ namespace VoxelSpace {
             return mesh;
         }
 
-        void ApplyGeneratedMesh(VoxelChunkMesh mesh) {
-            mesh.ApplyChanges(_graphics);
-            mesh.Chunk.SetMesh(mesh);
+        public override void Update() {
+            while (_dirtyMeshes.TryDequeue(out var mesh)) {
+                mesh.ApplyChanges(_graphics);
+                mesh.Chunk.SetMesh(mesh);
+                EmitChunk(mesh.Chunk);
+            }
         }
 
     }

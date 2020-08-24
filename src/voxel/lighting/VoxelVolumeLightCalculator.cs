@@ -10,39 +10,17 @@ using Microsoft.Xna.Framework.Graphics;
 namespace VoxelSpace {
     
     // use to calculate the lights after voxel volume generation/deserialization
-    public class VoxelVolumeLightCalculator : IMultiFrameTask<VoxelVolume> {
+    public class VoxelVolumeLightCalculator : VoxelVolumeProcessor {
 
-        public bool IsRunning { get; private set; }
-        public bool HasCompleted { get; private set; }
-        // public float progress => workerThread.progress;
+        public VoxelVolumeLightCalculator() : base() {}
 
-        Task _calculationTask;
-
-        public VoxelVolumeLightCalculator() {
-            IsRunning = false;
-            HasCompleted = false;
-        }
-
-        public void StartTask(VoxelVolume volume) {
-            if (_calculationTask == null) {
-                HasCompleted = false;
-                IsRunning = true;
-                _calculationTask = Task.Factory.StartNew(() => {
-                    var propagator = new VoxelLightPropagator(volume);
-                    Parallel.For(0, 6, (i) => CalculateSunlight(volume, i, propagator[i]));
-                });                
-            }
-        }
-
-        public bool UpdateTask() {
-            if (_calculationTask != null && _calculationTask.IsCompleted) {
-                _calculationTask.Wait();
-                _calculationTask = null;
-                HasCompleted = true;
-                Logger.Info(this, "Calculated lighting for volume");
-                return true;
-            }
-            return false;
+        protected override Task StartTask() {
+            return Task.Factory.StartNew(() => {
+                Input.WaitForAllChunks();
+                var propagator = new VoxelLightPropagator(Volume);
+                Parallel.For(0, 6, (i) => CalculateSunlight(Volume, i, propagator[i]));
+                EmitRemainingChunks();
+            });
         }
 
         // seeds sunlight over an entire volume, queueing nodes for propogation

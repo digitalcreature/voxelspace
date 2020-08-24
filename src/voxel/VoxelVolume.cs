@@ -12,7 +12,7 @@ namespace VoxelSpace {
         Dictionary<Coords, VoxelChunk> _chunks;
         HashSet<VoxelChunk> _dirtyChunks;
 
-        public int chunkCount => _chunks.Count;
+        public int ChunkCount => _chunks.Count;
 
         Region? _chunkRegion;
 
@@ -24,6 +24,8 @@ namespace VoxelSpace {
         public Region VoxelRegion => ChunkRegion * VoxelChunk.SIZE;
 
         public IVoxelOrientationField OrientationField;
+
+        public IEnumerable ChunkCoords => _chunks.Keys;
 
         public VoxelChunk this[Coords c]
             => _chunks.TryGetValue(c, out var chunk) ? chunk : null;
