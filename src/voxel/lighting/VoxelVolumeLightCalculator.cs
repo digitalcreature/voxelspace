@@ -10,17 +10,14 @@ using Microsoft.Xna.Framework.Graphics;
 namespace VoxelSpace {
     
     // use to calculate the lights after voxel volume generation/deserialization
-    public class VoxelVolumeLightCalculator : VoxelVolumeProcessor {
+    public class VoxelVolumeLightCalculator : VoxelChunkProcessor {
 
         public VoxelVolumeLightCalculator() : base() {}
 
-        protected override Task StartTask() {
-            return Task.Factory.StartNew(() => {
-                Input.WaitForAllChunks();
-                var propagator = new VoxelLightPropagator(Volume);
-                Parallel.For(0, 6, (i) => CalculateSunlight(Volume, i, propagator[i]));
-                EmitRemainingChunks();
-            });
+        protected override void Process() {
+            Input.Wait();
+            var propagator = new VoxelLightPropagator(Volume);
+            Parallel.For(0, 6, (i) => CalculateSunlight(Volume, i, propagator[i]));
         }
 
         // seeds sunlight over an entire volume, queueing nodes for propogation

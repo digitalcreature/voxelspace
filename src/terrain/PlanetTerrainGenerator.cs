@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace VoxelSpace {
 
-    public class PlanetTerrainGenerator : VoxelVolumeProducer {
+    public class PlanetTerrainGenerator : VoxelChunkProducer {
 
         public Vector3 NoiseOffset = new Vector3(12.4f, -385.46f, 1356.231f);
         public float NoiseFrequency = 0.05f;
@@ -20,34 +20,23 @@ namespace VoxelSpace {
         public float CaveNoiseFrequency = 0.1f;
         public float CaveNoiseThreshold = 0.4f;
 
-        WorkerThreadGroup<VoxelChunk> _chunkWorkerGroup;
-
         public VoxelType Stone;
         public VoxelType Dirt;
         public VoxelType Grass;
 
-        public PlanetTerrainGenerator() : base() {
-            _chunkWorkerGroup = new WorkerThreadGroup<VoxelChunk>(GenerateChunk);
-        }
+        public PlanetTerrainGenerator() : base() {}
 
-        protected override void CreateChunks(VoxelVolume volume) {
+        protected override void Process() {
             float radius = SurfaceLevel + MaxHeight;
             int chunkRadius = (int) MathF.Ceiling(radius / VoxelChunk.SIZE);
             for (int i = -chunkRadius; i < chunkRadius; i ++) {
                 for (int j = -chunkRadius; j < chunkRadius; j ++) {
                     for (int k = -chunkRadius; k < chunkRadius; k ++) {
-                        var chunk = volume.AddChunk(new Coords(i, j, k));
+                        var chunk = Volume.AddChunk(new Coords(i, j, k));
                     }
                 }
             }
-        }
-
-        protected override Task StartTask() {
-            var tasks = new List<Task>();
-            foreach (var chunk in Volume) {
-                tasks.Add(Task.Factory.StartNew(() => GenerateChunk(chunk)));
-            }
-            return Task.WhenAll(tasks);
+            Parallel.ForEach(Volume, GenerateChunk);
         }
 
         // protected override void StartGeneration() {
@@ -118,10 +107,7 @@ namespace VoxelSpace {
                     }
                 }
             }
-            EmitChunk(chunk);
-            lock (Volume) {
-                Volume.SetChunkDirty(chunk);
-            }
+            Produce(chunk);
         }
 
         // return true of a set of global coords are inside the empty space of a cave
@@ -145,7 +131,6 @@ namespace VoxelSpace {
             return max + VoxelChunk.SIZE / 2f < SurfaceLevel;
         }
 
-        
     }
 
 }

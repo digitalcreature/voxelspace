@@ -10,7 +10,6 @@ namespace VoxelSpace {
     public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid {
 
         Dictionary<Coords, VoxelChunk> _chunks;
-        HashSet<VoxelChunk> _dirtyChunks;
 
         public int ChunkCount => _chunks.Count;
 
@@ -32,7 +31,6 @@ namespace VoxelSpace {
 
         public VoxelVolume(IVoxelOrientationField orientationField = null) {
             _chunks = new Dictionary<Coords, VoxelChunk>();
-            _dirtyChunks = new HashSet<VoxelChunk>();
             OrientationField = orientationField;
             ChunkRegion = new Region();
         }
@@ -67,18 +65,6 @@ namespace VoxelSpace {
             }
             _chunkRegion = chunkRegion;
             return chunkRegion;
-        }
-
-        public void SetChunkDirty(VoxelChunk chunk) {
-            if (chunk.Volume == this) {
-                _dirtyChunks.Add(chunk);
-            }
-        }
-
-        public void SetChunkClean(VoxelChunk chunk) {
-            if (chunk.Volume == this) {
-                _dirtyChunks.Remove(chunk);
-            }
         }
 
         public void Dispose() {
@@ -128,12 +114,6 @@ namespace VoxelSpace {
         // return the chunk containing the voxel at a set of coords
         public VoxelChunk GetChunkContainingVolumeCoords(Coords c) {
             return this[GlobalToChunkCoords(c)];
-        }
-
-        public IEnumerable<VoxelChunk> GetDirtyChunks() {
-            foreach (var chunk in _dirtyChunks) {
-                yield return chunk;
-            }
         }
 
         public IEnumerator<VoxelChunk> GetEnumerator()

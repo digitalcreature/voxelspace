@@ -123,7 +123,7 @@ namespace VoxelSpace {
             _lightCalculator.Start(_terrainGenerator);
             _meshGenerator.Start(_lightCalculator);
 
-            _meshGenerator.Task.ContinueWith((_) => _player.UnFreeze());
+            _meshGenerator.OnComplete += _player.UnFreeze;
 
             // selection wireframe
             _selectionWireframe = new SelectionWireframe(new BasicEffect(GraphicsDevice));
