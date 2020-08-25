@@ -7,33 +7,28 @@ namespace VoxelSpace {
 
         // keep track of what chunks we havent sent, so that we can send them before this task wraps up
         // this means consumers can use the foreach without fear as all chunks will be accounted for
-        HashSet<VoxelChunk> _unsentChunks;
+        HashSet<VoxelChunk> _sentChunks;
 
         public VoxelVolume Volume => State;
 
         public VoxelChunkProducer() : base() {
-            _unsentChunks = new HashSet<VoxelChunk>();
+            _sentChunks = new HashSet<VoxelChunk>();
         }
 
         protected override void BeforeProduceItem(VoxelChunk item) {
-            _unsentChunks?.Remove(item);
-        }
-
-        protected override void BeforeStart() {
-            base.BeforeStart();
-            foreach (var chunk in Volume) {
-                _unsentChunks.Add(chunk);
-            }
+            _sentChunks?.Add(item);
         }
 
         protected override void BeforeComplete() {
             base.BeforeComplete();
-            var unsetChunks = _unsentChunks;
-            _unsentChunks = null;
-            foreach (var chunk in unsetChunks) {
-                Produce(chunk);
+            var sentChunks = _sentChunks;
+            _sentChunks = null;
+            foreach (var chunk in Volume) {
+                if (!sentChunks.Contains(chunk)) {
+                    Produce(chunk);
+                }
             }
-            _unsentChunks = unsetChunks;
+            _sentChunks = sentChunks;
         }
 
     }

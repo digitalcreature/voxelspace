@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,27 +30,34 @@ namespace VoxelSpace {
         public VoxelChunk this[Coords c]
             => _chunks.TryGetValue(c, out var chunk) ? chunk : null;
 
+        Mutex _enumerationMutex;
+
         public VoxelVolume(IVoxelOrientationField orientationField = null) {
             _chunks = new Dictionary<Coords, VoxelChunk>();
             OrientationField = orientationField;
             ChunkRegion = new Region();
+            _enumerationMutex = new Mutex();
         }
 
         public VoxelChunk AddChunk(Coords coords) {
+            _enumerationMutex.WaitOne();
             var chunk = new VoxelChunk(this, coords);
             _chunks.Add(coords, chunk);
             var region = ChunkRegion;
             region.ExpandToInclude(coords);
             ChunkRegion = region;
+            _enumerationMutex.ReleaseMutex();
             return chunk;
         }
 
         public bool RemoveChunk(Coords coords) {
             if (_chunks.TryGetValue(coords, out var chunk)) {
+                _enumerationMutex.WaitOne();
                 chunk.Dispose();
                 _chunks.Remove(coords);
                 // region isnt valid, so set it to null
                 _chunkRegion = null;
+                _enumerationMutex.ReleaseMutex();
                 return true;
             }
             else {
@@ -114,6 +122,13 @@ namespace VoxelSpace {
         // return the chunk containing the voxel at a set of coords
         public VoxelChunk GetChunkContainingVolumeCoords(Coords c) {
             return this[GlobalToChunkCoords(c)];
+        }
+
+        public void StartThreadsafeEnumeration() {
+            _enumerationMutex.WaitOne();
+        }
+        public void EndThreadsafeEnumeration() {
+            _enumerationMutex.ReleaseMutex();
         }
 
         public IEnumerator<VoxelChunk> GetEnumerator()

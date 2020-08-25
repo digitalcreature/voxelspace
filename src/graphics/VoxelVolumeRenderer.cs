@@ -15,6 +15,7 @@ namespace VoxelSpace {
         }
 
         public void Render(GraphicsDevice graphics, VoxelVolume volume, Matrix modelMat) {
+            volume.StartThreadsafeEnumeration();
             foreach (var chunk in volume) {
                 if (chunk.Mesh != null) {
                     Material.ModelMatrix = Matrix.CreateTranslation(chunk.Coords * VoxelChunk.SIZE) * modelMat;
@@ -22,6 +23,7 @@ namespace VoxelSpace {
                     chunk.Mesh.Draw(graphics);
                 }
             }
+            volume.EndThreadsafeEnumeration();
         }
         public void Render(GraphicsDevice graphics, VoxelVolume volume) => Render(graphics, volume, Matrix.Identity);
 

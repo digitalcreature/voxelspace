@@ -25,10 +25,11 @@ namespace VoxelSpace {
             _onChunkFinished = new AutoResetEvent(false);
         }
 
-        VoxelChunkMesh GenerateChunkMesh(VoxelChunk chunk) {
+        void GenerateChunkMesh(object o) {
+            var chunk = (VoxelChunk) o;
             var mesh = new VoxelChunkMesh(chunk);
             mesh.GenerateGeometryAndLighting();
-            return mesh;
+            _dirtyMeshes.Enqueue(mesh);
         }
 
         public override void Update() {
@@ -41,13 +42,10 @@ namespace VoxelSpace {
         }
 
         protected override void Process() {
-            var tasks = new Task[Volume.ChunkCount];
-            int i = 0;
+            var tasks = new List<Task>();
             foreach (var chunk in Input) {
-                tasks[i++] = (Task.Factory.StartNew(() => {
-                    var mesh = GenerateChunkMesh(chunk);
-                    _dirtyMeshes.Enqueue(mesh);
-                }));
+                var task = Task.Factory.StartNew(GenerateChunkMesh, chunk);
+                tasks.Add(task);
             }
             int count = 0;
             while (count < Volume.ChunkCount) {
@@ -57,7 +55,7 @@ namespace VoxelSpace {
                     count ++;
                 }
             }
-            Task.WaitAll(tasks);
+            Task.WaitAll(tasks.ToArray());
         }
     }
 
