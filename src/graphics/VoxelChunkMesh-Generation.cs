@@ -129,8 +129,8 @@ namespace VoxelSpace {
                 var pc = (Coords) vert.Position;
                 Orientation normal = vert.Normal.ToAxisAlignedOrientation();
                 Coords n = vc + (Coords) vert.Normal;
-                var t = Coords.Zero;
-                var bt = Coords.Zero;
+                var t = Coords.ZERO;
+                var bt = Coords.ZERO;
                 switch (normal) {
                     case Orientation.Xn:
                     case Orientation.Xp:
@@ -160,7 +160,7 @@ namespace VoxelSpace {
                 VoxelLight sideBLight = Chunk.GetVoxelLightIncludingNeighbors(n + bt);
                 var light = VoxelLightVertex.zero;
                 float count = 0;
-                if (!top.IsOpaque && topLight.IsValid) {
+                if (!top.IsOpaque && topLight.IsNonNull) {
                     light.AddLight(new VoxelLightVertex(topLight));
                     count ++;
                 }
@@ -171,21 +171,21 @@ namespace VoxelSpace {
                 else {
                     if (corner.IsOpaque) ao ++;
                     else {
-                        if (cornerLight.IsValid) {
+                        if (cornerLight.IsNonNull) {
                             light.AddLight(new VoxelLightVertex(cornerLight));
                             count ++;
                         }
                     }
                     if (sideA.IsOpaque) ao ++;
                     else {
-                        if (sideALight.IsValid) {
+                        if (sideALight.IsNonNull) {
                             light.AddLight(new VoxelLightVertex(sideALight));
                             count ++;
                         }
                     }
                     if (sideB.IsOpaque) ao ++;
                     else {
-                        if (sideBLight.IsValid) {
+                        if (sideBLight.IsNonNull) {
                             light.AddLight(new VoxelLightVertex(sideBLight));
                             count ++;
                         }

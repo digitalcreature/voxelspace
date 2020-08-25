@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Threading.Tasks;
 
+
 namespace VoxelSpace {
     
     public class VoxelVolumeMeshGenerator : VoxelChunkProcessor {

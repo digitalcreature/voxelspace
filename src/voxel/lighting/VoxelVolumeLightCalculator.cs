@@ -35,7 +35,7 @@ namespace VoxelSpace {
             minB = (&cRegion.Min.X)[bi];
             maxB = (&cRegion.Max.X)[bi];
             int incr = neg ? -1 : 1;
-            Coords lCoords = Coords.Zero;
+            Coords lCoords = Coords.ZERO;
             if (neg) {
                 minC = (&cRegion.Max.X)[ci] - 1;
                 maxC = (&cRegion.Min.X)[ci] - 1;
@@ -46,7 +46,7 @@ namespace VoxelSpace {
                 maxC = (&cRegion.Max.X)[ci];
                 (&lCoords.X)[ci] = 0;
             }
-            Coords cCoords = Coords.Zero;
+            Coords cCoords = Coords.ZERO;
             VoxelChunk chunk;
             for (int ca = minA; ca < maxA; ca ++) {
                 for (int cb = minB; cb < maxB; cb ++) {

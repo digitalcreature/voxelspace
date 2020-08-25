@@ -44,7 +44,7 @@ namespace VoxelSpace {
         }
 
         public void QueueNeighborsForPropagation(Coords c) {
-            var chunk = Volume.GetChunkContainingVolumeCoords(c);
+            var chunk = Volume.GetChunkContainingGlobalCoords(c);
             if (chunk != null) {
                 c = chunk.VolumeToLocalCoords(c);
                 QueueNeighborsForPropagation(chunk, c);
@@ -88,7 +88,7 @@ namespace VoxelSpace {
         }
 
         public void QueueForPropagation(Coords c) {
-            var chunk = Volume.GetChunkContainingVolumeCoords(c);
+            var chunk = Volume.GetChunkContainingGlobalCoords(c);
             if (chunk != null) {
                 c = chunk.VolumeToLocalCoords(c);
                 QueueForPropagation(chunk, c);
@@ -103,7 +103,7 @@ namespace VoxelSpace {
         }
 
         public void QueueForDepropagation(Coords c) {
-            var chunk = Volume.GetChunkContainingVolumeCoords(c);
+            var chunk = Volume.GetChunkContainingGlobalCoords(c);
             if (chunk != null) {
                 c = chunk.VolumeToLocalCoords(c);
                 QueueForDepropagation(chunk, c);

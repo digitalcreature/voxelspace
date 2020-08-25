@@ -81,7 +81,7 @@ namespace VoxelSpace {
                 return LightData.GetVoxelLight(c);
             }
             else {
-                return Volume?.GetVoxelLight(LocalToVolumeCoords(c)) ?? VoxelLight.INVALID;
+                return Volume?.GetVoxelLight(LocalToVolumeCoords(c)) ?? VoxelLight.NULL;
             }
         }
         public VoxelLight GetVoxelLightIncludingNeighbors(int i, int j, int k)

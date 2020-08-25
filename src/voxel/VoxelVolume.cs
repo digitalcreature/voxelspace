@@ -8,27 +8,47 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
+    /// <summary>
+    /// Represents a volume of voxels as a sparse grid of chunks.
+    /// </summary>
     public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid {
 
         Dictionary<Coords, VoxelChunk> _chunks;
 
+        /// <summary>The count of chunks currently in the volume</summary>
         public int ChunkCount => _chunks.Count;
 
         Region? _chunkRegion;
 
+        /// <summary>
+        /// The chunk-space region bounding this volume. All chunks in the volume are inside this region.
+        /// </summary>
         public Region ChunkRegion {
             // if the region was invalidated, such as by removal of a chunk, recalculate it
-            get => _chunkRegion ?? CalculateChunkRegion();
+            get => _chunkRegion ?? calculateChunkRegion();
             private set => _chunkRegion = value;
         }
+
+        /// <summary>
+        /// The global-space region bounding this volume. All voxels (including empty ones) are inside this region.
+        /// </summary>
         public Region VoxelRegion => ChunkRegion * VoxelChunk.SIZE;
 
+        /// <summary>
+        /// The orientation field dictating which way is "up" per voxel
+        /// </summary>
         public IVoxelOrientationField OrientationField;
 
+        /// <summary>
+        /// Enumerate the coordinates of all chunks in this volume.
+        /// </summary>
         public IEnumerable ChunkCoords => _chunks.Keys;
 
-        public VoxelChunk this[Coords c]
-            => _chunks.TryGetValue(c, out var chunk) ? chunk : null;
+        /// <summary>
+        /// Retrieve the chunk at a given set of chunk coordinates.
+        /// </summary>
+        public VoxelChunk this[Coords coords]
+            => _chunks.TryGetValue(coords, out var chunk) ? chunk : null;
 
         Mutex _enumerationMutex;
 
@@ -39,6 +59,12 @@ namespace VoxelSpace {
             _enumerationMutex = new Mutex();
         }
 
+        /// <summary>
+        /// Add an empty chunk to this volume.
+        /// Undefined if a chunk already exists.
+        /// </summary>
+        /// <param name="coords">The coordinates of the new chunk</param>
+        /// <returns></returns>
         public VoxelChunk AddChunk(Coords coords) {
             _enumerationMutex.WaitOne();
             var chunk = new VoxelChunk(this, coords);
@@ -50,6 +76,11 @@ namespace VoxelSpace {
             return chunk;
         }
 
+        /// <summary>
+        /// Removes a chunk from this volume.
+        /// </summary>
+        /// <param name="coords">The coordinates of the chunk to remove</param>
+        /// <returns>true if there was a chunk to remove, false otherwise.</returns>
         public bool RemoveChunk(Coords coords) {
             if (_chunks.TryGetValue(coords, out var chunk)) {
                 _enumerationMutex.WaitOne();
@@ -66,7 +97,7 @@ namespace VoxelSpace {
         }
 
         // recalculate the chunk region
-        Region CalculateChunkRegion() {
+        Region calculateChunkRegion() {
             Region chunkRegion = new Region();
             foreach (var c in _chunks.Keys) {
                 chunkRegion.ExpandToInclude(c);
@@ -81,52 +112,82 @@ namespace VoxelSpace {
             }
         }
 
-        // get the coords of the chunk containing a set of global coordsinates
-        public Coords GlobalToChunkCoords(Coords c) {
-            Vector3 v = c;
+        
+        /// <summary>
+        /// Gets the coordinates of the chunk containing a set of global coordinates.
+        /// </summary>
+        /// <param name="coords">Global coordinates to translate</param>
+        /// <returns>Translated chunk coordinates</returns>
+        public Coords GlobalToChunkCoords(Coords coords) {
+            Vector3 v = coords;
             v /= VoxelChunk.SIZE;
             return (Coords) v;
         }
 
-        // get the voxel at a specific set of global coords
-        public Voxel? GetVoxel(Coords c) {
-            var chunk = GetChunkContainingVolumeCoords(c);
-            return chunk?.Voxels[chunk.VolumeToLocalCoords(c)];
+        /// <summary>
+        /// Get the voxel at a set of global coordinates.
+        /// </summary>
+        /// <param name="coords">Global space coordinates of the voxel to retrieve</param>
+        /// <returns>The retrieved voxel. If there is no chunk in this volume containing <c>coords</c>, returns null.</returns>
+        public Voxel? GetVoxel(Coords coords) {
+            var chunk = GetChunkContainingGlobalCoords(coords);
+            return chunk?.Voxels[chunk.VolumeToLocalCoords(coords)];
         }
         
-        // get the voxel light at a specific set of global coords
-        public VoxelLight GetVoxelLight(Coords c) {
-            var chunk = GetChunkContainingVolumeCoords(c);
-            return chunk?.LightData.GetVoxelLight(chunk.VolumeToLocalCoords(c)) ?? VoxelLight.INVALID;
+        /// <summary>
+        /// Get the voxel light data for the voxel at a set of global coordinates
+        /// </summary>
+        /// <param name="coords">Global space coordinates of the light data to retrieve</param>
+        /// <returns>The retrieved light data. If there is no chunk in this volume containing <c>coords</c>, returns VoxelLight.NULL.</returns>
+        public VoxelLight GetVoxelLight(Coords coords) {
+            var chunk = GetChunkContainingGlobalCoords(coords);
+            return chunk?.LightData.GetVoxelLight(chunk.VolumeToLocalCoords(coords)) ?? VoxelLight.NULL;
         }
 
-        public unsafe byte* GetVoxelLightData(Coords c, VoxelLightChannel channel) => GetVoxelLightData(c, (int) channel);
-        public unsafe byte* GetVoxelLightData(Coords c, int channel) {
-            var chunk = GetChunkContainingVolumeCoords(c);
+        /// <summary>
+        /// Get a pointer to the voxel light data for a specific channel at global coordinates.
+        /// </summary>
+        /// <param name="coords">Global space coordinates of the light data to retrieve</param>
+        /// <param name="channel">The channel to retrieve light data for</param>
+        /// <returns>A pointer to the requested light data. null if no chunk found.</returns>
+        public unsafe byte* GetVoxelLightData(Coords coords, int channel) {
+            var chunk = GetChunkContainingGlobalCoords(coords);
             if (chunk != null) {
-                return chunk.LightData[channel][chunk.VolumeToLocalCoords(c)];
+                return chunk.LightData[channel][chunk.VolumeToLocalCoords(coords)];
             }
             else {
                 return null;
             }
         }
 
-        // set the voxel at a specific set of coords
-        // calls the onModifyVoxel callback
-        public void SetVoxel(Coords c, Voxel v) {
-            var chunk = GetChunkContainingVolumeCoords(c) ?? AddChunk(GlobalToChunkCoords(c));
-            var localCoords = chunk.VolumeToLocalCoords(c);
-            chunk.Voxels[localCoords] = v;
+        /// <summary>
+        /// Get a pointer to the voxel light data for a specific channel at global coordinates.
+        /// </summary>
+        /// <param name="coords">Global space coordinates of the light data to retrieve</param>
+        /// <param name="channel">The channel to retrieve light data for</param>
+        /// <returns>A pointer to the requested light data. null if no chunk found.</returns>
+        public unsafe byte* GetVoxelLightData(Coords c, VoxelLightChannel channel) => GetVoxelLightData(c, (int) channel);
+
+        /// <summary>
+        /// Retrieve the chunk containing a set of global coordinates.
+        /// </summary>
+        /// <param name="coords">The global coordinates to translate.</param>
+        /// <returns>The retieved chunk. null if no chunk was found.</returns>
+        public VoxelChunk GetChunkContainingGlobalCoords(Coords coords) {
+            return this[GlobalToChunkCoords(coords)];
         }
 
-        // return the chunk containing the voxel at a set of coords
-        public VoxelChunk GetChunkContainingVolumeCoords(Coords c) {
-            return this[GlobalToChunkCoords(c)];
-        }
-
+        /// <summary>
+        /// Call before enumerating over the volume if other threads adding and removing chunks is an issue.
+        /// Call <see cref="EndThreadsafeEnumeration"/> after enumeration is complete.
+        /// </summary>
         public void StartThreadsafeEnumeration() {
             _enumerationMutex.WaitOne();
         }
+
+        /// <summary>
+        /// Call after enumerating over the volume using <see cref="StartThreadsafeEnumeration"/>
+        /// </summary>
         public void EndThreadsafeEnumeration() {
             _enumerationMutex.ReleaseMutex();
         }
@@ -140,17 +201,32 @@ namespace VoxelSpace {
         public bool CellIsSolid(Coords c)
             => GetVoxel(c)?.IsSolid ?? false;
 
-        public Orientation GetVoxelOrientation(Coords c)
-            => OrientationField?.GetVoxelOrientation(c) ?? Orientation.Zero;
+        /// <summary>
+        /// Get the orientation of a given voxel.
+        /// </summary>
+        /// <param name="coords">Global voxel coordinates</param>
+        /// <returns>The oriention representing the "up" direction at <c>coords</c>.</returns>
+        public Orientation GetVoxelOrientation(Coords coords)
+            => OrientationField?.GetVoxelOrientation(coords) ?? Orientation.Zero;
 
-        public bool Raycast(Vector3 origin, Vector3 dir, float range, Predicate<Voxel> pred, out VoxelRaycastResult result) {            
+        /// <summary>
+        /// Perform a raycast against the voxels in the volume.
+        /// All values are in global space.
+        /// </summary>
+        /// <param name="origin">Point to raycast from.</param>
+        /// <param name="dir">Direction to raycast.</param>
+        /// <param name="range">Maximum distance to cast before giving up</param>
+        /// <param name="hitPredicate">return true if the given voxel should constitute a "hit".</param>
+        /// <param name="result">The result of the raycast.</param>
+        /// <returns>true if the ray hit a voxel, false otherwise.</returns>
+        public bool Raycast(Vector3 origin, Vector3 dir, float range, Predicate<Voxel> hitPredicate, out VoxelRaycastResult result) {            
             dir.Normalize();
             Coords current = (Coords) origin;
             var voxel = GetVoxel(current) ?? Voxel.Empty;
-            if (pred(voxel)) {
+            if (hitPredicate(voxel)) {
                 result = new VoxelRaycastResult() {
                     Volume = this,
-                    Chunk = GetChunkContainingVolumeCoords(current),
+                    Chunk = GetChunkContainingGlobalCoords(current),
                     Coords = current,
                     Normal = Vector3.Zero,
                     Voxel = voxel
@@ -195,13 +271,13 @@ namespace VoxelSpace {
                     normal.Z = -step.Z;
                 }
                 voxel = GetVoxel(current) ?? Voxel.Empty;
-                if (distance < range && pred(voxel)) {
+                if (distance < range && hitPredicate(voxel)) {
                     result = new VoxelRaycastResult() {
                         Voxel = voxel,
                         Coords = current,
                         Volume = this,
                         Normal = normal,
-                        Chunk = GetChunkContainingVolumeCoords(current)
+                        Chunk = GetChunkContainingGlobalCoords(current)
                     };
                     return true;
                 }

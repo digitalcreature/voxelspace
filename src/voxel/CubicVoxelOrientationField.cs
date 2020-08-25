@@ -11,7 +11,7 @@ namespace VoxelSpace {
             // this calculation doesnt care about the actual positions, just their relation to the origin
             // so scaling doesnt change the result. by doubling and adding one, we avoid floating point operations
             // which are costly at scale. also its clever and i like being clever
-            c = (c * 2) + Coords.One;
+            c = (c * 2) + Coords.ONE;
             var o = Orientation.Zero;
             var ac = c.Abs();
             var max = ac.Max();

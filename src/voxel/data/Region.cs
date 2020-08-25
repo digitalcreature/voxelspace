@@ -3,15 +3,26 @@ using Microsoft.Xna.Framework;
 
 namespace VoxelSpace {
 
+    /// <summary>
+    /// 3D Integer bounding box.
+    /// </summary>
     public struct Region {
 
+        /// <summary> The minimum bounds of the region.</summary>
         public Coords Min;
+        /// <summary> The maximum bounds of the region.</summary>
         public Coords Max;
 
+        /// <summary>The width of the region (X axis)</summary>
         public int Width => Max.X - Min.X;
+        /// <summary>The height of the region (Y axis)</summary>
         public int Height => Max.Y - Min.Y;
+        /// <summary>The depth of the region (Z axis)</summary>
         public int Depth => Max.Z - Min.Z;
 
+        /// <summary>
+        /// The volume of the region.
+        /// </summary>
         public int Volume => Width * Height * Depth;
 
         public Region(Coords min, Coords max) {
@@ -32,17 +43,26 @@ namespace VoxelSpace {
             return new Region(a.Min * s, a.Max * s);
         }
 
-        public void ExpandToInclude(Coords c) {
-            if (Min.X > c.X) Min.X = c.X;
-            if (Min.Y > c.Y) Min.Y = c.Y;
-            if (Min.Z > c.Z) Min.Z = c.Z;
-            if (Max.X <= c.X) Max.X = c.X+1;
-            if (Max.Y <= c.Y) Max.Y = c.Y+1;
-            if (Max.Z <= c.Z) Max.Z = c.Z+1;
+        /// <summary>
+        /// expand the region such that <c>coords</c> is included.
+        /// </summary>
+        /// <param name="coords"></param>
+        public void ExpandToInclude(Coords coords) {
+            if (Min.X > coords.X) Min.X = coords.X;
+            if (Min.Y > coords.Y) Min.Y = coords.Y;
+            if (Min.Z > coords.Z) Min.Z = coords.Z;
+            if (Max.X <= coords.X) Max.X = coords.X+1;
+            if (Max.Y <= coords.Y) Max.Y = coords.Y+1;
+            if (Max.Z <= coords.Z) Max.Z = coords.Z+1;
         }
 
-        public bool Contains(Coords c) {
-            return c >= Min && c < Max;
+        /// <summary>
+        /// Check if a certain point is inside the region.
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <returns>true if <c>coords</c> is inside the region, false otherwise.</returns>
+        public bool Contains(Coords coords) {
+            return coords >= Min && coords < Max;
         }
 
         public override int GetHashCode() {
