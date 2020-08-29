@@ -685,6 +685,18 @@
 /processorParam:TextureFormat=Color
 /build:ui/crosshair.png
 
+#begin ui/inventory.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:ui/inventory.png
+
 #begin shader/terrain.fx
 /importer:EffectImporter
 /processor:EffectProcessor
