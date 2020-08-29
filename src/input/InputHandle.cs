@@ -4,9 +4,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace VoxelSpace.Input {
 
-    public class InputFocus {
+    public class InputHandle {
 
-        public static InputFocus Active { get; private set; }
+        public static InputHandle Active { get; private set; }
 
         public bool IsActive => Active == this;
 

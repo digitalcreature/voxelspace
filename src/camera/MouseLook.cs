@@ -20,10 +20,10 @@ namespace VoxelSpace {
             Mouse.SetPosition(_screenCenter.X, _screenCenter.Y);
         }
 
-        public Vector2 Update(GameTime time) {
+        public Vector2 Update() {
             var lookDelta = Input.MouseUtil.GetRawPositionState();
             Input.MouseUtil.SetRawPositionState(Vector2.Zero);
-            lookDelta *= (float) time.ElapsedGameTime.TotalSeconds * Sensitivity;
+            lookDelta *= Time.DeltaTime * Sensitivity;
             Look += lookDelta;
             Look.Y = MathHelper.Clamp(Look.Y, -90, 90);
             // CenterMouse();

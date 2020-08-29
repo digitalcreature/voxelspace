@@ -12,15 +12,13 @@ namespace VoxelSpace {
     
     public class VoxelVolumeMeshGenerator : VoxelChunkProcessor {
 
-        GraphicsDevice _graphics;
 
         ConcurrentQueue<VoxelChunkMesh> _dirtyMeshes;
         ConcurrentQueue<VoxelChunk> _finishedChunks;
 
         AutoResetEvent _onChunkFinished;
 
-        public VoxelVolumeMeshGenerator(GraphicsDevice graphics) {
-            _graphics = graphics;
+        public VoxelVolumeMeshGenerator() {
             _dirtyMeshes = new ConcurrentQueue<VoxelChunkMesh>();
             _finishedChunks = new ConcurrentQueue<VoxelChunk>();
             _onChunkFinished = new AutoResetEvent(false);
@@ -35,7 +33,7 @@ namespace VoxelSpace {
 
         public override void Update() {
             while (_dirtyMeshes.TryDequeue(out var mesh)) {
-                mesh.ApplyChanges(_graphics);
+                mesh.ApplyChanges();
                 mesh.Chunk.SetMesh(mesh);
                 _finishedChunks.Enqueue(mesh.Chunk);
                 _onChunkFinished.Set();

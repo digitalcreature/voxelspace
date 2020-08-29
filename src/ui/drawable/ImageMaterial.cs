@@ -11,8 +11,6 @@ namespace VoxelSpace.UI {
  
         protected override string _effectContentPath => "shader/ui/image";
 
-        public ImageMaterial(ContentManager manager) : base(manager) {}
-
         public Texture2D Texture {
             get => this["_tex"]?.GetValueTexture2D();
             set => this["_tex"]?.SetValue(value);

@@ -12,7 +12,7 @@ using VoxelSpace.Input;
 namespace VoxelSpace {
 
     public class VoxelSpaceGame : Game {
-        
+
         GraphicsDeviceManager _graphics;
         AssetManager _assetManager;
 
@@ -48,9 +48,8 @@ namespace VoxelSpace {
         }
 
         protected override void Initialize() {
+            G.Initialize(this);
             _projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), GraphicsDevice.Viewport.AspectRatio, 0.01f, 1000);
-            _debugUi = new Debug.DebugUi(this);
-            _debugUi.Initialize();
             Input.MouseUtil.Initialize(this);
             var rect = Window.ClientBounds;
             rect.Width += rect.X;
@@ -71,15 +70,15 @@ namespace VoxelSpace {
                 var tex = tile.Value;
                 atlas.AddTileTexture(tile.Value);
             }
-            atlas.CreateAtlasTexture(GraphicsDevice);
+            atlas.CreateAtlasTexture();
 
             // create ui meshes for voxel types
             foreach (var voxelType in _assetManager.GetAssets<VoxelType>()) {
-                voxelType.Value.CreateUIVoxelMesh(GraphicsDevice);
+                voxelType.Value.CreateUIVoxelMesh();
             }
 
             // terrain material
-            _terrainMaterial = new VoxelTerrainMaterial(Content);
+            _terrainMaterial = new VoxelTerrainMaterial();
             _terrainMaterial.ProjectionMatrix = _projMat;
             _terrainMaterial.DiffuseIntensity = 0.1f;
             _terrainMaterial.AmbientIntensity = 0.8f;
@@ -88,14 +87,14 @@ namespace VoxelSpace {
             _terrainMaterial.StarlightColor = new Color(0, 20, 70);
 
             // ui
-            var uiVoxelMaterial = new UI.UIVoxelMaterial(Content);
+            var uiVoxelMaterial = new UI.UIVoxelMaterial();
             uiVoxelMaterial.TextureAtlas = atlas.AtlasTexture;
             uiVoxelMaterial.DiffuseIntensity = _terrainMaterial.DiffuseIntensity;
             uiVoxelMaterial.AmbientIntensity = _terrainMaterial.AmbientIntensity;
             uiVoxelMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
-            _ui = new UI.UI(GraphicsDevice, 1080/4, uiVoxelMaterial);
-            _inventoryPatch = new UI.NinePatch(Content, "ui/inventory", 11, 11, 11, 11);
-            _crosshair = new UI.Image(Content, "ui/crosshair");
+            _ui = new UI.UI(1080/4, uiVoxelMaterial);
+            _inventoryPatch = new UI.NinePatch("ui/inventory", 11, 11, 11, 11);
+            _crosshair = new UI.Image("ui/crosshair");
             
             // planet
             _planet = new Planet(64, 20, new VoxelVolumeRenderer(_terrainMaterial));
@@ -105,7 +104,7 @@ namespace VoxelSpace {
             _terrainGenerator.Stone = _assetManager.FindAsset<VoxelType>("core:stone")?.Value;
             _terrainGenerator.Dirt = _assetManager.FindAsset<VoxelType>("core:dirt")?.Value;
             _lightCalculator = new VoxelVolumeLightCalculator();
-            _meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
+            _meshGenerator = new VoxelVolumeMeshGenerator();
 
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
@@ -139,17 +138,18 @@ namespace VoxelSpace {
 
         protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
-            InputFocus.Update();
+            InputHandle.Update();
+            Time.Update(gameTime);
             var deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
-            IsMouseVisible = !IsActive || InputFocus.Active.IsCursorVisible;
+            IsMouseVisible = !IsActive || InputHandle.Active.IsCursorVisible;
             if (IsActive) {
-                _planet.Update(gameTime);
+                _planet.Update();
             }
             _terrainGenerator.Update();
             _lightCalculator.Update();
             _meshGenerator.Update();
             // test day/night cycle
-            float t = (float) gameTime.TotalGameTime.TotalSeconds;
+            float t = (float) Time.Uptime;
             t /= 10; // 10 seconds a day
             t *= 2 * MathHelper.Pi;
             // Logger.Debug(this, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
@@ -164,7 +164,7 @@ namespace VoxelSpace {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             _terrainMaterial.SunDirection = _sunDirection.Normalized();
             _terrainMaterial.ViewMatrix = _player.ViewMatrix;
-            _planet.Render(GraphicsDevice);
+            _planet.Render();
             if (_player.IsAimValid) {
                 _selectionWireframe.Effect.View = _player.ViewMatrix;
                 _selectionWireframe.Draw(_player.AimedVoxel.Coords, GraphicsDevice);

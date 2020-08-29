@@ -52,7 +52,7 @@ namespace VoxelSpace {
 
         const float _cameraHeight = 1.5f;
 
-        public InputFocus Input { get; private set; }
+        public InputHandle Input { get; private set; }
 
         float _vSpeed;
 
@@ -76,17 +76,16 @@ namespace VoxelSpace {
             : base() {
             Transform.LocalPosition = position;
             MouseLook = mouseLook;
-            Input = new InputFocus();
+            Input = new InputHandle();
             IsGrounded = false;
         }
 
-        public void Update(GameTime time) {
+        public void Update() {
             var g = VoxelBody.Gravity.GetGravityStrength(Transform.LocalPosition);
             var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.LocalPosition);
             UpdateOrientation();
             VoxelBody.Gravity.AlignToGravity(Transform);
-            var deltaTime = (float) time.ElapsedGameTime.TotalSeconds;
-            var lookDelta = MouseLook.Update(time);
+            var lookDelta = MouseLook.Update();
             if (!Input.IsActive) {
                 lookDelta = Vector2.Zero;
             }
@@ -110,7 +109,7 @@ namespace VoxelSpace {
                     alignMatrix = Transform.LocalRotationMatrix;
                 }
                 moveH = Vector3.TransformNormal(moveH, alignMatrix);
-                moveH *= deltaTime;
+                moveH *= Time.DeltaTime;
                 _bounds.MoveInCollisionGrid(moveH, VoxelBody.Volume);
                 // update vertical speed and move vertically
                 if (IsGrounded && Input.IsKeyDown(Keys.Space)) {
@@ -119,8 +118,8 @@ namespace VoxelSpace {
                     var heightScalar = gDir.ProjectScalar(-OrientationNormal);
                     _vSpeed = MathF.Sqrt(2 * g * JumpHeight / heightScalar);
                 }
-                _vSpeed -= g * deltaTime;
-                var moveV = -gDir * _vSpeed * deltaTime;
+                _vSpeed -= g * Time.DeltaTime;
+                var moveV = -gDir * _vSpeed * Time.DeltaTime;
                 MoveVertical(moveV);
             }
             UpdateTransformFromBounds();

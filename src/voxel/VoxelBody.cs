@@ -31,9 +31,9 @@ namespace VoxelSpace {
             ChangeManager.StopThread();
         }
 
-        public void Update(GameTime time) {
+        public void Update() {
             foreach (var entity in _entities) {
-                entity.Update(time);
+                entity.Update();
             }
         }
 
@@ -53,10 +53,10 @@ namespace VoxelSpace {
             return false;
         }
 
-        public void Render(GraphicsDevice graphics) {
-            ChangeManager.UpdateChunkMeshes(graphics);
+        public void Render() {
+            ChangeManager.UpdateChunkMeshes();
             if (VolumeRenderer != null) {
-                VolumeRenderer.Render(graphics, Volume);
+                VolumeRenderer.Render(Volume);
             }
             else {
                 Logger.Error(this, "No renderer assigned!");

@@ -9,10 +9,6 @@ namespace VoxelSpace.Graphics {
 
         protected override string _effectContentPath => "shader/terrain";
 
-        public VoxelTerrainMaterial(ContentManager content) : base(content) {
-
-        }
-
         public Texture2D TextureAtlas {
             get => this["_tex_atlas"].GetValueTexture2D();
             set => this["_tex_atlas"].SetValue(value);

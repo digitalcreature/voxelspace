@@ -40,12 +40,12 @@ namespace VoxelSpace {
             _tiles.Add(t.Name, tile);
         }
 
-        public Texture2D CreateAtlasTexture(GraphicsDevice graphics) {
+        public Texture2D CreateAtlasTexture() {
             if (AtlasTexture != null) AtlasTexture.Dispose();
             int tileCount = _tiles.Count;
             int atlasTileWidth = (int) MathF.Ceiling(MathF.Sqrt(tileCount));
             int atlasPixelWidth = atlasTileWidth * TilePixelWidth;
-            AtlasTexture = new Texture2D(graphics, atlasPixelWidth, atlasPixelWidth, false, SurfaceFormat.Color);
+            AtlasTexture = new Texture2D(G.Graphics, atlasPixelWidth, atlasPixelWidth, false, SurfaceFormat.Color);
             var atlasData = new Color[atlasPixelWidth * atlasPixelWidth];
             var tileData = new Color[TilePixelWidth * TilePixelWidth];
             int tileIndex = 0;

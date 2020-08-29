@@ -9,14 +9,14 @@ namespace VoxelSpace.UI {
 
         static bool _isInitialized = false;
 
-        public static void Initialize(GraphicsDevice graphics) {
+        public static void Initialize() {
             if (!_isInitialized) {
-                _quad = new QuadPrimitive(graphics);
+                _quad = new QuadPrimitive();
             }
         }
 
-        public static void DrawQuad(GraphicsDevice graphics) {
-            _quad.Draw(graphics);
+        public static void DrawQuad() {
+            _quad.Draw();
         }
 
         class QuadPrimitive {
@@ -24,7 +24,8 @@ namespace VoxelSpace.UI {
             VertexBuffer _verts;
             IndexBuffer _tris;
 
-            public QuadPrimitive(GraphicsDevice graphics) {
+            public QuadPrimitive() {
+                var graphics = G.Graphics;
                 _verts = new VertexBuffer(graphics, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.None);
                 _tris = new IndexBuffer(graphics, IndexElementSize.SixteenBits, 6, BufferUsage.None);
                 _verts.SetData(0, new VertexPositionTexture[] {
@@ -36,7 +37,8 @@ namespace VoxelSpace.UI {
                 _tris.SetData(0, new short[] {0, 1, 2, 1, 3, 2}, 0, 6);
             }
 
-            public void Draw(GraphicsDevice graphics) {
+            public void Draw() {
+                var graphics = G.Graphics;
                 graphics.SetVertexBuffer(_verts);
                 graphics.Indices = _tris;
                 graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);

@@ -30,7 +30,8 @@ namespace VoxelSpace {
             _trisBuffer = null;
         }
 
-        public void ApplyChanges(GraphicsDevice graphics) {
+        public void ApplyChanges() {
+            var graphics = G.Graphics;
             if (_vertBuffer == null || _vertBuffer.VertexCount != _verts.Count) {
                 if (_vertBuffer != null) {
                     _vertBuffer.Dispose();
@@ -56,7 +57,8 @@ namespace VoxelSpace {
             _lightBuffer.SetData(0, _lights, 0, _lightBuffer.VertexCount, 0);
         }
 
-        public override void Draw(GraphicsDevice graphics) {
+        public override void Draw() {
+            var graphics = G.Graphics;
             graphics.SetVertexBuffers(new VertexBufferBinding(_vertBuffer, 0), new VertexBufferBinding(_lightBuffer, 0));
             graphics.Indices = _trisBuffer;
             graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _trisBuffer.IndexCount/3);

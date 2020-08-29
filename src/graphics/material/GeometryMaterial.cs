@@ -7,8 +7,6 @@ namespace VoxelSpace.Graphics {
 
     public abstract class GeometryMaterial : Material {
  
-        public GeometryMaterial(ContentManager manager) : base(manager) {}
-
         public Matrix ProjectionMatrix {
             get => this["_mat_proj"].GetValueMatrix();
             set => this["_mat_proj"].SetValue(value);

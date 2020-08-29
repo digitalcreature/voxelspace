@@ -66,15 +66,15 @@ namespace VoxelSpace {
         }
 
         // call before rendering chunks to update their meshes if they have been regenerated
-        public void UpdateChunkMeshes(GraphicsDevice graphics) {
+        public void UpdateChunkMeshes() {
             while (_multipleMeshes.TryDequeue(out var meshes)) {
                 foreach (var mesh in meshes) {
-                    mesh.ApplyChanges(graphics);
+                    mesh.ApplyChanges();
                     mesh.Chunk.SetMesh(mesh);
                 }
             }
             while (_singleMeshes.TryDequeue(out var mesh)) {
-                mesh.ApplyChanges(graphics);
+                mesh.ApplyChanges();
                 mesh.Chunk.SetMesh(mesh);
             }
         }

@@ -24,10 +24,10 @@ namespace VoxelSpace.UI {
         static int[] _tris = new int[36];
 
 
-        public UIVoxelMesh(GraphicsDevice graphics, VoxelType type) {
+        public UIVoxelMesh(VoxelType type) {
             VoxelType = type;
-            _vertBuffer = new VertexBuffer(graphics, Vertex.declaration, 24, BufferUsage.None);
-            _trisBuffer = new IndexBuffer(graphics, IndexElementSize.ThirtyTwoBits, 36, BufferUsage.None);
+            _vertBuffer = new VertexBuffer(G.Graphics, Vertex.declaration, 24, BufferUsage.None);
+            _trisBuffer = new IndexBuffer(G.Graphics, IndexElementSize.ThirtyTwoBits, 36, BufferUsage.None);
             generate();
         }
 
@@ -150,7 +150,8 @@ namespace VoxelSpace.UI {
             );
         }
 
-        public override void Draw(GraphicsDevice graphics) {
+        public override void Draw() {
+            var graphics = G.Graphics;
             graphics.SetVertexBuffer(_vertBuffer);
             graphics.Indices = _trisBuffer;
             graphics.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _trisBuffer.IndexCount/3);
@@ -163,7 +164,7 @@ namespace VoxelSpace.UI {
             _trisBuffer = null;
         }
 
-        public void DrawUI(UI ui, GraphicsDevice graphics, Matrix projection, Rect rect) {
+        public void DrawUI(UI ui, Matrix projection, Rect rect) {
             Vector3 pos = new Vector3(rect.Center, 0);
             var width = Math.Min(rect.Size.X, rect.Size.Y);
             var worldMat = UIVoxelMesh.CORNER_ON_MAT * Matrix.CreateScale(width, -width, width) * Matrix.CreateTranslation(pos);
@@ -172,7 +173,7 @@ namespace VoxelSpace.UI {
             material.ProjectionMatrix = projection;
             material.ViewMatrix = Matrix.Identity;
             material.Bind();
-            Draw(graphics);
+            Draw();
         }
 
         struct Vertex {

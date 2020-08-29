@@ -14,18 +14,18 @@ namespace VoxelSpace {
             Material = material;
         }
 
-        public void Render(GraphicsDevice graphics, VoxelVolume volume, Matrix modelMat) {
+        public void Render(VoxelVolume volume, Matrix modelMat) {
             volume.StartThreadsafeEnumeration();
             foreach (var chunk in volume) {
                 if (chunk.Mesh != null) {
                     Material.ModelMatrix = Matrix.CreateTranslation(chunk.Coords * VoxelChunk.SIZE) * modelMat;
                     Material.Bind();
-                    chunk.Mesh.Draw(graphics);
+                    chunk.Mesh.Draw();
                 }
             }
             volume.EndThreadsafeEnumeration();
         }
-        public void Render(GraphicsDevice graphics, VoxelVolume volume) => Render(graphics, volume, Matrix.Identity);
+        public void Render(VoxelVolume volume) => Render(volume, Matrix.Identity);
 
         public void Dispose() {
 

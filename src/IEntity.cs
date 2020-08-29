@@ -12,7 +12,7 @@ namespace VoxelSpace {
         // only call from VoxelBody
         void _SetVoxelBody(VoxelBody world);
         
-        void Update(GameTime time);
+        void Update();
 
     }
 

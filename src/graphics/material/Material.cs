@@ -13,8 +13,8 @@ namespace VoxelSpace.Graphics {
 
         public EffectParameter this[string name] => Effect.Parameters[name];
 
-        public Material(ContentManager manager) {
-            Effect = manager.Load<Effect>(_effectContentPath).Clone();
+        public Material() {
+            Effect = G.Content.Load<Effect>(_effectContentPath).Clone();
         }
 
         public virtual void Bind() {

@@ -15,9 +15,9 @@ namespace VoxelSpace.UI {
         public float Right { get; private set; }
         public float Bottom { get; private set; }
 
-        public NinePatch(ContentManager content, string textureName, float left, float top, float right, float bottom) {
-            Texture = content.Load<Texture2D>(textureName);
-            Material = new NinePatchMaterial(content);
+        public NinePatch(string textureName, float left, float top, float right, float bottom) {
+            Texture = G.Content.Load<Texture2D>(textureName);
+            Material = new NinePatchMaterial();
             Left = left;
             Top = top;
             Right = right;
@@ -28,12 +28,12 @@ namespace VoxelSpace.UI {
             Material.TextureSize = new Vector2(Texture.Width, Texture.Height);
         }
 
-        public void DrawUI(UI ui, GraphicsDevice graphics, Matrix projection, Rect rect) {
+        public void DrawUI(UI ui, Matrix projection, Rect rect) {
             Material.Position = rect.Position;
             Material.Size = rect.Size;
             Material.ProjectionMatrix = projection;
             Material.Bind();
-            Primitives.DrawQuad(graphics);
+            Primitives.DrawQuad();
         }
 
     }

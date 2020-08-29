@@ -18,8 +18,8 @@ namespace VoxelSpace {
             IsSolid = isSolid;
         }
 
-        public void CreateUIVoxelMesh(GraphicsDevice graphics) {
-            UIVoxelMesh = new UI.UIVoxelMesh(graphics, this);
+        public void CreateUIVoxelMesh() {
+            UIVoxelMesh = new UI.UIVoxelMesh(this);
         }
 
     }

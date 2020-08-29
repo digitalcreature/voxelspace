@@ -11,8 +11,6 @@ namespace VoxelSpace.UI {
 
         protected override string _effectContentPath => "shader/ui/9patch";
 
-        public NinePatchMaterial(ContentManager content) : base(content) {}
-
         public Vector2 MinBorders {
             get => this["borderMin"].GetValueVector2();
             set => this["borderMin"].SetValue(value);

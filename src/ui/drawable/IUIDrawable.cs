@@ -5,7 +5,7 @@ namespace VoxelSpace.UI {
 
     public interface IUIDrawable {
 
-        void DrawUI(UI ui, GraphicsDevice graphics, Matrix projection, Rect rect);
+        void DrawUI(UI ui, Matrix projection, Rect rect);
 
     }
 

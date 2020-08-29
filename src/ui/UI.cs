@@ -18,27 +18,25 @@ namespace VoxelSpace.UI {
 
         public Anchors Anchors { get; private set; }
 
-        GraphicsDevice _graphics;
         BlendState _lastBlendState;
 
         public UIVoxelMaterial VoxelMaterial { get; private set; }
 
-        public UI(GraphicsDevice graphics, float height, UIVoxelMaterial voxelMaterial) {
-            Primitives.Initialize(graphics);
-            _graphics = graphics;
+        public UI(float height, UIVoxelMaterial voxelMaterial) {
+            Primitives.Initialize();
             VoxelMaterial = voxelMaterial;
             SetHeight(height);
         }
 
         public void SetHeight(float height) {
-            var aspect = _graphics.Viewport.AspectRatio;
+            var aspect = G.Graphics.Viewport.AspectRatio;
             Width = height * aspect;
             Height = height;
             onSizeChanged();
         }
         
         public void SetWidth(float width) {
-            var aspect = _graphics.Viewport.AspectRatio;
+            var aspect = G.Graphics.Viewport.AspectRatio;
             Width = width;
             Height = width / aspect;
             onSizeChanged();
@@ -54,17 +52,19 @@ namespace VoxelSpace.UI {
         }
 
         public void StartDraw() {
-            _graphics.Clear(ClearOptions.DepthBuffer, Color.White, float.MinValue, 0);
-            _lastBlendState = _graphics.BlendState;
-            _graphics.BlendState = BlendState.AlphaBlend;
+            var graphics = G.Graphics;
+            graphics.Clear(ClearOptions.DepthBuffer, Color.White, float.MinValue, 0);
+            _lastBlendState = graphics.BlendState;
+            graphics.BlendState = BlendState.AlphaBlend;
         }
 
         public void EndDraw() {
-            _graphics.BlendState = _lastBlendState;
+            var graphics = G.Graphics;
+            graphics.BlendState = _lastBlendState;
         }
 
         public void Draw(IUIDrawable drawable, Rect rect) {
-            drawable.DrawUI(this, _graphics, _projMat, rect);
+            drawable.DrawUI(this, _projMat, rect);
         }
 
     }
