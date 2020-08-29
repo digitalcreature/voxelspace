@@ -10,8 +10,8 @@ namespace VoxelSpace {
         public abstract void Update();
         public abstract void Draw();
 
-        public virtual void OnEnter(GameState previous) {}
-        public virtual void OnLeave(GameState next) {}
+        protected virtual void OnEnter(GameState previous) {}
+        protected virtual void OnLeave(GameState next) {}
 
         public static void EnterState(GameState nextState) {
             Current?.OnLeave(nextState);

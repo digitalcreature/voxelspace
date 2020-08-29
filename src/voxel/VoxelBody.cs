@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace VoxelSpace {
 
     // represents a physical body made of voxels, like a planet, ship, asteroid, etc
-    public class VoxelBody {
+    public class VoxelBody : IDisposable {
 
         public VoxelVolume Volume { get; private set; }
         public VoxelVolumeRenderer VolumeRenderer { get; private set; }
@@ -63,6 +63,11 @@ namespace VoxelSpace {
             }
         }
 
+        public void Dispose() {
+            Volume?.Dispose();
+            Volume = null;
+            StopThreads();
+        }
     }
     
 }
