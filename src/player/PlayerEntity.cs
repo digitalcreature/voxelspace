@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 using VoxelSpace.Scene;
+using VoxelSpace.Input;
 
 namespace VoxelSpace {
 
@@ -51,7 +52,7 @@ namespace VoxelSpace {
 
         const float _cameraHeight = 1.5f;
 
-        InputManager _input;
+        public InputFocus Input { get; private set; }
 
         float _vSpeed;
 
@@ -71,30 +72,32 @@ namespace VoxelSpace {
                 Transform.LocalRotationMatrix
             );
 
-        public PlayerEntity(Vector3 position, MouseLook mouseLook, InputManager input) 
+        public PlayerEntity(Vector3 position, MouseLook mouseLook) 
             : base() {
             Transform.LocalPosition = position;
             MouseLook = mouseLook;
-            _input = input;
+            Input = new InputFocus();
             IsGrounded = false;
         }
 
         public void Update(GameTime time) {
-            _input.Update();
             var g = VoxelBody.Gravity.GetGravityStrength(Transform.LocalPosition);
             var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.LocalPosition);
             UpdateOrientation();
             VoxelBody.Gravity.AlignToGravity(Transform);
             var deltaTime = (float) time.ElapsedGameTime.TotalSeconds;
             var lookDelta = MouseLook.Update(time);
+            if (!Input.IsActive) {
+                lookDelta = Vector2.Zero;
+            }
             Transform.Rotate(Quaternion.CreateFromAxisAngle(Transform.LocalUp, MathHelper.ToRadians(-lookDelta.X)));
             if (!IsFrozen) {
                 // figure out horizontal movement and move horizontally
                 var moveH = Vector3.Zero;
-                if (_input.IsKeyDown(Keys.W)) moveH.Z --;
-                if (_input.IsKeyDown(Keys.S)) moveH.Z ++;
-                if (_input.IsKeyDown(Keys.D)) moveH.X ++;
-                if (_input.IsKeyDown(Keys.A)) moveH.X --;
+                if (Input.IsKeyDown(Keys.W)) moveH.Z --;
+                if (Input.IsKeyDown(Keys.S)) moveH.Z ++;
+                if (Input.IsKeyDown(Keys.D)) moveH.X ++;
+                if (Input.IsKeyDown(Keys.A)) moveH.X --;
                 if (moveH != Vector3.Zero) {
                     moveH.Normalize();
                 }
@@ -110,7 +113,7 @@ namespace VoxelSpace {
                 moveH *= deltaTime;
                 _bounds.MoveInCollisionGrid(moveH, VoxelBody.Volume);
                 // update vertical speed and move vertically
-                if (IsGrounded && _input.IsKeyDown(Keys.Space)) {
+                if (IsGrounded && Input.IsKeyDown(Keys.Space)) {
                     // jump height depends on gravity direction
                     // we jump higher near the edges so we can still jump the same block height
                     var heightScalar = gDir.ProjectScalar(-OrientationNormal);
@@ -121,7 +124,7 @@ namespace VoxelSpace {
                 MoveVertical(moveV);
             }
             UpdateTransformFromBounds();
-            _selectedIndex += _input.ScrollDelta;
+            _selectedIndex += Input.ScrollDelta;
             if (_selectedIndex < 0) {
                 _selectedIndex += PlaceableVoxelTypes.Count;
             }
@@ -131,10 +134,10 @@ namespace VoxelSpace {
             if (VoxelBody.Volume.Raycast(HeadPosition, AimDirection, 5, (v) => v.IsSolid, out var result)) {
                 IsAimValid = true;
                 AimedVoxel = result;
-                if (_input.WasMouseButtonPressed(MouseButton.Left)) {
+                if (Input.WasMouseButtonPressed(MouseButton.Left)) {
                     VoxelBody.ChangeManager.RequestSingleChange(AimedVoxel.Coords, null);
                 }
-                else if (_input.WasMouseButtonPressed(MouseButton.Right) && AimedVoxel.Normal != Vector3.Zero) {
+                else if (Input.WasMouseButtonPressed(MouseButton.Right) && AimedVoxel.Normal != Vector3.Zero) {
                     if (VoxelTypeToPlace != null) {
                         var coords = AimedVoxel.Coords + (Coords) AimedVoxel.Normal;
                         VoxelBody.ChangeManager.RequestSingleChange(coords, VoxelTypeToPlace);

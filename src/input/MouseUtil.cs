@@ -8,13 +8,17 @@ namespace VoxelSpace.Input {
 
     // mouse util with support for raw input and clipping
     // currently windows only
-    public static class Mouse {
+    public static class MouseUtil {
 
+        static Game _game;
         static MouseWindow _mouseWindow;
 
         public static bool IsRawInputAvailable => _mouseWindow?.IsRawInputAvailable ?? false;
 
+        public static bool IsCursorClipped { get; private set; }
+
         public static void Initialize(Game game) {
+            _game = game;
             _mouseWindow = new MouseWindow(game.Window);
         }
 
@@ -35,6 +39,21 @@ namespace VoxelSpace.Input {
                 return new Vector2(_mouseWindow.RawXValue, _mouseWindow.RawYValue);
             }
             return Vector2.Zero;
+        }
+
+        public static void SetIsCursorClipped(bool clip) {
+            if (clip != IsCursorClipped) {
+                IsCursorClipped = clip;
+                if (clip) {
+                    var rect = _game.Window.ClientBounds;
+                    rect.Width += rect.X;
+                    rect.Height += rect.Y;
+                    _mouseWindow.SetClip(rect);
+                }
+                else {
+                    _mouseWindow.SetClip(null);
+                }
+            }
         }
 
         public static void ClipCursor(Rectangle? rect) {

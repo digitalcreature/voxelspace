@@ -21,8 +21,8 @@ namespace VoxelSpace {
         }
 
         public Vector2 Update(GameTime time) {
-            var lookDelta = Input.Mouse.GetRawPositionState();
-            Input.Mouse.SetRawPositionState(Vector2.Zero);
+            var lookDelta = Input.MouseUtil.GetRawPositionState();
+            Input.MouseUtil.SetRawPositionState(Vector2.Zero);
             lookDelta *= (float) time.ElapsedGameTime.TotalSeconds * Sensitivity;
             Look += lookDelta;
             Look.Y = MathHelper.Clamp(Look.Y, -90, 90);

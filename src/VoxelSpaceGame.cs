@@ -32,7 +32,6 @@ namespace VoxelSpace {
         Vector3 _sunDirection;
 
         Debug.DebugUi _debugUi;
-        InputManager _inputManager;
 
         UI.UI _ui;
         UI.NinePatch _inventoryPatch;
@@ -52,11 +51,11 @@ namespace VoxelSpace {
             _projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), GraphicsDevice.Viewport.AspectRatio, 0.01f, 1000);
             _debugUi = new Debug.DebugUi(this);
             _debugUi.Initialize();
-            Input.Mouse.Initialize(this);
+            Input.MouseUtil.Initialize(this);
             var rect = Window.ClientBounds;
             rect.Width += rect.X;
             rect.Height += rect.Y;
-            Input.Mouse.ClipCursor(rect);
+            Input.MouseUtil.ClipCursor(rect);
             base.Initialize();
         }
 
@@ -108,12 +107,10 @@ namespace VoxelSpace {
             _lightCalculator = new VoxelVolumeLightCalculator();
             _meshGenerator = new VoxelVolumeMeshGenerator(GraphicsDevice);
 
-            _inputManager = new InputManager();
-
             // player
             var center = new Point(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
             var pos = new Vector3(0, _planet.Radius + _terrainGenerator.MaxHeight, 0);
-            _player = new PlayerEntity(pos, new MouseLook(center), _inputManager);
+            _player = new PlayerEntity(pos, new MouseLook(center));
             var types = new List<VoxelType>();
             types.Add(_assetManager.FindAsset<VoxelType>("core:grass")?.Value);
             types.Add(_assetManager.FindAsset<VoxelType>("core:stone")?.Value);
@@ -136,12 +133,15 @@ namespace VoxelSpace {
             // new VoxelVolumeMeshUpdater(GraphicsDevice).RegisterCallbacks(planet.volume);
             _sunDirection = Vector3.Down;
             _planet.StartThreads();
+
+            _player.Input.MakeActive();
         }
 
         protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
+            InputFocus.Update();
             var deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
-            IsMouseVisible = !IsActive;
+            IsMouseVisible = !IsActive || InputFocus.Active.IsCursorVisible;
             if (IsActive) {
                 _planet.Update(gameTime);
             }
