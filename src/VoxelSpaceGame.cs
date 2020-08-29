@@ -35,6 +35,8 @@ namespace VoxelSpace {
         InputManager _inputManager;
 
         UI.UI _ui;
+        UI.NinePatch _testPatch;
+        UI.Image _crosshair;
 
         public VoxelSpaceGame() {
             _graphics = new GraphicsDeviceManager(this);
@@ -87,13 +89,14 @@ namespace VoxelSpace {
             _terrainMaterial.StarlightColor = new Color(0, 20, 70);
 
             // ui
-            var _uiVoxelMaterial = new UI.UIVoxelMaterial(Content);
-            _uiVoxelMaterial.TextureAtlas = atlas.AtlasTexture;
-            _uiVoxelMaterial.DiffuseIntensity = _terrainMaterial.DiffuseIntensity;
-            _uiVoxelMaterial.AmbientIntensity = _terrainMaterial.AmbientIntensity;
-            _uiVoxelMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
-            var uiVoxelEffect = new BasicEffect(GraphicsDevice);
-            _ui = new UI.UI(GraphicsDevice, 1080, _uiVoxelMaterial);
+            var uiVoxelMaterial = new UI.UIVoxelMaterial(Content);
+            uiVoxelMaterial.TextureAtlas = atlas.AtlasTexture;
+            uiVoxelMaterial.DiffuseIntensity = _terrainMaterial.DiffuseIntensity;
+            uiVoxelMaterial.AmbientIntensity = _terrainMaterial.AmbientIntensity;
+            uiVoxelMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
+            _ui = new UI.UI(GraphicsDevice, 360, uiVoxelMaterial);
+            _testPatch = new UI.NinePatch(Content, "ui/test", 3, 2, 3, 3);
+            _crosshair = new UI.Image(Content, "ui/crosshair");
             
             // planet
             _planet = new Planet(64, 20, new VoxelVolumeRenderer(_terrainMaterial));
@@ -167,9 +170,15 @@ namespace VoxelSpace {
                 _selectionWireframe.Draw(_player.AimedVoxel.Coords, GraphicsDevice);
             }
             _ui.StartDraw();
-            float iconSize = 150;
+            float iconSize = 32;
             // _ui.DrawVoxelType(_player.VoxelTypeToPlace, _ui.Anchors.TopRight - new Vector2(-iconSize, 0), iconSize);
-            _ui.DrawVoxelType(_player.VoxelTypeToPlace, _ui.Anchors.BottomRight + new Vector2(-1, 1) * iconSize, iconSize);
+            var rect = new Rect(_ui.Anchors.BottomRight + new Vector2(-2, -2) * iconSize, iconSize);
+            _ui.Draw(_player.VoxelTypeToPlace.UIVoxelMesh, rect);
+            // rect = new Rect(new Vector2(), new Vector2(64, 24));
+            rect = new Rect(_ui.Anchors.TopLeft + new Vector2(32, 32), new Vector2(64, 24));
+            _ui.Draw(_testPatch, rect);
+            rect = new Rect(_ui.Anchors.MidCenter - new Vector2(4, 4), new Vector2(8, 8));
+            _ui.Draw(_crosshair, rect);
             _ui.EndDraw();
             // debugUi.Draw(gameTime);
         }

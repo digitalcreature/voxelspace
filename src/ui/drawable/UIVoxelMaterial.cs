@@ -7,13 +7,11 @@ using VoxelSpace.Graphics;
 
 namespace VoxelSpace.UI {
 
-    public class UIVoxelMaterial : GeometryMaterial<UIVoxelMaterial> {
+    public class UIVoxelMaterial : GeometryMaterial {
 
         protected override string _effectContentPath => "shader/ui/voxel";
 
-        public UIVoxelMaterial(ContentManager content) : base(content) {
-
-        }
+        public UIVoxelMaterial(ContentManager content) : base(content) {}
 
         public Texture2D TextureAtlas {
             get => this["_tex_atlas"].GetValueTexture2D();

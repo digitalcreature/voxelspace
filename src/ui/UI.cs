@@ -19,12 +19,14 @@ namespace VoxelSpace.UI {
         public Anchors Anchors { get; private set; }
 
         GraphicsDevice _graphics;
+        BlendState _lastBlendState;
 
-        UIVoxelMaterial _voxelMaterial;
+        public UIVoxelMaterial VoxelMaterial { get; private set; }
 
         public UI(GraphicsDevice graphics, float height, UIVoxelMaterial voxelMaterial) {
+            Primitives.Initialize(graphics);
             _graphics = graphics;
-            _voxelMaterial = voxelMaterial;
+            VoxelMaterial = voxelMaterial;
             SetHeight(height);
         }
 
@@ -48,30 +50,22 @@ namespace VoxelSpace.UI {
         }
 
         void setProjectionMatrix() {
-            _projMat = Matrix.CreateOrthographic(Width, Height, -1000, 1000);
+            _projMat = Matrix.CreateOrthographic(Width, Height, -1000, 1000) * Matrix.CreateScale(1, -1, 1);
         }
 
         public void StartDraw() {
             _graphics.Clear(ClearOptions.DepthBuffer, Color.White, float.MinValue, 0);
+            _lastBlendState = _graphics.BlendState;
+            _graphics.BlendState = BlendState.AlphaBlend;
         }
 
         public void EndDraw() {
-        
+            _graphics.BlendState = _lastBlendState;
         }
 
-        public void DrawVoxelType(VoxelType type, Vector2 position, float width) {
-            var mesh = type.UIVoxelMesh;
-            Vector3 pos = new Vector3(position, 0);
-            var worldMat = UIVoxelMesh.CORNER_ON_MAT * Matrix.CreateScale(width) * Matrix.CreateTranslation(pos);
-            _voxelMaterial.ModelMatrix = worldMat;
-            _voxelMaterial.ProjectionMatrix = _projMat;
-            _voxelMaterial.ViewMatrix = Matrix.Identity;
-            _voxelMaterial.Bind();
-            mesh.Draw(_graphics);
+        public void Draw(IUIDrawable drawable, Rect rect) {
+            drawable.DrawUI(this, _graphics, _projMat, rect);
         }
-
-
-
 
     }
     
@@ -88,15 +82,15 @@ namespace VoxelSpace.UI {
         public Anchors(float w, float h) {
             Width = w;
             Height = h;
-            TopLeft =       new Vector2(-w, +h) / 2;
-            TopCenter =     new Vector2( 0, +h) / 2;
-            TopRight =      new Vector2(+w, +h) / 2;
+            TopLeft =       new Vector2(-w, -h) / 2;
+            TopCenter =     new Vector2( 0, -h) / 2;
+            TopRight =      new Vector2(+w, -h) / 2;
             MidLeft =       new Vector2(-w,  0) / 2;
             MidCenter =     new Vector2( 0,  0) / 2;
             MidRight =      new Vector2(+w,  0) / 2;
-            BottomLeft =    new Vector2(-w, -h) / 2;
-            BottomCenter =  new Vector2( 0, -h) / 2;
-            BottomRight =   new Vector2(+w, -h) / 2;
+            BottomLeft =    new Vector2(-w, +h) / 2;
+            BottomCenter =  new Vector2( 0, +h) / 2;
+            BottomRight =   new Vector2(+w, +h) / 2;
         }
 
     }

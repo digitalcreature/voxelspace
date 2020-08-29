@@ -661,6 +661,30 @@
 /processorParam:TextureFormat=Color
 /build:core/voxel/stoneTB.png
 
+#begin ui/test.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:ui/test.png
+
+#begin ui/crosshair.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:ui/crosshair.png
+
 #begin shader/terrain.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -672,4 +696,16 @@
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:shader/ui/voxel.fx
+
+#begin shader/ui/9patch.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:shader/ui/9patch.fx
+
+#begin shader/ui/image.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:shader/ui/image.fx
 

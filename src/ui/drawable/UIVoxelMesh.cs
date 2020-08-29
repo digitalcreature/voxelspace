@@ -8,7 +8,7 @@ using VoxelSpace.Graphics;
 namespace VoxelSpace.UI {
 
     // a simple cube mesh used to render items in inventories and on the ui (minecraft style)
-    public class UIVoxelMesh : Mesh {
+    public class UIVoxelMesh : Mesh, IUIDrawable {
 
         public static readonly Matrix CORNER_ON_MAT
             = Matrix.CreateRotationY(MathHelper.ToRadians(45))
@@ -161,6 +161,18 @@ namespace VoxelSpace.UI {
             _trisBuffer?.Dispose();
             _vertBuffer = null;
             _trisBuffer = null;
+        }
+
+        public void DrawUI(UI ui, GraphicsDevice graphics, Matrix projection, Rect rect) {
+            Vector3 pos = new Vector3(rect.Center, 0);
+            var width = Math.Min(rect.Size.X, rect.Size.Y);
+            var worldMat = UIVoxelMesh.CORNER_ON_MAT * Matrix.CreateScale(width, -width, width) * Matrix.CreateTranslation(pos);
+            var material = ui.VoxelMaterial;
+            material.ModelMatrix = worldMat;
+            material.ProjectionMatrix = projection;
+            material.ViewMatrix = Matrix.Identity;
+            material.Bind();
+            Draw(graphics);
         }
 
         struct Vertex {

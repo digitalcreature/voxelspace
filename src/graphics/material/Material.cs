@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace VoxelSpace.Graphics {
 
-    public abstract class Material<T> where T : Material<T> {
+    public abstract class Material : IDisposable {
 
         protected abstract string _effectContentPath { get; }
 
@@ -17,8 +17,14 @@ namespace VoxelSpace.Graphics {
             Effect = manager.Load<Effect>(_effectContentPath).Clone();
         }
 
-        public abstract void Bind();
+        public virtual void Bind() {
+            Effect.CurrentTechnique.Passes[0].Apply();
+        }
 
+        public void Dispose() {
+            Effect?.Dispose();
+            Effect = null;
+        }
     }
 
 }

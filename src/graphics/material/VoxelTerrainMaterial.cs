@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace VoxelSpace.Graphics {
 
-    public class VoxelTerrainMaterial : GeometryMaterial<VoxelTerrainMaterial> {
+    public class VoxelTerrainMaterial : GeometryMaterial {
 
         protected override string _effectContentPath => "shader/terrain";
 

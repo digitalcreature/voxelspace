@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace VoxelSpace.Graphics {
 
-    public abstract class GeometryMaterial<T> : Material<GeometryMaterial<T>>  where T : GeometryMaterial<T> {
+    public abstract class GeometryMaterial : Material {
  
         public GeometryMaterial(ContentManager manager) : base(manager) {}
 
@@ -22,11 +22,7 @@ namespace VoxelSpace.Graphics {
         public Matrix ModelMatrix {
             get => this["_mat_model"].GetValueMatrix();
             set => this["_mat_model"].SetValue(value);
-        }
-
-        public override void Bind() {
-            Effect.Techniques["Geometry"].Passes["Geometry"].Apply();
-        }
+        }    
 
    }
 }
