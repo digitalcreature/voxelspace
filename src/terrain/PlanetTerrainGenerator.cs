@@ -52,7 +52,6 @@ namespace VoxelSpace {
         // }
 
         void GenerateChunk(VoxelChunk chunk) {
-            var sw = System.Diagnostics.Stopwatch.StartNew();
             if (ChunkIsInterior(chunk)) {
                 for (int i = 0; i < VoxelChunk.SIZE; i ++) {
                     for (int j = 0; j < VoxelChunk.SIZE; j ++) {

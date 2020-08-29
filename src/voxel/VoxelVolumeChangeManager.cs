@@ -14,8 +14,18 @@ namespace VoxelSpace {
 
         bool _abortRequested;
 
+        // when a change requires meshes to be regenerated, we update them differently depending on how many there are.
+        // single changes, like when a player breaks or places a block, cause very few meshes to regenerate.
+        // if we send them one at a time, theres a chance of them spreading across several frames, causeing flickering
+        // which means the player could see holes through the world!
+        // if just a few meshes need to be generated, send them all at once so they can be updated on the same frame.
+        // if a whole bunch were changed, like with a large explosion, this isnt feasable, so we dont care as much
+        // this threshold determines this where we draw the line.
+        int _multipleMeshThreshold = 6;
+
         ConcurrentQueue<VoxelChangeRequest> _changeRequests;
-        ConcurrentQueue<VoxelChunkMesh> _dirtyMeshes;
+        ConcurrentQueue<VoxelChunkMesh> _singleMeshes;
+        ConcurrentQueue<List<VoxelChunkMesh>> _multipleMeshes;
 
         AutoResetEvent _changeRequested;
 
@@ -26,7 +36,8 @@ namespace VoxelSpace {
         public VoxelVolumeChangeManager(VoxelVolume volume) {
             Volume = volume;
             _changeRequests = new ConcurrentQueue<VoxelChangeRequest>();
-            _dirtyMeshes = new ConcurrentQueue<VoxelChunkMesh>();
+            _singleMeshes = new ConcurrentQueue<VoxelChunkMesh>();
+            _multipleMeshes = new ConcurrentQueue<List<VoxelChunkMesh>>();
             _changeRequested = new AutoResetEvent(false);
         }
 
@@ -56,7 +67,13 @@ namespace VoxelSpace {
 
         // call before rendering chunks to update their meshes if they have been regenerated
         public void UpdateChunkMeshes(GraphicsDevice graphics) {
-            while (_dirtyMeshes.TryDequeue(out var mesh)) {
+            while (_multipleMeshes.TryDequeue(out var meshes)) {
+                foreach (var mesh in meshes) {
+                    mesh.ApplyChanges(graphics);
+                    mesh.Chunk.SetMesh(mesh);
+                }
+            }
+            while (_singleMeshes.TryDequeue(out var mesh)) {
                 mesh.ApplyChanges(graphics);
                 mesh.Chunk.SetMesh(mesh);
             }
@@ -115,16 +132,28 @@ namespace VoxelSpace {
                     }
                 }
                 propagator.StartPropagationTask();
+                List<VoxelChunkMesh> meshes = null;
+                if (chunksToRemesh.Count <= _multipleMeshThreshold) {
+                    meshes = new List<VoxelChunkMesh>();
+                }
                 Parallel.ForEach(chunksToRemesh, (chunk) => {
                     var mesh = chunk.Mesh ?? new VoxelChunkMesh(chunk);
                     mesh.GenerateGeometryAndLighting();
-                    _dirtyMeshes.Enqueue(mesh);
+                    if (meshes != null) {
+                        meshes.Add(mesh);
+                    }
+                    else {
+                        _singleMeshes.Enqueue(mesh);
+                    }
                 });
+                if (meshes != null) {
+                    _multipleMeshes.Enqueue(meshes);
+                }
                 propagator.Wait();
                 Parallel.ForEach(propagator.AlteredChunks, (chunk) => {
                     var mesh = chunk.Mesh;
                     mesh.GenerateLighting();
-                    _dirtyMeshes.Enqueue(mesh);
+                    _singleMeshes.Enqueue(mesh);
                 });
                 propagator.Clear();
                 chunksToRemesh.Clear();
