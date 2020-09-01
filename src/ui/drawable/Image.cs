@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace.UI {
 
-    public class Image : IUIDrawable {
+    public class Image : IDrawable {
 
         public Texture2D Texture { get; private set; }
         public ImageMaterial Material { get; private set; }

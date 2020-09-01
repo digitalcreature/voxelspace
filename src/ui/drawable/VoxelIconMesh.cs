@@ -8,7 +8,7 @@ using VoxelSpace.Graphics;
 namespace VoxelSpace.UI {
 
     // a simple cube mesh used to render items in inventories and on the ui (minecraft style)
-    public class UIVoxelMesh : Mesh, IUIDrawable {
+    public class VoxelIconMesh : Mesh, IDrawable {
 
         public static readonly Matrix CORNER_ON_MAT
             = Matrix.CreateRotationY(MathHelper.ToRadians(45))
@@ -17,6 +17,8 @@ namespace VoxelSpace.UI {
 
         public VoxelType VoxelType { get; private set; }
 
+        public VoxelIconMaterial Material { get; private set; }
+
         VertexBuffer _vertBuffer;
         IndexBuffer _trisBuffer;
 
@@ -24,8 +26,9 @@ namespace VoxelSpace.UI {
         static int[] _tris = new int[36];
 
 
-        public UIVoxelMesh(VoxelType type) {
+        public VoxelIconMesh(VoxelType type, VoxelIconMaterial material) {
             VoxelType = type;
+            Material = material;
             _vertBuffer = new VertexBuffer(G.Graphics, Vertex.declaration, 24, BufferUsage.None);
             _trisBuffer = new IndexBuffer(G.Graphics, IndexElementSize.ThirtyTwoBits, 36, BufferUsage.None);
             generate();
@@ -167,12 +170,11 @@ namespace VoxelSpace.UI {
         public void DrawUI(UI ui, Matrix projection, Rect rect) {
             Vector3 pos = new Vector3(rect.Center, 0);
             var width = Math.Min(rect.Size.X, rect.Size.Y);
-            var worldMat = UIVoxelMesh.CORNER_ON_MAT * Matrix.CreateScale(width, -width, width) * Matrix.CreateTranslation(pos);
-            var material = ui.VoxelMaterial;
-            material.ModelMatrix = worldMat;
-            material.ProjectionMatrix = projection;
-            material.ViewMatrix = Matrix.Identity;
-            material.Bind();
+            var worldMat = VoxelIconMesh.CORNER_ON_MAT * Matrix.CreateScale(width, -width, width) * Matrix.CreateTranslation(pos);
+            Material.ModelMatrix = worldMat;
+            Material.ProjectionMatrix = projection;
+            Material.ViewMatrix = Matrix.Identity;
+            Material.Bind();
             Draw();
         }
 

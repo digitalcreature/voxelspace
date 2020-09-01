@@ -7,7 +7,7 @@ using VoxelSpace.Graphics;
 
 namespace VoxelSpace.UI {
 
-    public class UI {
+    public partial class UI {
 
         public Matrix ProjMat => _projMat;
 
@@ -18,13 +18,15 @@ namespace VoxelSpace.UI {
 
         public Anchors Anchors { get; private set; }
 
+        public Skin Skin;
+
         BlendState _lastBlendState;
+        DepthStencilState _lastDepthStencilState;
 
-        public UIVoxelMaterial VoxelMaterial { get; private set; }
-
-        public UI(float height, UIVoxelMaterial voxelMaterial) {
+        public UI(float height, Skin skin) {
             Primitives.Initialize();
-            VoxelMaterial = voxelMaterial;
+            Input = new Input.InputHandle();
+            Skin = skin;
             SetHeight(height);
         }
 
@@ -55,16 +57,27 @@ namespace VoxelSpace.UI {
             var graphics = G.Graphics;
             graphics.Clear(ClearOptions.DepthBuffer, Color.White, float.MinValue, 0);
             _lastBlendState = graphics.BlendState;
+            _lastDepthStencilState = graphics.DepthStencilState;
             graphics.BlendState = BlendState.AlphaBlend;
+            graphics.DepthStencilState = DepthStencilState.None;
         }
 
         public void EndDraw() {
             var graphics = G.Graphics;
             graphics.BlendState = _lastBlendState;
+            graphics.DepthStencilState = _lastDepthStencilState;
         }
 
-        public void Draw(IUIDrawable drawable, Rect rect) {
+        public void Draw(IDrawable drawable, Rect rect) {
             drawable.DrawUI(this, _projMat, rect);
+        }
+
+        public Vector2 ScreenToCanvasPoint(Vector2 point) {
+            var scale = Width / G.Graphics.Viewport.Width;
+            point *= scale;
+            point.X -= Width / 2;
+            point.Y -= Height / 2;
+            return point;
         }
 
     }

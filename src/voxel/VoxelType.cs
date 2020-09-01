@@ -11,15 +11,15 @@ namespace VoxelSpace {
         public bool IsMeshable => IsSolid;
 
         public IVoxelSkin Skin { get; private set; }
-        public UI.UIVoxelMesh UIVoxelMesh { get; private set; }
+        public UI.VoxelIconMesh VoxelIconMesh { get; private set; }
 
         public VoxelType(bool isSolid, IVoxelSkin skin) {
             Skin = skin;
             IsSolid = isSolid;
         }
 
-        public void CreateUIVoxelMesh() {
-            UIVoxelMesh = new UI.UIVoxelMesh(this);
+        public void CreateVoxelIconMesh(UI.VoxelIconMaterial material) {
+            VoxelIconMesh = new UI.VoxelIconMesh(this, material);
         }
 
     }

@@ -20,8 +20,10 @@ namespace VoxelSpace.Input {
 
         public int ScrollDelta => IsActive ? _scrollDelta : 0;
 
-        public bool IsCursorVisible;
-        public bool IsCursorClipped;
+        public bool IsCursorVisible = true;
+        public bool IsCursorClipped = false;
+
+        public Vector2 CursorPosition => new Vector2(_mouseState.X, _mouseState.Y);
 
         public void MakeActive() {
             Active = this;

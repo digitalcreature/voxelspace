@@ -77,6 +77,8 @@ namespace VoxelSpace {
             Transform.LocalPosition = position;
             MouseLook = mouseLook;
             Input = new InputHandle();
+            Input.IsCursorVisible = false;
+            Input.IsCursorClipped = true;
             IsGrounded = false;
         }
 
@@ -85,8 +87,11 @@ namespace VoxelSpace {
             var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.LocalPosition);
             UpdateOrientation();
             VoxelBody.Gravity.AlignToGravity(Transform);
-            var lookDelta = MouseLook.Update();
-            if (!Input.IsActive) {
+            Vector2 lookDelta;
+            if (Input.IsActive) {
+                lookDelta = MouseLook.Update();
+            }
+            else {
                 lookDelta = Vector2.Zero;
             }
             Transform.Rotate(Quaternion.CreateFromAxisAngle(Transform.LocalUp, MathHelper.ToRadians(-lookDelta.X)));

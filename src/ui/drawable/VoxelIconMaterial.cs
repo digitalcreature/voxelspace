@@ -7,7 +7,7 @@ using VoxelSpace.Graphics;
 
 namespace VoxelSpace.UI {
 
-    public class UIVoxelMaterial : GeometryMaterial {
+    public class VoxelIconMaterial : GeometryMaterial {
 
         protected override string _effectContentPath => "shader/ui/voxel";
 

@@ -33,7 +33,6 @@ namespace VoxelSpace {
             var rect = Window.ClientBounds;
             rect.Width += rect.X;
             rect.Height += rect.Y;
-            Input.MouseUtil.ClipCursor(rect);
             base.Initialize();
         }
 

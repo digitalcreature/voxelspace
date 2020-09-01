@@ -44,10 +44,6 @@ namespace VoxelSpace {
             }
             atlas.CreateAtlasTexture();
 
-            // create ui meshes for voxel types
-            foreach (var voxelType in G.Assets.GetAssets<VoxelType>()) {
-                voxelType.Value.CreateUIVoxelMesh();
-            }
 
             // terrain material
             _terrainMaterial = new VoxelTerrainMaterial();
@@ -59,14 +55,27 @@ namespace VoxelSpace {
             _terrainMaterial.StarlightColor = new Color(0, 20, 70);
 
             // ui
-            var uiVoxelMaterial = new UIVoxelMaterial();
-            uiVoxelMaterial.TextureAtlas = atlas.AtlasTexture;
-            uiVoxelMaterial.DiffuseIntensity = _terrainMaterial.DiffuseIntensity;
-            uiVoxelMaterial.AmbientIntensity = _terrainMaterial.AmbientIntensity;
-            uiVoxelMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
-            _ui = new UI.UI(1080/4, uiVoxelMaterial);
-            _inventoryPatch = new NinePatch("ui/inventory", 11, 11, 11, 11);
+
+            var uiSkin = new UI.Skin();
+            uiSkin.Button = new UI.Style() {
+                Normal = new NinePatch("ui/skin/button", 6, 6, 6, 6),
+                Disabled = new NinePatch("ui/skin/button-disabled", 6, 6, 6, 6),
+                Hover = new NinePatch("ui/skin/button-hover", 6, 6, 6, 6)
+            };
+
+            var voxelIconMaterial = new VoxelIconMaterial();
+            voxelIconMaterial.TextureAtlas = atlas.AtlasTexture;
+            voxelIconMaterial.DiffuseIntensity = _terrainMaterial.DiffuseIntensity;
+            voxelIconMaterial.AmbientIntensity = _terrainMaterial.AmbientIntensity;
+            voxelIconMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
+            _ui = new UI.UI(1080/4, uiSkin);
+            _inventoryPatch = new NinePatch("ui/inventory", 12, 12, 12, 12);
             _crosshair = new Image("ui/crosshair");
+            
+            // create ui meshes for voxel types
+            foreach (var voxelType in G.Assets.GetAssets<VoxelType>()) {
+                voxelType.Value.CreateVoxelIconMesh(voxelIconMaterial);
+            }
             
             // selection wireframe
             _selectionWireframe = new SelectionWireframe(new BasicEffect(G.Graphics));
@@ -103,12 +112,14 @@ namespace VoxelSpace {
             float iconSize = 32;
             // _ui.DrawVoxelType(_player.VoxelTypeToPlace, _ui.Anchors.TopRight - new Vector2(-iconSize, 0), iconSize);
             var rect = new Rect(_ui.Anchors.BottomRight + new Vector2(-2, -2) * iconSize, iconSize);
-            _ui.Draw(_player.VoxelTypeToPlace.UIVoxelMesh, rect);
+            _ui.Draw(_player.VoxelTypeToPlace.VoxelIconMesh, rect);
             // rect = new Rect(new Vector2(), new Vector2(64, 24));
-            rect = new Rect(_ui.Anchors.BottomCenter + new Vector2(-101, -26), new Vector2(202, 22));
+            rect = new Rect(_ui.Anchors.BottomCenter + new Vector2(-195/2f, -26), new Vector2(195, 22));
             _ui.Draw(_inventoryPatch, rect);
             rect = new Rect(_ui.Anchors.MidCenter - new Vector2(4, 4), new Vector2(8, 8));
             _ui.Draw(_crosshair, rect);
+            rect = new Rect(_ui.Anchors.TopLeft + new Vector2(31, 31), new Vector2(98, 18));
+            _ui.DrawControl(_ui.Skin.Button, rect);
             _ui.EndDraw();
             // debugUi.Draw(gameTime);
         }
@@ -147,7 +158,8 @@ namespace VoxelSpace {
             _sunDirection = Vector3.Down;
             _planet.StartThreads();
 
-            _player.Input.MakeActive();
+            _ui.Input.MakeActive();
+            // _player.Input.MakeActive();
         }
 
         protected override void OnLeave(GameState next) {
