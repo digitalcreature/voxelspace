@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 
-namespace VoxelSpace {
+namespace VoxelSpace.UI {
 
     public struct Rect {
 
@@ -43,6 +43,33 @@ namespace VoxelSpace {
             var max = Max;
             return point.X >= min.X && point.X <= max.X
                 && point.Y >= min.Y && point.Y <= max.Y;
+        }
+
+        public Vector2 GetTextPosition(Padding padding, HorizontalAlign halign, VerticalAlign valign) {
+            Vector2 textPosition = new Vector2();
+            switch (halign) {
+                case HorizontalAlign.Left:
+                    textPosition.X = Min.X + padding.Min.X;
+                    break;
+                case HorizontalAlign.Center:
+                    textPosition.X = (int) Center.X;
+                    break;
+                case HorizontalAlign.Right:
+                    textPosition.X = Max.X - padding.Max.X;
+                    break;
+            }
+            switch (valign) {
+                case VerticalAlign.Top:
+                    textPosition.Y = Min.Y + padding.Min.Y;
+                    break;
+                case VerticalAlign.Middle:
+                    textPosition.Y = (int) Center.Y;
+                    break;
+                case VerticalAlign.Bottom:
+                    textPosition.Y = Max.Y + padding.Max.Y;
+                    break;
+            }
+            return textPosition;
         }
 
     }

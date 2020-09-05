@@ -10,8 +10,23 @@ namespace VoxelSpace.UI {
     /// </summary>
     public class TextInput {
 
+        public static TextInput Active { get; private set; }
+
+        public bool IsActive => Active == this;
+
+
         public int CursorPosition;
         public char? TypedChar;
+
+        public void MakeActive() {
+            Active?.MakeInactive();
+            Active = this;
+        }
+
+        public void MakeInactive() {
+            TypedChar = null;
+            Active = null;
+        }
 
     }
 

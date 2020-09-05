@@ -28,9 +28,16 @@ namespace VoxelSpace.UI {
         public VerticalAlign VerticalAlign = VerticalAlign.Top;
         public Padding Padding;
 
+        public Vector2 GetTextPosition(Rect rect) {
+            return rect.GetTextPosition(Padding, HorizontalAlign, VerticalAlign);
+        }
+
     }
 
     public class TextBoxStyle : BoxStyle {
+
+        public IDrawable Cursor;
+        public Color CursorColor = Color.White;
 
     }
 

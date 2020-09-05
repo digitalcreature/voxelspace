@@ -113,6 +113,7 @@ namespace VoxelSpace {
                     VerticalAlign = VerticalAlign.Middle,
                     Padding = padding
                 },
+                Cursor = new NinePatch("ui/skin/cursor", 1, 1, 1, 1)
             };
             
             _textInput = new TextInput();            

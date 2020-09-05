@@ -116,9 +116,12 @@ namespace VoxelSpace.UI {
             return height * Baseline + (height - 1) * LineSpacing;
         }
 
-        float getLineWidth(string text, ref int i) {
+        float getLineWidth(string text, ref int i, int end = - 1) {
             float width = 0;
-            while (i < text.Length) {
+            if (end == -1) {
+                end = text.Length;
+            }
+            while (i < end) {
                 var c = GetCharacterIndex(text[i]);
                 if (c == -1) {
                     i ++;
@@ -135,6 +138,70 @@ namespace VoxelSpace.UI {
                 i ++;
             }
             return width;
+        }
+
+        public float GetLineWidth(string text, int start = 0, int end = -1) {
+            return getLineWidth(text, ref start, end);
+        }
+
+
+        public Rect GetCharacterRect(Vector2 position, string text, int index, HorizontalAlign halign, VerticalAlign valign) {
+            Rect r = new Rect();
+            r.Position = getCharacterPosition(position, text, index, halign, valign);
+            r.Size.Y = Baseline;
+            if (index == text.Length) {
+                r.Size.X = _charWidth[0];
+            }
+            else {
+                int ci = GetCharacterIndex(text[index]);
+                if (ci == -1) {
+                    ci = 0;
+                }
+                r.Size.X = _charWidth[ci];
+            }
+            return r;
+        }
+
+        /// <summary>
+        /// Get the position of the upper left corner of a glyph when drawing text at a certain position with a certain alignment
+        /// </summary>
+        /// <param name="position">The position to draw the text</param>
+        /// <param name="text">The text to draw</param>
+        /// <param name="index">The index of the character in question</param>
+        /// <returns></returns>
+        Vector2 getCharacterPosition(Vector2 position, string text, int index, HorizontalAlign halign, VerticalAlign valign) {
+            int line = 0;
+            int lineStart = 0;
+            for (int i = 0; i <= index && i < text.Length; i ++) {
+                if (text[i] == '\n') {
+                    line ++;
+                    lineStart = i + 1;
+                }
+            }
+            float height = getTextHeight(text);
+            int start = lineStart;
+            float width = getLineWidth(text, ref start, index);
+            start = lineStart;
+            float lineWidth = getLineWidth(text, ref start);
+            position.Y += line * (Baseline + LineSpacing);
+            switch (valign) {
+                case VerticalAlign.Middle:
+                    position.Y -= (int) height / 2;
+                    break;
+                case VerticalAlign.Bottom:
+                    position.Y -= height;
+                    break;
+            }
+            position.X += width;
+            switch (halign) {
+                case HorizontalAlign.Center:
+                    position.X -= (int) lineWidth / 2;
+                    break;
+                case HorizontalAlign.Right:
+                    position.X -= lineWidth;
+                    break;
+            }
+            return position;
         }
 
         /// <summary>
