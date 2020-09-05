@@ -27,16 +27,18 @@ namespace VoxelSpace {
         }
 
         protected override bool BeforeProduceItem(VoxelChunk item) {
-            if (_completeStarted) {
-                return true;
-            }
-            else {
-                if (_sentChunks.Contains(item)) {
-                    return false;
+            lock (_sentChunks) {
+                if (_completeStarted) {
+                    return true;
                 }
                 else {
-                    _sentChunks.Add(item);
-                    return true;
+                    if (_sentChunks.Contains(item)) {
+                        return false;
+                    }
+                    else {
+                        _sentChunks.Add(item);
+                        return true;
+                    }
                 }
             }
         }

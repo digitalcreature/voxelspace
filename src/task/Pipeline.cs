@@ -51,7 +51,6 @@ namespace VoxelSpace.Tasks {
                 if (BeforeProduceItem(item)) {
                     _producedItems.Add(item);
                     _onItemProduced.Set();
-                    _onItemProduced.Reset();
                 }
             // }
         }
@@ -102,7 +101,16 @@ namespace VoxelSpace.Tasks {
                 _i ++;
                 if (_i == _producer._producedItems.Count) {
                     _producer._onItemProduced.WaitOne();
-                    return !_producer.HasCompleted;
+                    // check to see if an item was actually produced.
+                    // if there was no item produced, the event was set because the producer is finished.
+                    // dont reset if this is the case, so no one misses the message
+                    if (_producer._producedItems.Count > _i) {
+                        _producer._onItemProduced.Reset();
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
                     return true;

@@ -35,7 +35,7 @@ namespace VoxelSpace {
         Image _crosshair;
 
         TileFont _font;
-        string _inputText = "";
+        // string _inputText = "";
 
         public PlayGameState() {
             _projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), G.Graphics.Viewport.AspectRatio, 0.01f, 1000);
@@ -178,8 +178,8 @@ namespace VoxelSpace {
             rect = new Rect(_ui.Anchors.MidCenter - new Vector2(4, 4), new Vector2(8, 8));
             _ui.Draw(_crosshair, rect);
             rect = new Rect(_ui.Anchors.TopLeft + new Vector2(31, 31), new Vector2(98, 18));
-            _ui.TextBox("test", rect, ref _inputText);
-            _ui.DrawString(_font, _ui.Anchors.MidCenter, "The Quick Brown Fox\nJumps Over The Lazy Dog.", HorizontalAlign.Center, VerticalAlign.Middle);
+            // _ui.TextBox("test", rect, ref _inputText);
+            // _ui.DrawString(_font, _ui.Anchors.MidCenter, "The Quick Brown Fox\nJumps Over The Lazy Dog.", HorizontalAlign.Center, VerticalAlign.Middle);
             _ui.DrawString(_font, _ui.Anchors.BottomCenter - new Vector2(0, 6), "64", HorizontalAlign.Right, VerticalAlign.Bottom);
             _ui.EndDraw();
             // debugUi.Draw(gameTime);
@@ -219,8 +219,8 @@ namespace VoxelSpace {
             _sunDirection = Vector3.Down;
             _planet.StartThreads();
 
-            _ui.Input.MakeActive();
-            // _player.Input.MakeActive();
+            // _ui.Input.MakeActive();
+            _player.Input.MakeActive();
         }
 
         protected override void OnLeave(GameState next) {
