@@ -55,29 +55,32 @@ namespace VoxelSpace.UI {
             return DrawStyledBox(Skin.Button, rect, text, true, disabled);
         }
 
-        public bool TextBox(TextInput state, Rect rect, ref string text, bool disabled = false) {
+        public bool TextBox(string name, Rect rect, ref string text, bool disabled = false) {
             var style = Skin.TextBox;
             if (disabled) {
                 DrawStyledBox(style.Disabled, rect, text);
                 return false;
             }
             else {
-                if (DrawStyledBox(style, rect, text, true, disabled)) {
-                    if (!state.IsActive) {
-                        state.MakeActive();
+                TextBoxState state;
+                if (!TextBoxState.IsActive(name)) {
+                    if (DrawStyledBox(style, rect, text, true, disabled)) {
+                        state = TextBoxState.MakeActive(name);
                         state.CursorPosition = text.Length;
                     }
                 }
                 else {
+                    DrawStyledBox(style.Active, rect, text);
+                }
+                if (TextBoxState.IsActive(name)) {
                     // if this box is active and the user clicked outside of it, become inactive
-                    if (Input.WasMouseButtonPressed(MouseButton.Left)) {
-                        if (state.IsActive) {
-                            state.MakeInactive();
+                    if (Input.WasMouseButtonPressed(MouseButton.Left) && !rect.Contains(CursorPosition)) {
+                        if (TextBoxState.ActiveName == name) {
+                            TextBoxState.MakeInactive();
                             return false;
                         }
                     }
-                }
-                if (state.IsActive) {
+                    state = TextBoxState.Active;
                     if (Time.Uptime - Math.Floor(Time.Uptime) < 0.5) {
                         Draw(style.Cursor,
                             style.Normal.Font.GetCharacterRect(
@@ -90,11 +93,11 @@ namespace VoxelSpace.UI {
                         state.CursorPosition = text.Length;
                     }
                     if (Input.WasKeyPressed(Keys.Escape)) {
-                        state.MakeInactive();
+                        TextBoxState.MakeInactive();
                         return false;
                     }
                     if (Input.WasKeyPressed(Keys.Enter)) {
-                        state.MakeInactive();
+                        TextBoxState.MakeInactive();
                         return true;
                     }
                     if (Input.WasKeyPressed(Keys.Left)) {
@@ -131,9 +134,54 @@ namespace VoxelSpace.UI {
             return false;
         }
 
-        static void onCharTyped(object sender, TextInputEventArgs e) {
-            if (TextInput.Active != null) {
-                TextInput.Active.TypedChar = e.Character;
+        
+
+        class TextBoxState {
+            
+            static Dictionary<string, TextBoxState> _states = new Dictionary<string, TextBoxState>();
+
+            public static TextBoxState Active { get; private set; }
+            public static string ActiveName => Active?.Name;
+
+            public string Name { get; private set; }
+
+
+            TextBoxState(string name) {
+                Name = name;
+            }
+
+            public static bool IsActive(string name) => name == ActiveName;
+
+            public int CursorPosition;
+            public char? TypedChar;
+
+            public static TextBoxState MakeActive(string name) {
+                if (ActiveName != name) {
+                    TextBoxState state;
+                    if (_states.ContainsKey(name)) {
+                        state = _states[name];
+                    }
+                    else {
+                        state = new TextBoxState(name);
+                        _states[name] = state;
+                    }
+                    MakeInactive();
+                    Active = state;
+                }
+                return Active;
+            }
+
+            public static void MakeInactive() {
+                if (Active != null) {
+                    Active.TypedChar = null;
+                    Active = null;
+                }
+            }
+
+            public static void OnCharTyped(object sender, TextInputEventArgs e) {
+                if (Active != null) {
+                    Active.TypedChar = e.Character;
+                }
             }
         }
 

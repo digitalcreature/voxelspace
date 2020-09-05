@@ -36,6 +36,8 @@ namespace VoxelSpace.UI {
 
     public class TextBoxStyle : BoxStyle {
 
+        public Style Active;
+
         public IDrawable Cursor;
         public Color CursorColor = Color.White;
 

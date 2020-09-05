@@ -24,7 +24,7 @@ namespace VoxelSpace.UI {
         DepthStencilState _lastDepthStencilState;
 
         public static void Initialize(GameWindow window) {
-            window.TextInput += onCharTyped;
+            window.TextInput += TextBoxState.OnCharTyped;
         }
 
         public UI(float height, Skin skin) {
