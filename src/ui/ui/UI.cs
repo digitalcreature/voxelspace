@@ -23,6 +23,10 @@ namespace VoxelSpace.UI {
         BlendState _lastBlendState;
         DepthStencilState _lastDepthStencilState;
 
+        public static void Initialize(GameWindow window) {
+            window.TextInput += onCharTyped;
+        }
+
         public UI(float height, Skin skin) {
             Primitives.Initialize();
             Input = new Input.InputHandle();
@@ -68,12 +72,16 @@ namespace VoxelSpace.UI {
             graphics.DepthStencilState = _lastDepthStencilState;
         }
 
-        public void Draw(IDrawable drawable, Rect rect) {
-            drawable.DrawUI(this, _projMat, rect);
+        public void Draw(IDrawable drawable, Rect rect)
+            => Draw(drawable, rect, Color.White);
+        public void Draw(IDrawable drawable, Rect rect, Color color) {
+            drawable.DrawUI(this, _projMat, rect, color);
         }
 
-        public void DrawString(TileFont font, Vector2 position, string text, HorizontalAlign halign = HorizontalAlign.Left, VerticalAlign valign = VerticalAlign.Top) {
-            font.DrawString(this, _projMat, position, text, halign, valign);
+        public void DrawString(TileFont font, Vector2 position, string text, HorizontalAlign halign = HorizontalAlign.Left, VerticalAlign valign = VerticalAlign.Top) 
+            => DrawString(font, position, text, Color.White, halign, valign);
+        public void DrawString(TileFont font, Vector2 position, string text, Color color, HorizontalAlign halign = HorizontalAlign.Left, VerticalAlign valign = VerticalAlign.Top) {
+            font.DrawString(this, _projMat, position, text, color, halign, valign);
         }
 
         public Vector2 ScreenToCanvasPoint(Vector2 point) {

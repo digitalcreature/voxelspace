@@ -29,6 +29,7 @@ namespace VoxelSpace {
 
         protected override void Initialize() {
             G.Initialize(this);
+            UI.UI.Initialize(Window);
             Input.MouseUtil.Initialize(this);
             var rect = Window.ClientBounds;
             rect.Width += rect.X;

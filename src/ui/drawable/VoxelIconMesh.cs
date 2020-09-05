@@ -167,7 +167,7 @@ namespace VoxelSpace.UI {
             _trisBuffer = null;
         }
 
-        public void DrawUI(UI ui, Matrix projection, Rect rect) {
+        public void DrawUI(UI ui, Matrix projection, Rect rect, Color color) {
             Vector3 pos = new Vector3(rect.Center, 0);
             var width = Math.Min(rect.Size.X, rect.Size.Y);
             var worldMat = VoxelIconMesh.CORNER_ON_MAT * Matrix.CreateScale(width, -width, width) * Matrix.CreateTranslation(pos);

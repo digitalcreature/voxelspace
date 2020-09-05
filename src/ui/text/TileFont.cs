@@ -54,8 +54,9 @@ namespace VoxelSpace.UI {
             }
         }
 
-        public void DrawString(UI ui, Matrix projection, Vector2 position, string text, HorizontalAlign halign = HorizontalAlign.Left, VerticalAlign valign = VerticalAlign.Top) {
+        public void DrawString(UI ui, Matrix projection, Vector2 position, string text, Color color, HorizontalAlign halign = HorizontalAlign.Left, VerticalAlign valign = VerticalAlign.Top) {
             Material.ProjectionMatrix = projection;
+            Material.Tint = color;
             if (valign != VerticalAlign.Top) {
                 float height = getTextHeight(text);
                 if (valign == VerticalAlign.Middle) {
@@ -65,12 +66,12 @@ namespace VoxelSpace.UI {
             }
             int i = 0;
             while (i < text.Length) {
-                drawLine(ui, projection, position, text, ref i, halign);
+                drawLine(ui, position, text, ref i, halign);
                 position.Y += Baseline + LineSpacing;
             }
         }
 
-        void drawLine(UI ui, Matrix matrix, Vector2 position, string text, ref int i, HorizontalAlign halign) {
+        void drawLine(UI ui, Vector2 position, string text, ref int i, HorizontalAlign halign) {
             if (halign != HorizontalAlign.Left) {
                 int wi = i;
                 var width = getLineWidth(text, ref wi);

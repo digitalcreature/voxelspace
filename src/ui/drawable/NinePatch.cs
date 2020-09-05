@@ -28,10 +28,11 @@ namespace VoxelSpace.UI {
             Material.TextureSize = new Vector2(Texture.Width, Texture.Height);
         }
 
-        public void DrawUI(UI ui, Matrix projection, Rect rect) {
+        public void DrawUI(UI ui, Matrix projection, Rect rect, Color color) {
             Material.Position = rect.Position;
             Material.Size = rect.Size;
             Material.ProjectionMatrix = projection;
+            Material.Tint = color;
             Material.Bind();
             Primitives.DrawQuad();
         }

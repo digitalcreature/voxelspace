@@ -35,6 +35,8 @@ namespace VoxelSpace {
         Image _crosshair;
 
         TileFont _font;
+        TextInput _textInput;
+        string _inputText = "";
 
         public PlayGameState() {
             _projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), G.Graphics.Viewport.AspectRatio, 0.01f, 1000);
@@ -57,19 +59,63 @@ namespace VoxelSpace {
             _terrainMaterial.StarlightColor = new Color(0, 20, 70);
 
             // ui
-            var uiSkin = new UI.Skin();
-            uiSkin.Button = new UI.Style() {
-                Normal = new NinePatch("ui/skin/button", 6, 6, 6, 6),
-                Disabled = new NinePatch("ui/skin/button-disabled", 6, 6, 6, 6),
-                Hover = new NinePatch("ui/skin/button-hover", 6, 6, 6, 6)
-            };
-            
             _font = new TileFont(
                 new TileFont.Configuration("ui/font2")
                 .SpaceWidth(6)
                 .Baseline(7)
                 .LineSpacing(3)
             );
+
+            var uiSkin = new UI.Skin();
+            var padding = new Padding(6, 6, 6, 6);
+            uiSkin.Button = new UI.BoxStyle() {
+                Normal = new Style() {
+                    Background = new NinePatch("ui/skin/button", 6, 6, 6, 6),
+                    Font = _font,
+                    HorizontalAlign = HorizontalAlign.Center,
+                    VerticalAlign = VerticalAlign.Middle,
+                    Padding = padding
+                },
+                Disabled = new Style() {
+                    Background = new NinePatch("ui/skin/button-disabled", 6, 6, 6, 6),
+                    Font = _font,
+                    HorizontalAlign = HorizontalAlign.Center,
+                    VerticalAlign = VerticalAlign.Middle,
+                    Padding = padding
+                },
+                Hover = new Style() {
+                    Background = new NinePatch("ui/skin/button-hover", 6, 6, 6, 6),
+                    Font = _font,
+                    HorizontalAlign = HorizontalAlign.Center,
+                    VerticalAlign = VerticalAlign.Middle,
+                    Padding = padding
+                },
+            };
+            uiSkin.TextBox = new UI.TextBoxStyle() {
+                Normal = new Style() {
+                    Background = new NinePatch("ui/skin/button", 6, 6, 6, 6),
+                    Font = _font,
+                    HorizontalAlign = HorizontalAlign.Left,
+                    VerticalAlign = VerticalAlign.Middle,
+                    Padding = padding
+                },
+                Disabled = new Style() {
+                    Background = new NinePatch("ui/skin/button-disabled", 6, 6, 6, 6),
+                    Font = _font,
+                    HorizontalAlign = HorizontalAlign.Left,
+                    VerticalAlign = VerticalAlign.Middle,
+                    Padding = padding
+                },
+                Hover = new Style() {
+                    Background = new NinePatch("ui/skin/button-hover", 6, 6, 6, 6),
+                    Font = _font,
+                    HorizontalAlign = HorizontalAlign.Left,
+                    VerticalAlign = VerticalAlign.Middle,
+                    Padding = padding
+                },
+            };
+            
+            _textInput = new TextInput();            
 
             var voxelIconMaterial = new VoxelIconMaterial();
             voxelIconMaterial.TextureAtlas = atlas.AtlasTexture;
@@ -127,7 +173,7 @@ namespace VoxelSpace {
             rect = new Rect(_ui.Anchors.MidCenter - new Vector2(4, 4), new Vector2(8, 8));
             _ui.Draw(_crosshair, rect);
             rect = new Rect(_ui.Anchors.TopLeft + new Vector2(31, 31), new Vector2(98, 18));
-            _ui.DrawControl(_ui.Skin.Button, rect);
+            _ui.TextBox(_textInput, rect, ref _inputText);
             _ui.DrawString(_font, _ui.Anchors.MidCenter, "The Quick Brown Fox\nJumps Over The Lazy Dog.", HorizontalAlign.Center, VerticalAlign.Middle);
             _ui.DrawString(_font, _ui.Anchors.BottomCenter - new Vector2(0, 6), "64", HorizontalAlign.Right, VerticalAlign.Bottom);
             _ui.EndDraw();
