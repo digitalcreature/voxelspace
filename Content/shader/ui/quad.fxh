@@ -10,5 +10,6 @@ sampler2D tex = sampler_state {
 float2 position;
 float2 size;
 float2 texSize;
+float4 tint;
 
 float4x4 proj;

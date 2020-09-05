@@ -48,7 +48,7 @@ float4 frag(v2f v) : COLOR {
         uv.y = texSize.y - borderMax.y + (y - max.y);
     }
     uv /= texSize;
-    return tex2D(tex, uv);
+    return tex2D(tex, uv) * tint;
 }
 
 technique NinePatch {

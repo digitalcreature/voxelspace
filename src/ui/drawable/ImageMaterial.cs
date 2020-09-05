@@ -11,6 +11,10 @@ namespace VoxelSpace.UI {
  
         protected override string _effectContentPath => "shader/ui/image";
 
+        public ImageMaterial() : base() {
+            Tint = Color.White;
+        }
+
         public Texture2D Texture {
             get => this["_tex"]?.GetValueTexture2D();
             set => this["_tex"]?.SetValue(value);
@@ -29,6 +33,11 @@ namespace VoxelSpace.UI {
         public Vector2 Size {
             get => this["size"].GetValueVector2();
             set => this["size"].SetValue(value);
+        }
+
+        public Color Tint {
+            get => new Color(this["tint"].GetValueVector4());
+            set => this["tint"].SetValue(value.ToVector4());
         }
 
     }

@@ -72,6 +72,10 @@ namespace VoxelSpace.UI {
             drawable.DrawUI(this, _projMat, rect);
         }
 
+        public void DrawString(TileFont font, Vector2 position, string text, HorizontalAlign halign = HorizontalAlign.Left, VerticalAlign valign = VerticalAlign.Top) {
+            font.DrawString(this, _projMat, position, text, halign, valign);
+        }
+
         public Vector2 ScreenToCanvasPoint(Vector2 point) {
             var scale = Width / G.Graphics.Viewport.Width;
             point *= scale;
