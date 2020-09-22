@@ -43,7 +43,7 @@ namespace VoxelSpace {
         public Texture2D CreateAtlasTexture() {
             if (AtlasTexture != null) AtlasTexture.Dispose();
             int tileCount = _tiles.Count;
-            int atlasTileWidth = (int) MathF.Ceiling(MathF.Sqrt(tileCount));
+            int atlasTileWidth = (int) Math.Ceiling(Math.Sqrt(tileCount));
             int atlasPixelWidth = atlasTileWidth * TilePixelWidth;
             AtlasTexture = new Texture2D(G.Graphics, atlasPixelWidth, atlasPixelWidth, false, SurfaceFormat.Color);
             var atlasData = new Color[atlasPixelWidth * atlasPixelWidth];

@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- <TargetFrameworks>net452;netcoreapp3.1</TargetFrameworks> -->
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <MonoGamePlatform>WindowsDX</MonoGamePlatform>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <TieredCompilation>false</TieredCompilation>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseWindowsForms>true</UseWindowsForms>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Icon.ico" />
+    <None Remove="Icon.bmp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Icon.ico" />
+    <EmbeddedResource Include="Icon.bmp" />
+  </ItemGroup>
+
+  <!-- <ItemGroup>
+    <MonoGameContentReference Include="Content/Content.mgcb" Visible="false" />
+  </ItemGroup> -->
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MonoGame/MonoGame.Framework/MonoGame.Framework.WindowsDX.csproj" />
+    <!-- <ProjectReference Include="../MonoGame/MonoGame.Framework.Content.Pipeline/MonoGame.Framework.Content.Pipeline.csproj" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- <PackageReference Include="BEPUphysics" Version="2.2.0" /> -->
+    <PackageReference Include="ImGui.NET" Version="1.75.0" />
+    <!-- <PackageReference Include="MonoGame.Framework.WindowsDX.Core" Version="3.8.*" /> -->
+    <!-- <PackageReference Include="MonoGame.Content.Builder" Version="3.7.*" /> -->
+  </ItemGroup>
+
+</Project>
