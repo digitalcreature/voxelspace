@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PROFILE=DirectX_11
+
+for X in res/shader/*.fx res/shader/**/*.fx
+do
+    mgfxc.exe "$X" "$X.bin" "/Profile:$PROFILE"
+done
