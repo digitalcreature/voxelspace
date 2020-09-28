@@ -42,8 +42,8 @@ namespace VoxelSpace {
             _projMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), G.Graphics.Viewport.AspectRatio, 0.01f, 1000);
             // stitch textures into atlas
             var atlas = new TextureAtlas();
-            foreach (var tile in ResourceManager.GetLoadedResources<TileTexture>()) {
-                atlas.AddTileTexture(tile);
+            foreach (var tex in G.Assets.GetAssets<TileTexture>()) {
+                atlas.AddTileTexture(tex);
             }
             atlas.CreateAtlasTexture();
 
@@ -133,7 +133,7 @@ namespace VoxelSpace {
             
             // create ui meshes for voxel types
             foreach (var voxelType in G.Assets.GetAssets<VoxelType>()) {
-                voxelType.Value.CreateVoxelIconMesh(voxelIconMaterial);
+                voxelType.CreateVoxelIconMesh(voxelIconMaterial);
             }
             
             // selection wireframe
@@ -180,7 +180,7 @@ namespace VoxelSpace {
             rect = new Rect(_ui.Anchors.TopLeft + new Vector2(31, 31), new Vector2(98, 18));
             // _ui.TextBox("test", rect, ref _inputText);
             // _ui.DrawString(_font, _ui.Anchors.MidCenter, "The Quick Brown Fox\nJumps Over The Lazy Dog.", HorizontalAlign.Center, VerticalAlign.Middle);
-            _ui.DrawString(_font, _ui.Anchors.BottomCenter - new Vector2(0, 6), "64", HorizontalAlign.Right, VerticalAlign.Bottom);
+            _ui.DrawString(_font, _ui.Anchors.BottomCenter + new Vector2(-1, -7), "64", HorizontalAlign.Right, VerticalAlign.Bottom);
             _ui.EndDraw();
             // debugUi.Draw(gameTime);
         }
@@ -191,9 +191,9 @@ namespace VoxelSpace {
             _planet = new Planet(64, 20, new VoxelVolumeRenderer(_terrainMaterial));
             _terrainGenerator = new PlanetTerrainGenerator();
             _terrainGenerator.MaxHeight = 16;
-            _terrainGenerator.Grass = assets.FindAsset<VoxelType>("core:grass")?.Value;
-            _terrainGenerator.Stone = assets.FindAsset<VoxelType>("core:stone")?.Value;
-            _terrainGenerator.Dirt = assets.FindAsset<VoxelType>("core:dirt")?.Value;
+            _terrainGenerator.Grass = assets.GetAsset<VoxelType>("core:grass");
+            _terrainGenerator.Stone = assets.GetAsset<VoxelType>("core:stone");
+            _terrainGenerator.Dirt = assets.GetAsset<VoxelType>("core:dirt");
             _lightCalculator = new VoxelVolumeLightCalculator();
             _meshGenerator = new VoxelVolumeMeshGenerator();
 
@@ -202,9 +202,9 @@ namespace VoxelSpace {
             var pos = new Vector3(0, _planet.Radius + _terrainGenerator.MaxHeight, 0);
             _player = new PlayerEntity(pos, new MouseLook(center));
             var types = new List<VoxelType>();
-            types.Add(assets.FindAsset<VoxelType>("core:grass")?.Value);
-            types.Add(assets.FindAsset<VoxelType>("core:stone")?.Value);
-            types.Add(assets.FindAsset<VoxelType>("core:dirt")?.Value);
+            types.Add(assets.GetAsset<VoxelType>("core:grass"));
+            types.Add(assets.GetAsset<VoxelType>("core:stone"));
+            types.Add(assets.GetAsset<VoxelType>("core:dirt"));
             _player.PlaceableVoxelTypes = types;
             _planet.AddEntity(_player);
             _player.Freeze();

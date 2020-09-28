@@ -75,6 +75,8 @@ namespace VoxelSpace.UI {
         public void Draw(IDrawable drawable, Rect rect)
             => Draw(drawable, rect, Color.White);
         public void Draw(IDrawable drawable, Rect rect, Color color) {
+            rect.Position.Floor();
+            rect.Size.Floor();
             drawable.DrawUI(this, _projMat, rect, color);
         }
 
@@ -107,15 +109,15 @@ namespace VoxelSpace.UI {
         public Anchors(float w, float h) {
             Width = w;
             Height = h;
-            TopLeft =       new Vector2(-w, -h) / 2;
-            TopCenter =     new Vector2( 0, -h) / 2;
-            TopRight =      new Vector2(+w, -h) / 2;
-            MidLeft =       new Vector2(-w,  0) / 2;
-            MidCenter =     new Vector2( 0,  0) / 2;
-            MidRight =      new Vector2(+w,  0) / 2;
-            BottomLeft =    new Vector2(-w, +h) / 2;
-            BottomCenter =  new Vector2( 0, +h) / 2;
-            BottomRight =   new Vector2(+w, +h) / 2;
+            TopLeft =       Vector2.Floor(new Vector2(-w, -h) / 2);
+            TopCenter =     Vector2.Floor(new Vector2( 0, -h) / 2);
+            TopRight =      Vector2.Floor(new Vector2(+w, -h) / 2);
+            MidLeft =       Vector2.Floor(new Vector2(-w,  0) / 2);
+            MidCenter =     Vector2.Floor(new Vector2( 0,  0) / 2);
+            MidRight =      Vector2.Floor(new Vector2(+w,  0) / 2);
+            BottomLeft =    Vector2.Floor(new Vector2(-w, +h) / 2);
+            BottomCenter =  Vector2.Floor(new Vector2( 0, +h) / 2);
+            BottomRight =   Vector2.Floor(new Vector2(+w, +h) / 2);
         }
 
     }

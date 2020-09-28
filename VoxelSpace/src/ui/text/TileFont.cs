@@ -57,6 +57,7 @@ namespace VoxelSpace.UI {
         }
 
         public void DrawString(UI ui, Matrix projection, Vector2 position, string text, Color color, HorizontalAlign halign = HorizontalAlign.Left, VerticalAlign valign = VerticalAlign.Top) {
+            position.Floor();
             Material.ProjectionMatrix = projection;
             Material.Tint = color;
             if (valign != VerticalAlign.Top) {

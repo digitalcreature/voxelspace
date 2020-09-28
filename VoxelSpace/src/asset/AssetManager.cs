@@ -26,28 +26,8 @@ namespace VoxelSpace.Assets {
             if (_modules.ContainsKey(name)) {
                 return _modules[name];
             }
-            return null;
+            throw new AssetException($"Could not find asset module '{name}'. Did you forget to load it?");
         }
-
-        public Asset<T>? FindAsset<T>(string qualifiedName) where T : class {
-            var (modName, name) = SplitQualifiedAssetName(qualifiedName);
-            if (modName == null) {
-                throw new ArgumentException(
-                    string.Format("Must supply fully qualified name for asset search. '{0}' is missing a module name.", qualifiedName));
-            }
-            else {
-                return GetModule(modName)?.FindAsset<T>(name);
-            }
-        }
-
-        public IEnumerable<Asset<T>> GetAssets<T>() where T : class {
-            foreach (var module in _modules.Values) {
-                foreach (var asset in module.GetAssets<T>()) {
-                    yield return asset;
-                }
-            }
-        }
-
 
         public void LoadModules() {
             foreach (var module in _modules.Values) {
@@ -55,6 +35,21 @@ namespace VoxelSpace.Assets {
                     LoadModule(module);
                 }
             }
+        }
+
+        public IEnumerable<T> GetAssets<T>() where T : class {
+            foreach (var module in _modules.Values) {
+                foreach (var asset in module.GetAssets<T>()) {
+                    yield return asset;
+                }
+            }
+        }
+
+        public T GetAsset<T>(string qualifiedName) where T : class {
+            var (modname, name) = SplitQualifiedAssetName(qualifiedName);
+            if (modname == null) throw UnqualifiedAssetName(qualifiedName);
+            var mod = GetModule(modname);
+            return mod.GetAsset<T>(name);
         }
 
         void LoadModule(AssetModule module) {
@@ -70,7 +65,7 @@ namespace VoxelSpace.Assets {
                 }
             }
             module.LoadAssets(this);
-            Logger.Info(this, $"Loaded asset module {module.Name} ({module.AssetCount} assets)");
+            Logger.Info(this, $"Loaded asset module {module.Name}");
         }
 
         public static bool IsNameQualified(string name) {
@@ -91,6 +86,10 @@ namespace VoxelSpace.Assets {
                 default:
                     throw InvalidAssetName(qualifiedName);    
             }   
+        }
+
+        static Exception UnqualifiedAssetName(string name) {
+            return new ArgumentException($"Unqualified asset name {name} where qualified name was expected");
         }
 
         static Exception InvalidAssetName(string name) {

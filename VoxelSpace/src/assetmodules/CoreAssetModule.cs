@@ -8,15 +8,9 @@ namespace VoxelSpace.Assets {
         public override string Name => "core";
 
         protected override void OnLoadAssets() {
-            AddAsset("grass",new VoxelType(true, new TBSCVoxelSkin(
-                R<TileTexture>("@voxel/grassT"), R<TileTexture>("@voxel/dirtTB"), R<TileTexture>("@voxel/grassS"), R<TileTexture>("@voxel/grassC")
-            )));
-            AddAsset("dirt",new VoxelType(true, new TBSCVoxelSkin(
-                R<TileTexture>("@voxel/dirtTB"), R<TileTexture>("@voxel/dirtS"), R<TileTexture>("@voxel/dirtC")
-            )));
-            AddAsset("stone",new VoxelType(true, new TBSCVoxelSkin(
-                R<TileTexture>("@voxel/stoneTB"), R<TileTexture>("@voxel/stoneS"), R<TileTexture>("@voxel/stoneC")
-            )));
+            Add(new VoxelTypeInfo("grass").TBSCSkin("grassT", "dirtTB", "grassS", "grassC"));
+            Add(new VoxelTypeInfo("dirt").TBSCSkin("dirtTB", "dirtTB", "dirtS", "dirtC"));
+            Add(new VoxelTypeInfo("stone").TBSCSkin("stoneTB", "stoneTB", "stoneS", "stoneC"));
         }
     }
 

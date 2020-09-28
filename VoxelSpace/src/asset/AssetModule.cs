@@ -3,11 +3,17 @@ using System.Reflection;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
+using VoxelSpace.Resources;
+
 namespace VoxelSpace.Assets {
 
-    public abstract class AssetModule {
+    public abstract partial class AssetModule {
 
         public abstract string Name { get; }
+
+        public virtual bool UseEmbeddedResources => true;
+
+        Dictionary<Type, Dictionary<string, object>> _assets = new Dictionary<Type, Dictionary<string, object>>();
 
         public virtual IEnumerable<string> dependencies {
             get {
@@ -15,93 +21,125 @@ namespace VoxelSpace.Assets {
             }
         }
 
+        public static AssetModule CurrentLoadingModule { get; private set; }
+
         public bool IsLoaded { get; private set; }
-
-        public int AssetCount => _assets.Count;
-
-        Dictionary<string, IAsset> _assets;
+        public bool IsLoading { get; private set; }
 
         AssetManager _assetManager;
 
         public AssetModule() {
-            _assets = new Dictionary<string, IAsset>();
         }
 
-        public Asset<T>? FindAsset<T>(string name) where T : class {
-            if (_assets.ContainsKey(name)) {
-                var meta = _assets[name];
-                if (meta is Asset<T> typedMeta) {
-                    return typedMeta;
-                }
-                else if (meta.Value is T) {
-                    // if the asset container isnt typed as the rewquested type,
-                    // but the asset inside it derives from it, then we can "cast" it to the right type
-                   return new Asset<T>(meta);
-                }
+        public T LoadResource<T>(string path) where T : class {
+            path = Name + "/" + path;
+            if (UseEmbeddedResources) {
+                path = "@" + path;
             }
-            return null;
-        }
-
-        // used for reverse asset lookup; we have an asset, but we want it's metadata
-        public Asset<T>? FindAsset<T>(T asset) where T : class {
-            foreach (var meta in _assets.Values) {
-                if (meta.Value == asset) {
-                    return new Asset<T>(meta);
-                }
-            }
-            return null;
-        }
-
-        public IEnumerable<Asset<T>> GetAssets<T>() where T : class {
-            foreach (var meta in _assets.Values) {
-                if (meta is Asset<T> typedMeta) {
-                    yield return typedMeta;
-                }
-                else if (meta.Value is T) {
-                    // if the asset container isnt typed as the rewquested type,
-                    // but the asset inside it derives from it, then we can "cast" it to the right type
-                    yield return new Asset<T>(meta);
-                }
-            }
-        }
-
-        // convenience method to get an asset while loading
-        protected T A<T>(string name) where T : class {
-            if (AssetManager.IsNameQualified(name)) {
-                return _assetManager.FindAsset<T>(name)?.Value;
-            }
-            else {
-                return FindAsset<T>(name)?.Value;
-            }
-        }
-
-        // convenience method to load or get a resouce while loading
-        protected T R<T>(string name) where T : class {
-            name = Name + "/" + name;
-            return Resources.ResourceManager.Load<T>(name);
-        }
-
-        protected T AddAsset<T>(string name, T asset) where T : class {
-            CheckAssetNameConflict<T>(name);
-            _assets[name] = (new Asset<T>(this, name, asset));
-            return asset;
+            return ResourceManager.Load<T>(path);
         }
 
         public void LoadAssets(AssetManager assetManager) {
+            if (CurrentLoadingModule != null) {
+                throw new AssetModuleException(this, $"Cannot load module: Currently loading module {CurrentLoadingModule.Name}");
+            }
+            if (IsLoaded) {
+                throw new AssetModuleException(this, $"Cannot load module: Already loaded");
+            }
             _assetManager = assetManager;
+            IsLoading = true;
+            CurrentLoadingModule = this;
             OnLoadAssets();
+            IsLoading = false;
+            CurrentLoadingModule = null;
             IsLoaded = true;
         }
 
-        protected abstract void OnLoadAssets();
-
-        void CheckAssetNameConflict<T>(string name) where T : class {
-            if (_assets.ContainsKey(name)) {
-                var existing = _assets[name];
-                throw new AssetException($"Asset name conflict: {typeof(T).Name} {name} trying to replace {existing.ValueType.Name} {name}");
+        void addAsset<T>(string name, T asset) where T : class {
+            var type = typeof(T);
+            Dictionary<string, object> dict;
+            if (!_assets.TryGetValue(type, out dict)) {
+                dict = new Dictionary<string, object>();
+                _assets[type] = dict;
+            }
+            if (!dict.ContainsKey(name)) {
+                dict[name] = asset;
+            }
+            else {
+                throw new AssetModuleException(this, $"Cannot add asset {name} ({type.Name}): asset with name currently exists");
             }
         }
 
+        public IEnumerable<T> GetAssets<T>() where T : class {
+            var type = typeof(T);
+            if (_assets.TryGetValue(type, out var dict)) {
+                foreach (var asset in dict.Values) {
+                    yield return (T) asset;
+                }
+            }
+        }
+
+        public T GetAsset<T>(string name) where T : class {
+            if (TryGetAsset<T>(name, out var asset)) {
+                return asset;
+            }
+            throw assetNotFound<T>(name);
+        }
+
+        public bool TryGetAsset<T>(string name, out T asset) where T : class {
+            if (_assets.TryGetValue(typeof(T), out var dict)) {
+                if (dict.TryGetValue(name, out var a)) {
+                    asset = (T) a;
+                    return true;
+                }
+            }
+            asset = null;
+            return false;
+        }
+
+        public T Add<T>(AssetInfo<T> assetInfo) where T : class {
+            checkLoadingState();
+            T asset = assetInfo.CreateAsset();
+            addAsset<T>(assetInfo.Name, asset);
+            return asset;
+        }
+
+        void checkLoadingState() {
+            if (!IsLoading) throw new AssetModuleException(this, "Cannot modify asset module outside of OnLoadAssets!");
+        }
+
+        public T ResolveAsset<T>(string qualifiedName) where T : class {
+            if (TryResolveAsset<T>(qualifiedName, out var asset)) {
+                return asset;
+            }
+            throw assetNotFound<T>(qualifiedName);
+        }
+
+        /// <summary>
+        /// Try to resolve a possibly qualified asset name.
+        /// Throws an exception if the qualified name did not find the asset in another module.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>true if the asset was found in another module or this one, false otherwise</returns>
+        public bool TryResolveAsset<T>(string qualifiedName, out T asset) where T : class {
+            var (modname, name) = AssetManager.SplitQualifiedAssetName(qualifiedName);
+            modname ??= Name;
+            if (modname != Name) {
+                asset =_assetManager.GetAsset<T>(qualifiedName);
+                return true;
+            }
+            else {
+                if (TryGetAsset<T>(name, out asset)) {
+                    return true;
+                }
+            }
+            asset = null;
+            return false;
+        }
+
+        Exception assetNotFound<T>(string name) where T : class => new AssetModuleException(this, $"Cannot find asset {name} ({typeof(T).Name})");
+
+        protected abstract void OnLoadAssets();
 
     }
 
