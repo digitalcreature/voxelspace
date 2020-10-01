@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-using VoxelSpace.Scene;
+using VoxelSpace.SceneGraph;
 using VoxelSpace.Input;
 
 namespace VoxelSpace {
 
-    public class PlayerEntity : SceneObject,  IEntity {
+    public class PlayerEntity : SceneObject {
 
         public VoxelBody VoxelBody { get; private set; }
 
@@ -82,7 +82,7 @@ namespace VoxelSpace {
             IsGrounded = false;
         }
 
-        public void Update() {
+        public override void Update() {
             var g = VoxelBody.Gravity.GetGravityStrength(Transform.LocalPosition);
             var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.LocalPosition);
             UpdateOrientation();
@@ -209,8 +209,9 @@ namespace VoxelSpace {
             IsFrozen = false;
         }
 
-        public void _SetVoxelBody(VoxelBody world) {
-            VoxelBody = world;
+        public void SetVoxelBody(VoxelBody body) {
+            VoxelBody = body;
+
         }
     }
 

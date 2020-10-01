@@ -10,7 +10,7 @@ namespace VoxelSpace {
         public float Radius { get; private set; }
 
         public Planet(float radius, float gravityStrength, VoxelVolumeRenderer renderer = null)
-            : base(new CubicGravityField(3, gravityStrength), renderer) {
+            : base(new CubicGravityField(3, gravityStrength)) {
             Radius = radius;
             Volume.OrientationField = new CubicVoxelOrientationField();
         }

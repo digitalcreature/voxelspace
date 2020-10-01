@@ -45,6 +45,7 @@ namespace VoxelSpace {
             var coreModule = new CoreAssetModule();
             AssetManager.AddModule(coreModule);
             AssetManager.LoadModules();
+            AssetManager.CreateVoxelTextureAtlas();
 
             GameState.EnterState(new PlayGameState());
         }

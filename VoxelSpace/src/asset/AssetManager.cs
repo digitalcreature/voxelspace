@@ -9,6 +9,8 @@ namespace VoxelSpace.Assets {
 
         Dictionary<string, AssetModule> _modules;
 
+        public TextureAtlas VoxelTextureAtlas { get; private set; }
+
         public AssetManager() {
             _modules = new Dictionary<string, AssetModule>();
         }
@@ -66,6 +68,16 @@ namespace VoxelSpace.Assets {
             }
             module.LoadAssets(this);
             Logger.Info(this, $"Loaded asset module {module.Name}");
+        }
+
+        public TextureAtlas CreateVoxelTextureAtlas() {
+            var atlas = new TextureAtlas();
+            foreach (var tex in GetAssets<VoxelTexture>()) {
+                atlas.AddTileTexture(tex);
+            }
+            atlas.CreateAtlasTexture();
+            VoxelTextureAtlas = atlas;
+            return atlas;
         }
 
         public static bool IsNameQualified(string name) {

@@ -34,45 +34,4 @@ namespace VoxelSpace.Assets {
         }
     }
 
-    public class VoxelTextureInfo : AssetInfo<TileTexture> {
-
-        public VoxelTextureInfo(string name) : base(name) {}
-
-        protected override TileTexture Create() {
-            return new TileTexture(Module.LoadResource<Texture2D>("voxel/" + Name));
-        }
-    }
-
-    public abstract class VoxelSkinInfo : AssetInfo<IVoxelSkin> {
-
-        public VoxelSkinInfo(string name) : base(name) {}
-
-    }
-
-
-    public class TBSCVoxelSkinInfo : VoxelSkinInfo {
-
-        public string Top { get; private set; }
-        public string Bottom { get; private set; }
-        public string Side { get; private set; }
-        public string Corner { get; private set; }
-
-        public TBSCVoxelSkinInfo(string name, string top, string bottom, string side, string corner) : base(name) {
-            Top = top;
-            Bottom = bottom;
-            Side = side;
-            Corner = corner;
-        }
-
-        protected override IVoxelSkin Create() {
-            TileTexture t;
-            return new TBSCVoxelSkin(
-                Module.TryResolveAsset<TileTexture>(Top, out t) ? t : Module.Add(new VoxelTextureInfo(Top)),
-                Module.TryResolveAsset<TileTexture>(Bottom, out t) ? t : Module.Add(new VoxelTextureInfo(Bottom)),
-                Module.TryResolveAsset<TileTexture>(Side, out t) ? t : Module.Add(new VoxelTextureInfo(Side)),
-                Module.TryResolveAsset<TileTexture>(Corner, out t) ? t : Module.Add(new VoxelTextureInfo(Corner))
-            );
-        }
-    }
-
 }

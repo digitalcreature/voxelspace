@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
-namespace VoxelSpace.Scene {
+namespace VoxelSpace.SceneGraph {
 
     public class Transform {
 
@@ -12,6 +12,9 @@ namespace VoxelSpace.Scene {
         }
 
         public SceneObject Owner { get; private set; }
+
+        public virtual Scene Scene => Owner.Scene;
+        public virtual bool IsSceneRoot => false;
 
         public Vector3 LocalPosition;
         public Quaternion LocalRotation;
@@ -33,10 +36,14 @@ namespace VoxelSpace.Scene {
 
         public Transform Parent { get; private set; }
 
+        List<Transform> _children;
+        public IReadOnlyList<Transform> Children => _children;
+
         public Transform(SceneObject owner, Vector3 position, Quaternion rotation) {
             Owner = owner;
             LocalPosition = position;
             LocalRotation = rotation;
+            _children = new List<Transform>();
         }
 
         public Transform(SceneObject owner, Vector3 position)
@@ -54,7 +61,18 @@ namespace VoxelSpace.Scene {
         }
 
         public void SetParent(Transform parent) {
-            Parent = parent;
+            if (parent != Parent) {
+                if (Parent != null) {
+                    Parent._children.Remove(this);
+                }
+                if (parent == null) {
+                    parent = Scene?.Root;
+                }
+                if (parent != null) {
+                    parent._children.Add(this);
+                }
+                Parent = parent;
+            }
         }
 
     }
