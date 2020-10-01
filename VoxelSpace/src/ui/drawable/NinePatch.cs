@@ -16,8 +16,8 @@ namespace VoxelSpace.UI {
         public float Right { get; private set; }
         public float Bottom { get; private set; }
 
-        public NinePatch(string textureName, float left, float top, float right, float bottom) {
-            Texture = ResourceManager.Load<Texture2D>(textureName);
+        public NinePatch(Texture2D texture, float left, float top, float right, float bottom) {
+            Texture = texture;
             Material = new NinePatchMaterial();
             Left = left;
             Top = top;

@@ -32,6 +32,7 @@ namespace VoxelSpace.Assets {
         }
 
         public T LoadResource<T>(string path) where T : class {
+            path = path.Replace('.', '/');
             path = Name + "/" + path;
             if (UseEmbeddedResources) {
                 path = "@" + path;

@@ -24,18 +24,18 @@ namespace VoxelSpace.UI {
 
         static readonly Vector2 _tileUVSize = new Vector2(1 / 16f, 1 / 8f);
 
-        public TileFont(Configuration config) {
-            Texture = ResourceManager.Load<Texture2D>(config._textureName);
+        public TileFont(Texture2D texture, float charSpacing, float spaceWidth, float baseline, float lineSpacing) {
+            Texture = texture;
             Material = new TileFontMaterial();
             Material.Texture = Texture;
             _charWidth = new int[128];
             _tileSize.X = _tileWidth = Texture.Width / 16;
             _tileSize.Y = _tileHeight = Texture.Height / 8;
             Material.Size = _tileSize;
-            SpaceWidth = config._spaceWidth;
-            CharSpacing = config._charSpacing;
-            Baseline = config._baseLine;
-            LineSpacing = config._lineSpacing;
+            SpaceWidth = spaceWidth;
+            CharSpacing = charSpacing;
+            Baseline = baseline;
+            LineSpacing = lineSpacing;
             var pixels = new Color[Texture.Width * Texture.Height];
             Texture.GetData(pixels);
             int j = _tileHeight - 1;
@@ -229,41 +229,6 @@ namespace VoxelSpace.UI {
 
         public void Dispose() {
             Texture.Dispose();
-        }
-
-        public class Configuration {
-
-            public string _textureName;
-            public float _charSpacing = 1;
-            public float _lineSpacing = 1;
-            public float _spaceWidth = 8;
-            public float _baseLine;
-
-            public Configuration(string textureName) {
-                _textureName = textureName;
-            }
-
-            public Configuration CharSpacing(float spacing) {
-                _charSpacing = spacing;
-                return this;
-            }
-
-            public Configuration LineSpacing(float spacing) {
-                _lineSpacing = spacing;
-                return this;
-            }
-
-            public Configuration SpaceWidth(float spaceWidth) {
-                _spaceWidth = spaceWidth;
-                return this;
-            }
-
-            public Configuration Baseline(float baseLine) {
-                _baseLine = baseLine;
-                return this;
-            }
-
-
         }
 
     }

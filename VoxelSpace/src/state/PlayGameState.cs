@@ -28,70 +28,7 @@ namespace VoxelSpace {
 
         public PlayGameState() {
 
-            // // ui
-            // _font = new TileFont(
-            //     new TileFont.Configuration("@ui/font2")
-            //     .SpaceWidth(6)
-            //     .Baseline(7)
-            //     .LineSpacing(3)
-            // );
-
-            // var uiSkin = new UI.Skin();
-            // var padding = new Padding(6, 6, 6, 6);
-            // uiSkin.Button = new UI.BoxStyle() {
-            //     Normal = new Style() {
-            //         Background = new NinePatch("@ui/skin/button", 6, 6, 6, 6),
-            //         Font = _font,
-            //         HorizontalAlign = HorizontalAlign.Center,
-            //         VerticalAlign = VerticalAlign.Middle,
-            //         Padding = padding
-            //     },
-            //     Disabled = new Style() {
-            //         Background = new NinePatch("@ui/skin/button-disabled", 6, 6, 6, 6),
-            //         Font = _font,
-            //         HorizontalAlign = HorizontalAlign.Center,
-            //         VerticalAlign = VerticalAlign.Middle,
-            //         Padding = padding
-            //     },
-            //     Hover = new Style() {
-            //         Background = new NinePatch("@ui/skin/button-hover", 6, 6, 6, 6),
-            //         Font = _font,
-            //         HorizontalAlign = HorizontalAlign.Center,
-            //         VerticalAlign = VerticalAlign.Middle,
-            //         Padding = padding
-            //     },
-            // };
-            // uiSkin.TextBox = new UI.TextBoxStyle() {
-            //     Normal = new Style() {
-            //         Background = new NinePatch("@ui/skin/button", 6, 6, 6, 6),
-            //         Font = _font,
-            //         HorizontalAlign = HorizontalAlign.Left,
-            //         VerticalAlign = VerticalAlign.Middle,
-            //         Padding = padding
-            //     },
-            //     Disabled = new Style() {
-            //         Background = new NinePatch("@ui/skin/button-disabled", 6, 6, 6, 6),
-            //         Font = _font,
-            //         HorizontalAlign = HorizontalAlign.Left,
-            //         VerticalAlign = VerticalAlign.Middle,
-            //         Padding = padding
-            //     },
-            //     Hover = new Style() {
-            //         Background = new NinePatch("@ui/skin/button-hover", 6, 6, 6, 6),
-            //         Font = _font,
-            //         HorizontalAlign = HorizontalAlign.Left,
-            //         VerticalAlign = VerticalAlign.Middle,
-            //         Padding = padding
-            //     },
-            //     Active = new Style() {
-            //         Background = new NinePatch("@ui/skin/textbox-active", 6, 6, 6, 6),
-            //         Font = _font,
-            //         HorizontalAlign = HorizontalAlign.Left,
-            //         VerticalAlign = VerticalAlign.Middle,
-            //         Padding = padding
-            //     },
-            //     Cursor = new NinePatch("@ui/skin/cursor", 1, 1, 1, 1)
-            // };
+           
             
             // var voxelIconMaterial = new VoxelIconMaterial();
             // voxelIconMaterial.TextureAtlas = G.Assets.VoxelTextureAtlas.AtlasTexture;
