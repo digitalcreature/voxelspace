@@ -13,7 +13,9 @@ namespace VoxelSpace.Assets {
 
         public virtual bool UseEmbeddedResources => true;
 
-        Dictionary<Type, Dictionary<string, object>> _assets = new Dictionary<Type, Dictionary<string, object>>();
+        // Dictionary<Type, Dictionary<string, object>> _assets = new Dictionary<Type, Dictionary<string, object>>();
+        Dictionary<AssetID, object> _assets = new Dictionary<AssetID, object>();
+        List<(AssetID, object)> _assetsList = new List<(AssetID, object)>();
 
         public virtual IEnumerable<string> dependencies {
             get {
@@ -58,23 +60,20 @@ namespace VoxelSpace.Assets {
 
         void addAsset<T>(string name, T asset) where T : class {
             var type = typeof(T);
-            Dictionary<string, object> dict;
-            if (!_assets.TryGetValue(type, out dict)) {
-                dict = new Dictionary<string, object>();
-                _assets[type] = dict;
-            }
-            if (!dict.ContainsKey(name)) {
-                dict[name] = asset;
+            var id = new AssetID(type, Name, name);
+            if (!_assets.TryGetValue(id, out var existing)) {
+                _assets[id] = asset;
+                _assetsList.Add((id, asset));
             }
             else {
-                throw new AssetModuleException(this, $"Cannot add asset {name} ({type.Name}): asset with name currently exists");
+                throw new AssetModuleException(this, $"Cannot add asset {id}: asset with id currently exists");
             }
         }
 
         public IEnumerable<T> GetAssets<T>() where T : class {
             var type = typeof(T);
-            if (_assets.TryGetValue(type, out var dict)) {
-                foreach (var asset in dict.Values) {
+            foreach (var (id, asset) in _assetsList) {
+                if (id.Type == type) {
                     yield return (T) asset;
                 }
             }
@@ -88,20 +87,29 @@ namespace VoxelSpace.Assets {
         }
 
         public bool TryGetAsset<T>(string name, out T asset) where T : class {
-            if (_assets.TryGetValue(typeof(T), out var dict)) {
-                if (dict.TryGetValue(name, out var a)) {
-                    asset = (T) a;
-                    return true;
-                }
+            var type = typeof(T);
+            var id = new AssetID(type, Name, name);
+            if (_assets.TryGetValue(id, out var a)) {
+                asset = (T) a;
+                return true;
             }
-            asset = null;
-            return false;
+            else {
+                asset = null;
+                return false;
+            }
         }
 
         public T Add<T>(AssetInfo<T> assetInfo) where T : class {
             checkLoadingState();
-            T asset = assetInfo.CreateAsset();
-            addAsset<T>(assetInfo.Name, asset);
+            T asset;
+            if (TryGetAsset<T>(assetInfo.Name, out asset)) {
+                Logger.Warning(this, $"Attempt to create duplicate asset {assetInfo.QualifiedName} ({typeof(T).Name}). Using existing asset instead!");
+                return asset;
+            }
+            else {
+                asset = assetInfo.CreateAsset();
+                addAsset<T>(assetInfo.Name, asset);
+            }
             return asset;
         }
 

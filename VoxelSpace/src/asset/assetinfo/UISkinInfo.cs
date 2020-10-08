@@ -240,7 +240,7 @@ namespace VoxelSpace.Assets {
         float _baseLine;
 
         public TileFontInfo(string name) : base(name) {
-            texture = Module.LoadResource<Texture2D>(QualifiedName);
+            texture = Module.LoadResource<Texture2D>(Name);
         }
 
         public TileFontInfo CharSpacing(float spacing) {
@@ -281,7 +281,7 @@ namespace VoxelSpace.Assets {
         NinePatch _ninePatch;
 
         public NinePatchInfo(string name, float left, float top, float right, float bottom) : base(name) {
-            _ninePatch = new NinePatch(Module.LoadResource<Texture2D>(QualifiedName), left, top, right, bottom);
+            _ninePatch = new NinePatch(Module.LoadResource<Texture2D>(Name), left, top, right, bottom);
         }
 
         protected override NinePatch Create() {

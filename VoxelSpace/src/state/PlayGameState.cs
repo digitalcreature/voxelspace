@@ -27,8 +27,6 @@ namespace VoxelSpace {
         // string _inputText = "";
 
         public PlayGameState() {
-
-           
             
             // var voxelIconMaterial = new VoxelIconMaterial();
             // voxelIconMaterial.TextureAtlas = G.Assets.VoxelTextureAtlas.AtlasTexture;
