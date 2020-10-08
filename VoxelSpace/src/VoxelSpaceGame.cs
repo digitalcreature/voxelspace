@@ -29,7 +29,6 @@ namespace VoxelSpace {
         protected override void Initialize() {
             ResourceManager.EmbeddedPrefix = "VoxelSpace.res.";
             ResourceManager.AddLoader(new Texture2DLoader(GraphicsDevice));
-            ResourceManager.AddLoader(new TileTextureLoader());
             ResourceManager.AddLoader(new EffectLoader(GraphicsDevice));
             G.Initialize(this);
             UI.UI.Initialize(Window);
@@ -46,6 +45,17 @@ namespace VoxelSpace {
             AssetManager.AddModule(coreModule);
             AssetManager.LoadModules();
             AssetManager.CreateVoxelTextureAtlas();
+
+            var voxelIconMaterial = new UI.VoxelIconMaterial();
+            voxelIconMaterial.TextureAtlas = G.Assets.VoxelTextureAtlas.AtlasTexture;
+            voxelIconMaterial.DiffuseIntensity = 0.1f;
+            voxelIconMaterial.AmbientIntensity = 0.8f;
+            voxelIconMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
+
+            // create ui meshes for voxel types
+            foreach (var voxelType in G.Assets.GetAssets<VoxelType>()) {
+                voxelType.CreateVoxelIconMesh(voxelIconMaterial);
+            }
 
             GameState.EnterState(new PlayGameState());
         }

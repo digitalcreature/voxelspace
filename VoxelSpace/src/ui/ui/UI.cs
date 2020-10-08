@@ -7,7 +7,7 @@ using VoxelSpace.Graphics;
 
 namespace VoxelSpace.UI {
 
-    public partial class UI {
+    public abstract partial class UI {
 
         public Matrix ProjMat => _projMat;
 
@@ -57,7 +57,7 @@ namespace VoxelSpace.UI {
             _projMat = Matrix.CreateOrthographic(Width, Height, -1000, 1000) * Matrix.CreateScale(1, -1, 1);
         }
 
-        public void StartDraw() {
+        void StartDraw() {
             var graphics = G.Graphics;
             graphics.Clear(ClearOptions.DepthBuffer, Color.White, float.MinValue, 0);
             _lastBlendState = graphics.BlendState;
@@ -66,11 +66,22 @@ namespace VoxelSpace.UI {
             graphics.DepthStencilState = DepthStencilState.None;
         }
 
-        public void EndDraw() {
+        void EndDraw() {
             var graphics = G.Graphics;
             graphics.BlendState = _lastBlendState;
             graphics.DepthStencilState = _lastDepthStencilState;
         }
+
+        /// <summary>
+        /// Draw the ui
+        /// </summary>
+        public void Draw() {
+            StartDraw();
+            DrawUI();
+            EndDraw();
+        }
+
+        protected abstract void DrawUI();
 
         public void Draw(IDrawable drawable, Rect rect)
             => Draw(drawable, rect, Color.White);

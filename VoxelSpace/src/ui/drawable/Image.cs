@@ -11,8 +11,8 @@ namespace VoxelSpace.UI {
         public Texture2D Texture { get; private set; }
         public ImageMaterial Material { get; private set; }
 
-        public Image(string textureName) {
-            Texture = ResourceManager.Load<Texture2D>(textureName);
+        public Image(Texture2D texture) {
+            Texture = texture;
             Material = new ImageMaterial();
             Material.Texture = Texture;
         }

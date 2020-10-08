@@ -8,7 +8,7 @@ namespace VoxelSpace {
     public class VoxelSystemScene : Scene {
 
         public Planet Planet { get; private set; }
-        public PlayerEntity Player;
+        public PlayerEntity Player { get; private set; }
 
         public Vector3 SunDirection { get; private set; }
 

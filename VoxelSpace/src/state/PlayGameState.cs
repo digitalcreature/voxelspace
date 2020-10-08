@@ -19,30 +19,24 @@ namespace VoxelSpace {
         VoxelSystemScene _scene;
         VoxelSystemSceneRenderer _sceneRenderer;
 
-        // UI.UI _ui;
-        // NinePatch _inventoryPatch;
-        // Image _crosshair;
-
-        // TileFont _font;
-        // string _inputText = "";
+        HUD _hud;
 
         public PlayGameState() {
-            
-            // var voxelIconMaterial = new VoxelIconMaterial();
-            // voxelIconMaterial.TextureAtlas = G.Assets.VoxelTextureAtlas.AtlasTexture;
-            // voxelIconMaterial.DiffuseIntensity = _terrainMaterial.DiffuseIntensity;
-            // voxelIconMaterial.AmbientIntensity = _terrainMaterial.AmbientIntensity;
-            // voxelIconMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
-            // _ui = new UI.UI(1080/3, uiSkin);
-            // _inventoryPatch = new NinePatch("@ui/inventory", 12, 12, 12, 12);
-            // _crosshair = new Image("@ui/crosshair");
-            
-            // // create ui meshes for voxel types
-            // foreach (var voxelType in G.Assets.GetAssets<VoxelType>()) {
-            //     voxelType.CreateVoxelIconMesh(voxelIconMaterial);
-            // }
-            
-            
+
+        }
+
+        protected override void OnEnter(GameState previous) {
+            _scene = new VoxelSystemScene();
+            _sceneRenderer = new VoxelSystemSceneRenderer();
+            _hud = new HUD(1080/3, G.Assets.GetAsset<Skin>("core:ui.skin"));
+            _hud.Player = _scene.Player;
+        }
+
+        protected override void OnLeave(GameState next) {
+            _scene?.Dispose();
+            _sceneRenderer?.Dispose();
+            _scene = null;
+            _sceneRenderer = null;
         }
 
         public override void Update() {
@@ -53,6 +47,7 @@ namespace VoxelSpace {
             var graphics = G.Graphics;
             graphics.Clear(Color.CornflowerBlue);
             _sceneRenderer?.Render(_scene);
+            _hud.Draw();
             // _ui.StartDraw();
             // float iconSize = 32;
             // // _ui.DrawVoxelType(_player.VoxelTypeToPlace, _ui.Anchors.TopRight - new Vector2(-iconSize, 0), iconSize);
@@ -71,18 +66,6 @@ namespace VoxelSpace {
             // // debugUi.Draw(gameTime);
         }
 
-        protected override void OnEnter(GameState previous) {
-            _scene = new VoxelSystemScene();
-            _sceneRenderer = new VoxelSystemSceneRenderer();
-
-        }
-
-        protected override void OnLeave(GameState next) {
-            _scene?.Dispose();
-            _sceneRenderer?.Dispose();
-            _scene = null;
-            _sceneRenderer = null;
-        }
 
     }
 
