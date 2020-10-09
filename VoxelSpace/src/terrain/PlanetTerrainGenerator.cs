@@ -24,9 +24,17 @@ namespace VoxelSpace {
         public VoxelType Dirt;
         public VoxelType Grass;
 
+        VoxelData _stoneData;
+        VoxelData _dirtData;
+        VoxelData _grassData;
+
         public PlanetTerrainGenerator() : base() {}
 
         protected override void Process() {
+            var index = Volume.Index;
+            _stoneData = new VoxelData(index.Add(Stone));
+            _dirtData = new VoxelData(index.Add(Dirt));
+            _grassData = new VoxelData(index.Add(Grass));
             float radius = SurfaceLevel + MaxHeight;
             int chunkRadius = (int) MathF.Ceiling(radius / VoxelChunk.SIZE);
             for (int i = -chunkRadius; i < chunkRadius; i ++) {
@@ -51,16 +59,16 @@ namespace VoxelSpace {
         //     return isDone;
         // }
 
-        void GenerateChunk(VoxelChunk chunk) {
+        unsafe void GenerateChunk(VoxelChunk chunk) {
             if (ChunkIsInterior(chunk)) {
                 for (int i = 0; i < VoxelChunk.SIZE; i ++) {
                     for (int j = 0; j < VoxelChunk.SIZE; j ++) {
                         for (int k = 0; k < VoxelChunk.SIZE; k ++) {
                             if (IsInCave(chunk.LocalToVolumeCoords(new Coords(i, j, k)))) {
-                                chunk.Voxels[i, j, k] = Voxel.Empty;
+                                *chunk.VoxelsData[i, j, k] = VoxelData.Empty;
                             }
                             else {
-                                chunk.Voxels[i, j, k] = new Voxel(Stone);
+                                *chunk.VoxelsData[i, j, k] = _stoneData;
                             }
                         }
                     }
@@ -72,7 +80,7 @@ namespace VoxelSpace {
                         for (int k = 0; k < VoxelChunk.SIZE; k ++) {
                             var vc = chunk.LocalToVolumeCoords(new Coords(i, j, k));
                             if (IsInCave(vc)) {
-                                chunk.Voxels[i, j, k] = Voxel.Empty;
+                               * chunk.VoxelsData[i, j, k] = VoxelData.Empty;
                             }
                             else {
                                 var vpos = vc + Vector3.One * 0.5f;
@@ -87,20 +95,20 @@ namespace VoxelSpace {
                                 noise = (noise + 1) / 2f;
                                 float height = SurfaceLevel + noise * MaxHeight;
                                 int stack = (int) MathF.Ceiling(height) - (int) MathF.Ceiling(max);
-                                VoxelType type;
+                                VoxelData data;
                                 if (stack < 0) {
-                                    type = null;
+                                    data = VoxelData.Empty;
                                 }
                                 else if (stack == 0) {
-                                    type = Grass;
+                                    data = _grassData;
                                 }
                                 else if (stack < 3) {
-                                    type = Dirt;
+                                    data = _dirtData;
                                 }
                                 else {
-                                    type = Stone;
+                                    data = _stoneData;
                                 }
-                                chunk.Voxels[i, j, k] = new Voxel(type);
+                                *chunk.VoxelsData[i, j, k] = data;
                             }
                         }
                     }

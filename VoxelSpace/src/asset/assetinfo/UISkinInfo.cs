@@ -290,4 +290,18 @@ namespace VoxelSpace.Assets {
 
     }
 
+    public class ImageInfo : UIDrawableInfo<Image> {
+
+        Image _image;
+
+        public ImageInfo(string name) : base(name) {
+            _image = new Image(Module.LoadResource<Texture2D>(Name));
+        }
+
+        protected override Image Create() {
+            return _image;
+        }
+
+    }
+
 }

@@ -79,6 +79,9 @@ namespace VoxelSpace.Assets {
                 )
             );
 
+            Add(new NinePatchInfo("ui.inventory", 12, 12, 12, 12));
+            Add(new ImageInfo("ui.crosshair"));
+
             Add(new VoxelTypeInfo("grass").TBSCSkin("grassT", "dirtTB", "grassS", "grassC"));
             Add(new VoxelTypeInfo("dirt").TBSCSkin("dirtTB", "dirtTB", "dirtS", "dirtC"));
             Add(new VoxelTypeInfo("stone").TBSCSkin("stoneTB", "stoneTB", "stoneS", "stoneC"));

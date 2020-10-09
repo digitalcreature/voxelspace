@@ -18,6 +18,8 @@ namespace VoxelSpace {
         /// <summary>The count of chunks currently in the volume</summary>
         public int ChunkCount => _chunks.Count;
 
+        public VoxelTypeIndex Index { get; private set; }
+
         Region? _chunkRegion;
 
         /// <summary>
@@ -53,6 +55,7 @@ namespace VoxelSpace {
         Mutex _enumerationMutex;
 
         public VoxelVolume(IVoxelOrientationField orientationField = null) {
+            Index = new VoxelTypeIndex();
             _chunks = new Dictionary<Coords, VoxelChunk>();
             OrientationField = orientationField;
             ChunkRegion = new Region();
@@ -129,9 +132,24 @@ namespace VoxelSpace {
         /// </summary>
         /// <param name="coords">Global space coordinates of the voxel to retrieve</param>
         /// <returns>The retrieved voxel. If there is no chunk in this volume containing <c>coords</c>, returns null.</returns>
-        public Voxel? GetVoxel(Coords coords) {
+        public unsafe Voxel? GetVoxel(Coords coords) {
+            var data = GetVoxelData(coords);
+            if (data != null) {
+                return new Voxel(*data, Index);
+            }
+            else {
+                return null;
+            }
+        }
+
+        public unsafe VoxelData *GetVoxelData(Coords coords) {
             var chunk = GetChunkContainingGlobalCoords(coords);
-            return chunk?.Voxels[chunk.VolumeToLocalCoords(coords)];
+            if (chunk != null) {
+                return chunk.VoxelsData[chunk.VolumeToLocalCoords(coords)];
+            }
+            else {
+                return null;
+            }
         }
         
         /// <summary>

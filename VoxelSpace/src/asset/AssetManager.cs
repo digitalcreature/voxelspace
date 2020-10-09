@@ -8,11 +8,13 @@ namespace VoxelSpace.Assets {
     public class AssetManager {
 
         Dictionary<string, AssetModule> _modules;
+        List<AssetModule> _modulesList;
 
         public TextureAtlas VoxelTextureAtlas { get; private set; }
 
         public AssetManager() {
             _modules = new Dictionary<string, AssetModule>();
+            _modulesList = new List<AssetModule>();
         }
 
         public void AddModule(AssetModule module) {
@@ -21,6 +23,7 @@ namespace VoxelSpace.Assets {
             }
             else {
                 _modules[module.Name] = module;
+                _modulesList.Add(module);
             }
         }
 
@@ -32,7 +35,9 @@ namespace VoxelSpace.Assets {
         }
 
         public void LoadModules() {
-            foreach (var module in _modules.Values) {
+            // sort alphabetical. this is to maintain asset load order
+            _modulesList.Sort((a, b) => a.Name.CompareTo(b.Name));
+            foreach (var module in _modulesList) {
                 if (!module.IsLoaded) {
                     LoadModule(module);
                 }

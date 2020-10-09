@@ -13,13 +13,18 @@ namespace VoxelSpace {
         public Coords Coords { get; private set; }
         public VoxelChunkMesh Mesh { get; private set; }
 
-        public Array3<Voxel> Voxels { get; private set; }
+        public IndexedVoxels Voxels { get; private set; }
+        public UnmanagedArray3<VoxelData> VoxelsData { get; private set; }
         public VoxelChunkLightData LightData { get; private set; }
+
+        public VoxelTypeIndex Index { get; private set; }
 
         public VoxelChunk(VoxelVolume volume, Coords coords) {
             Volume = volume;
             Coords = coords;
-            Voxels = new Voxel[SIZE, SIZE, SIZE];
+            Index = Volume.Index;
+            VoxelsData = new UnmanagedArray3<VoxelData>();
+            Voxels = new IndexedVoxels(this);
             LightData = new VoxelChunkLightData();
         }
 
@@ -64,17 +69,29 @@ namespace VoxelSpace {
             => Coords * SIZE + c;
         public Vector3 VolumeToLocalVector(Vector3 c)
             => c - (Coords * SIZE);
-        
-        public Voxel GetVoxelIncludingNeighbors(Coords c) {
-            if (AreLocalCoordsInBounds(c)) {
-                return Voxels[c];
+
+        public unsafe Voxel GetVoxelIncludingNeighbors(Coords c) {
+            var data = GetVoxelDataIncludingNeighbors(c);
+            if (data == null) {
+                return Voxel.Empty;
             }
             else {
-                return Volume?.GetVoxel(LocalToVolumeCoords(c)) ?? Voxel.Empty;
+                return new Voxel(*data, Index);
             }
         }
         public Voxel GetVoxelIncludingNeighbors(int i, int j, int k)
             => GetVoxelIncludingNeighbors(new Coords(i, j, k));
+
+        public unsafe VoxelData* GetVoxelDataIncludingNeighbors(Coords c) {
+            if (AreLocalCoordsInBounds(c)) {
+                return VoxelsData[c];
+            }
+            else {
+                return Volume.GetVoxelData(LocalToVolumeCoords(c));
+            }
+        }
+        public unsafe VoxelData* GetVoxelDataIncludingNeighbors(int i, int j, int k)
+            => GetVoxelDataIncludingNeighbors(new Coords(i, j, k));
 
         public VoxelLight GetVoxelLightIncludingNeighbors(Coords c) {
             if (AreLocalCoordsInBounds(c)) {
@@ -102,6 +119,28 @@ namespace VoxelSpace {
         public unsafe byte* GetVoxelLightDataIncludingNeighbors(int i, int j, int k, VoxelLightChannel channel)
             => GetVoxelLightDataIncludingNeighbors(new Coords(i, j, k), (int) channel);
 
+
+        public class IndexedVoxels {
+            
+            VoxelTypeIndex _index;
+            UnmanagedArray3<VoxelData> _data;
+
+            public IndexedVoxels(VoxelChunk chunk) {
+                _data = chunk.VoxelsData;
+                _index = chunk.Index;
+            }
+
+            public unsafe Voxel this[Coords c] {
+                get => new Voxel(*_data[c], _index);
+                set => *_data[c] = new VoxelData(_index.Add(value.Type), value.Data);
+            }
+
+            public unsafe Voxel this[int i, int j, int k] {
+                get => new Voxel(*_data[i, j, k], _index);
+                set => *_data[i, j, k] = new VoxelData(_index.Add(value.Type), value.Data);
+            }
+
+        }
 
         public unsafe class UnmanagedArray3<T> : IDisposable where T : unmanaged {
 

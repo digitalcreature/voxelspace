@@ -14,9 +14,10 @@ namespace VoxelSpace {
         TileFont _font;
 
         public HUD(float height, Skin skin) : base(height, skin) {
-            _font = G.Assets.GetAsset<TileFont>("core:ui.font2");
-            _inventoryPatch = new NinePatch(ResourceManager.Load<Texture2D>("@core/ui/inventory"), 12, 12, 12, 12);
-            _crosshair = new Image(ResourceManager.Load<Texture2D>("@core/ui/crosshair"));
+            var assets = G.Assets;
+            _font = assets.GetAsset<TileFont>("core:ui.font2");
+            _inventoryPatch = assets.GetAsset<NinePatch>("core:ui.inventory");
+            _crosshair = assets.GetAsset<Image>("core:ui.crosshair");
 
         }
 
