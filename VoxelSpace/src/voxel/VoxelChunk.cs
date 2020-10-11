@@ -119,7 +119,9 @@ namespace VoxelSpace {
         public unsafe byte* GetVoxelLightDataIncludingNeighbors(int i, int j, int k, VoxelLightChannel channel)
             => GetVoxelLightDataIncludingNeighbors(new Coords(i, j, k), (int) channel);
 
-
+        /// <summary>
+        /// Utility class to access voxels, auto translating from the stored indicies
+        /// </summary>
         public class IndexedVoxels {
             
             VoxelTypeIndex _index;

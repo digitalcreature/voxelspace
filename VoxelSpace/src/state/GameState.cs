@@ -20,6 +20,8 @@ namespace VoxelSpace {
             nextState?.OnEnter(prev);
         }
 
+        public virtual void OnScreenResize(int width, int height) {}
+
     }
 
 }

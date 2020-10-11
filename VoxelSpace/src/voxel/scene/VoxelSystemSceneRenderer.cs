@@ -39,6 +39,7 @@ namespace VoxelSpace {
             VoxelBodyRenderer.Render(planet, ProjectionMatrix, ViewMatrix);
             if (_player.IsAimValid) {
                 _selectionWireframe.Effect.View = _player.ViewMatrix;
+                _selectionWireframe.Effect.Projection = ProjectionMatrix;
                 _selectionWireframe.Draw(_player.AimedVoxel.Coords, G.Graphics);
             }
         }
@@ -47,6 +48,10 @@ namespace VoxelSpace {
             _selectionWireframe?.Effect?.Dispose();
             VoxelBodyRenderer?.Material?.Dispose();
             VoxelBodyRenderer?.Dispose();
+        }
+
+        public override void OnScreenResize(int width, int height) {
+            ProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(90), G.Graphics.Viewport.AspectRatio, 0.01f, 1000);
         }
     }
 

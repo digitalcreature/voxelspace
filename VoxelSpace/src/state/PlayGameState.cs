@@ -66,6 +66,11 @@ namespace VoxelSpace {
             // // debugUi.Draw(gameTime);
         }
 
+        public override void OnScreenResize(int width, int height) {
+            _hud.SetHeight(height / 3);
+            _sceneRenderer?.OnScreenResize(width, height);
+        }
+
 
     }
 

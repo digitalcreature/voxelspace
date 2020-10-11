@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -8,7 +9,7 @@ namespace VoxelSpace.Input {
 
         public static InputHandle Active { get; private set; }
 
-        public bool IsActive => Active == this;
+        public bool IsActive => Active == this && G.Game.IsActive;
 
         static KeyboardState _keyboardState;
         static KeyboardState _lastKeyboardState;
@@ -25,9 +26,20 @@ namespace VoxelSpace.Input {
 
         public Vector2 CursorPosition => new Vector2(_mouseState.X, _mouseState.Y);
 
+        static Stack<InputHandle> _stack = new Stack<InputHandle>();
+
         public void MakeActive() {
             Active = this;
             Update();
+        }
+
+        public void PushActive() {
+            _stack.Push(Active);
+            MakeActive();
+        }
+
+        public static void PopActive() {
+            _stack.Pop().MakeActive();
         }
 
         public static void Update() {

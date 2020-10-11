@@ -26,7 +26,6 @@ namespace VoxelSpace {
         public bool IsSolid => Type?.IsSolid ?? false;
         public bool IsOpaque => Type?.IsOpaque ?? false;
         
-
     }
 
     public struct VoxelData {

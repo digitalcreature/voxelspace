@@ -12,6 +12,8 @@ namespace VoxelSpace.SceneGraph {
 
         public virtual void Dispose() {}
 
+        public virtual void OnScreenResize(int width, int height) {}
+
     }
 
 }
