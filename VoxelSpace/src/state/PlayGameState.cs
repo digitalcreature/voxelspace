@@ -20,6 +20,9 @@ namespace VoxelSpace {
         VoxelSystemSceneRenderer _sceneRenderer;
 
         HUD _hud;
+        PauseMenu _pauseMenu;
+
+        bool _isPaused;
 
         public PlayGameState() {
 
@@ -28,8 +31,11 @@ namespace VoxelSpace {
         protected override void OnEnter(GameState previous) {
             _scene = new VoxelSystemScene();
             _sceneRenderer = new VoxelSystemSceneRenderer();
-            _hud = new HUD(1080/3, G.Assets.GetAsset<Skin>("core:ui.skin"));
+            var skin = G.Assets.GetAsset<Skin>("core:ui.skin");
+            _hud = new HUD(1080/3, skin);
             _hud.Player = _scene.Player;
+            _pauseMenu = new PauseMenu(1080/3, skin);
+            _pauseMenu.OnUnpause = Unpause;
         }
 
         protected override void OnLeave(GameState next) {
@@ -41,6 +47,26 @@ namespace VoxelSpace {
 
         public override void Update() {
             _scene?.Update();
+            if (_scene.Player.Input.WasKeyPressed(Keys.Escape)) {
+                Pause();
+            }
+            if (!G.Game.IsActive) {
+                Pause();
+            }
+        }
+
+        public void Pause() {
+            if (!_isPaused) {
+                _isPaused = true;
+                _pauseMenu.Input.PushActive();
+            }
+        }
+
+        public void Unpause() {
+            if (_isPaused) {
+                _isPaused = false;
+                InputHandle.PopActive();
+            }
         }
 
         public override void Draw() {
@@ -48,6 +74,9 @@ namespace VoxelSpace {
             graphics.Clear(Color.CornflowerBlue);
             _sceneRenderer?.Render(_scene);
             _hud.Draw();
+            if (_isPaused) {
+                _pauseMenu.Draw();
+            }
             // _ui.StartDraw();
             // float iconSize = 32;
             // // _ui.DrawVoxelType(_player.VoxelTypeToPlace, _ui.Anchors.TopRight - new Vector2(-iconSize, 0), iconSize);
@@ -68,6 +97,7 @@ namespace VoxelSpace {
 
         public override void OnScreenResize(int width, int height) {
             _hud.SetHeight(height / 3);
+            _pauseMenu.SetHeight(height / 3);
             _sceneRenderer?.OnScreenResize(width, height);
         }
 
