@@ -65,7 +65,8 @@ namespace VoxelSpace {
                 voxelType.CreateVoxelIconMesh(voxelIconMaterial);
             }
 
-            GameState.EnterState(new PlayGameState());
+            // GameState.EnterState(new PlayGameState());
+            GameState.EnterState(new MainMenuState());
         }
 
         protected override void Update(GameTime gameTime) {
