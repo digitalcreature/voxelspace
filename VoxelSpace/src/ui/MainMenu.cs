@@ -16,7 +16,7 @@ namespace VoxelSpace {
             var layout = CreateLayout();
             if (Button(layout.Next(), "Single Player"))
                 PushScreen(SinglePlayer);
-            Button(layout.Next(), "Multiplayer");
+            Button(layout.Next(), "Multiplayer", true);
             Button(layout.Next(), "Options");
             if (Button(layout.Next(), "Quit"))
                 G.Game.Exit();
