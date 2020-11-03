@@ -24,8 +24,9 @@ namespace VoxelSpace {
 
         void SinglePlayer() {
             var layout = CreateLayout();
-            Button(layout.Next(), "New");
-            Button(layout.Next(), "Load");
+            if(Button(layout.Next(), "New Game")) {
+                GameState.EnterState(new PlayGameState());
+            }
         }
         
         Layout CreateLayout() {
@@ -36,7 +37,7 @@ namespace VoxelSpace {
         }
 
         protected override bool DrawBackButton() {
-            return Button(new Rect(Anchors.BottomLeft + new Vector2(16, -32), 128, 16), "Back");
+            return Button(new Rect(Anchors.BottomLeft + new Vector2(16, -34), 128, 18), "Back");
         }
     }
 

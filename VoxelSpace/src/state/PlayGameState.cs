@@ -66,6 +66,7 @@ namespace VoxelSpace {
             if (_isPaused) {
                 _isPaused = false;
                 InputHandle.PopActive();
+                Input.MouseUtil.SetRawPositionState(Vector2.Zero);
             }
         }
 

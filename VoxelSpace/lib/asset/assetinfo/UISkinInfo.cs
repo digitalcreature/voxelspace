@@ -264,7 +264,7 @@ namespace VoxelSpace.Assets {
         }
 
         protected override TileFont Create() {
-            return new TileFont(texture, _charSpacing, _lineSpacing, _spaceWidth, _baseLine);
+            return new TileFont(texture, _charSpacing, _spaceWidth, _baseLine, _lineSpacing);
         }
 
 

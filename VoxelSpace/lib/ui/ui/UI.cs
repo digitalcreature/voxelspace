@@ -22,16 +22,29 @@ namespace VoxelSpace.UI {
 
         BlendState _lastBlendState;
         DepthStencilState _lastDepthStencilState;
+        static readonly RasterizerState SCISSORSTATE = new RasterizerState() {
+            ScissorTestEnable = true
+        };
 
         public static void Initialize(GameWindow window) {
-            window.TextInput += TextBoxState.OnCharTyped;
         }
 
         public UI(float height, Skin skin) {
             Primitives.Initialize();
             Input = new Input.InputHandle();
             Skin = skin;
+            G.Game.Window.TextInput += OnCharTyped;
             SetHeight(height);
+        }
+
+        ~UI() {
+            // NOTE: this is a workaround that wont be necessary when listening to this event is moved to the input system.
+            // for now, we have each ui subscribe to this event for its text inputs
+            G.Game.Window.TextInput -= OnCharTyped;
+        }
+
+        void OnCharTyped(object sender, TextInputEventArgs e) {
+            TextBoxState.OnCharTyped(this, e);
         }
 
         public void SetHeight(float height) {
@@ -103,6 +116,21 @@ namespace VoxelSpace.UI {
             point.X -= Width / 2;
             point.Y -= Height / 2;
             return point;
+        }
+
+        public Vector2 CanvasToScreenPoint(Vector2 point) {
+            var scale = Width / G.Graphics.Viewport.Width;
+            point.X += Width / 2;
+            point.Y += Height / 2;
+            point /= scale;
+            return point;
+        }
+
+        public Rect CanvasToScreenRect(Rect rect) {
+            var scale = Width / G.Graphics.Viewport.Width;
+            rect.Position = CanvasToScreenPoint(rect.Position);
+            rect.Size /= scale;
+            return rect;
         }
 
     }

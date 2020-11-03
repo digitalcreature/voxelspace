@@ -45,6 +45,20 @@ namespace VoxelSpace.UI {
                 && point.Y >= min.Y && point.Y <= max.Y;
         }
 
+        public override string ToString() {
+            return $"p: {Position} s: {Size}";
+        }
+
+        public Rect Pad(Padding padding) {
+            Position += padding.Min;
+            Size -= padding.Min + padding.Max;
+            return this;
+        }
+
+        public static implicit operator Rectangle(Rect rect) {
+            return new Rectangle((int) rect.Position.X, (int) rect.Position.Y, (int) rect.Size.X, (int) rect.Size.Y);
+        }
+
         public Vector2 GetTextPosition(Padding padding, HorizontalAlign halign, VerticalAlign valign) {
             Vector2 textPosition = new Vector2();
             switch (halign) {

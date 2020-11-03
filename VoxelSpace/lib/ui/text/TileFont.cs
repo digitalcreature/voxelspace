@@ -156,11 +156,16 @@ namespace VoxelSpace.UI {
                 r.Size.X = _charWidth[0];
             }
             else {
-                int ci = GetCharacterIndex(text[index]);
-                if (ci == -1) {
-                    ci = 0;
+                if (text[index] == ' ') {
+                    r.Size.X = SpaceWidth;
                 }
-                r.Size.X = _charWidth[ci];
+                else {
+                    int ci = GetCharacterIndex(text[index]);
+                    if (ci == -1) {
+                        ci = 0;
+                    }
+                    r.Size.X = _charWidth[ci];
+                }
             }
             return r;
         }

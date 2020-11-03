@@ -65,8 +65,8 @@ namespace VoxelSpace {
                 voxelType.CreateVoxelIconMesh(voxelIconMaterial);
             }
 
-            // GameState.EnterState(new PlayGameState());
             GameState.EnterState(new MainMenuState());
+            GameState.ApplyNextState();
         }
 
         protected override void Update(GameTime gameTime) {
@@ -77,6 +77,7 @@ namespace VoxelSpace {
             InputHandle.Update();
             Time.Update(gameTime);
             IsMouseVisible = !IsActive || InputHandle.Active.IsCursorVisible;
+            GameState.ApplyNextState();
         }
 
         protected override void OnExiting(Object sender, EventArgs args) {

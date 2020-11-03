@@ -16,11 +16,13 @@ namespace VoxelSpace {
 
         void Root() {
             Rect start = new Rect();
-            start.Size = new Vector2(128, 16);
+            start.Size = new Vector2(128, 18);
             start.Center = Anchors.MidCenter - new Vector2(0, 64);
             var layout = Layout.Vertical(start, 4);
             Button(layout.Next(), "Options");
-            Button(layout.Next(), "Save and Quit");
+            if(Button(layout.Next(), "Save and Quit")) {
+                GameState.EnterState(new MainMenuState());
+            }
             layout.Next();
             layout.Next();
             layout.Next();
