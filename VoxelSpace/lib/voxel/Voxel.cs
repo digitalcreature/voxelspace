@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Microsoft.Xna.Framework;
 
 namespace VoxelSpace {
@@ -28,7 +29,7 @@ namespace VoxelSpace {
         
     }
 
-    public struct VoxelData {
+    public struct VoxelData : IO.IBinaryWritable {
 
         public static readonly VoxelData Empty = new VoxelData(0, 0);
 
@@ -48,6 +49,16 @@ namespace VoxelSpace {
         public VoxelData(ushort type, ushort data = 0) {
             TypeIndex = type;
             Data = data;
+        }
+
+        public VoxelData(BinaryReader reader) {
+            TypeIndex = reader.ReadUInt16();
+            Data = reader.ReadUInt16();
+        }
+
+        public void WriteBinary(BinaryWriter writer) {
+            writer.Write(TypeIndex);
+            writer.Write(Data);
         }
     }
 

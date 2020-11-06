@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 
 namespace VoxelSpace {
 
-    public class CubicGravityField : GravityField {
+    public class CubicGravityField : GravityField, IO.IBinaryWritable {
 
         public float Radius = 1;
 
@@ -13,6 +14,11 @@ namespace VoxelSpace {
         public CubicGravityField(float radius, float gravityStrength) {
             Radius = radius;
             GravityStrength = gravityStrength;
+        }
+
+        public CubicGravityField(BinaryReader reader) {
+            Radius = reader.ReadSingle();
+            GravityStrength = reader.ReadSingle();
         }
 
         public override Vector3 GetGravityDirection(Vector3 p) {
@@ -43,6 +49,10 @@ namespace VoxelSpace {
             return GravityStrength;
         }
 
+        public void WriteBinary(BinaryWriter writer) {
+            writer.Write(Radius);
+            writer.Write(GravityStrength);
+        }
     }
 
 }

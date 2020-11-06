@@ -1,11 +1,14 @@
 using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
 
 namespace VoxelSpace {
 
-    public class VoxelTypeIndex : ICollection<VoxelType> {
+    using IO;
+
+    public class VoxelTypeIndex : ICollection<VoxelType>, IBinaryWritable {
 
         VoxelType[] _forward;
         Dictionary<VoxelType, ushort> _reverse;
@@ -38,6 +41,24 @@ namespace VoxelSpace {
         public VoxelTypeIndex() {
             _reverse = new Dictionary<VoxelType, ushort>();
             Clear();
+        }
+
+        public VoxelTypeIndex(BinaryReader reader) : this() {
+            Count = reader.ReadInt32();
+            var assets = G.Assets;
+            for (ushort i = 1; i < Count; i ++) {
+                var id = reader.ReadString();
+                var type = assets.GetAsset<VoxelType>(id);
+                _forward[i] = type;
+                _reverse[type] = i;
+            }
+        }
+
+        public void WriteBinary(BinaryWriter writer) {
+            writer.Write(Count);
+            for (int i = 1; i < Count; i ++) {
+                writer.Write(_forward[i].Identifier);
+            }
         }
 
         /// <summary>
@@ -99,6 +120,7 @@ namespace VoxelSpace {
             => throw new System.NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
 
         struct Enumerator : IEnumerator<VoxelType> {
 

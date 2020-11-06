@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Microsoft.Xna.Framework;
 
 namespace VoxelSpace {
@@ -13,7 +14,7 @@ namespace VoxelSpace {
     /// <br/> Local -> Coordinates of voxels in relation to a single chunk (1 unit = 1 voxel)
     /// <br/> Chunk -> Coordinates of chunks within the volume (1 unit = 1 chunk)
     /// </summary>
-    public struct Coords {
+    public struct Coords : IO.IBinaryWritable {
 
         /// <summary>X coordinate</summary>
         public int X;
@@ -26,6 +27,12 @@ namespace VoxelSpace {
         public static readonly Coords ZERO = new Coords(0, 0, 0);
         /// <summary>(1, 1, 1)</summary>
         public static readonly Coords ONE = new Coords(1, 1, 1);
+
+        public Coords(BinaryReader reader) {
+            X = reader.ReadInt32();
+            Y = reader.ReadInt32();
+            Z = reader.ReadInt32();
+        }
 
         public Coords(int x, int y, int z) {
             X = x;
@@ -98,6 +105,11 @@ namespace VoxelSpace {
             z = Z;
         }
 
+        public void WriteBinary(BinaryWriter writer) {
+            writer.Write(X);
+            writer.Write(Y);
+            writer.Write(Z);
+        }
     }
 
 }

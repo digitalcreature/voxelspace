@@ -25,7 +25,7 @@ namespace VoxelSpace {
         void SinglePlayer() {
             var layout = CreateLayout();
             if(Button(layout.Next(), "New Game")) {
-                GameState.EnterState(new PlayGameState());
+                GameState.EnterState(new PlayGameState("planet.save"));
             }
         }
         

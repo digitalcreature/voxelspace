@@ -11,8 +11,12 @@ namespace VoxelSpace {
         
         public Action OnUnpause;
 
-        public PauseMenu(float height, Skin skin)
-            : base(height, skin) {}
+        public PlayGameState State { get; private set; }
+
+        public PauseMenu(PlayGameState state, float height, Skin skin)
+            : base(height, skin) {
+                State = state;
+            }
 
         void Root() {
             Rect start = new Rect();
@@ -21,6 +25,9 @@ namespace VoxelSpace {
             var layout = Layout.Vertical(start, 4);
             Button(layout.Next(), "Options");
             if(Button(layout.Next(), "Save and Quit")) {
+                using (var writer = IO.BinaryFile.OpenWrite(State.SavePath)) {
+                    State.Scene.Planet.WriteBinary(writer);
+                }
                 GameState.EnterState(new MainMenuState());
             }
             layout.Next();

@@ -10,7 +10,7 @@ namespace VoxelSpace {
 
     public class PlayerEntity : SceneObject {
 
-        public VoxelBody VoxelBody { get; private set; }
+        public Planet Planet { get; private set; }
 
         public MouseLook MouseLook { get; private set; }
 
@@ -83,10 +83,10 @@ namespace VoxelSpace {
         }
 
         public override void Update() {
-            var g = VoxelBody.Gravity.GetGravityStrength(Transform.LocalPosition);
-            var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.LocalPosition);
+            var g = Planet.Gravity.GetGravityStrength(Transform.LocalPosition);
+            var gDir = Planet.Gravity.GetGravityDirection(Transform.LocalPosition);
             UpdateOrientation();
-            VoxelBody.Gravity.AlignToGravity(Transform);
+            Planet.Gravity.AlignToGravity(Transform);
             Vector2 lookDelta;
             if (Input.IsActive) {
                 lookDelta = MouseLook.Update();
@@ -115,7 +115,7 @@ namespace VoxelSpace {
                 }
                 moveH = Vector3.TransformNormal(moveH, alignMatrix);
                 moveH *= Time.DeltaTime;
-                _bounds.MoveInCollisionGrid(moveH, VoxelBody.Volume);
+                _bounds.MoveInCollisionGrid(moveH, Planet.Volume);
                 // update vertical speed and move vertically
                 if (IsGrounded && Input.IsKeyDown(Keys.Space)) {
                     // jump height depends on gravity direction
@@ -135,16 +135,16 @@ namespace VoxelSpace {
             if (_selectedIndex >= PlaceableVoxelTypes.Count) {
                 _selectedIndex %= PlaceableVoxelTypes.Count;
             }
-            if (VoxelBody.Volume.Raycast(HeadPosition, AimDirection, 5, (v) => v.IsSolid, out var result)) {
+            if (Planet.Volume.Raycast(HeadPosition, AimDirection, 5, (v) => v.IsSolid, out var result)) {
                 IsAimValid = true;
                 AimedVoxel = result;
                 if (Input.WasMouseButtonPressed(MouseButton.Left)) {
-                    VoxelBody.ChangeManager.RequestSingleChange(AimedVoxel.Coords, null);
+                    Planet.ChangeManager.RequestSingleChange(AimedVoxel.Coords, null);
                 }
                 else if (Input.WasMouseButtonPressed(MouseButton.Right) && AimedVoxel.Normal != Vector3.Zero) {
                     if (VoxelTypeToPlace != null) {
                         var coords = AimedVoxel.Coords + (Coords) AimedVoxel.Normal;
-                        VoxelBody.ChangeManager.RequestSingleChange(coords, VoxelTypeToPlace);
+                        Planet.ChangeManager.RequestSingleChange(coords, VoxelTypeToPlace);
                     }
                 }
             }
@@ -156,7 +156,7 @@ namespace VoxelSpace {
         void MoveVertical(Vector3 delta) {
             // first move along orientation axis
             var vDelta = delta.Project(OrientationNormal);
-            var actualMove = _bounds.MoveInCollisionGrid(vDelta, VoxelBody.Volume);
+            var actualMove = _bounds.MoveInCollisionGrid(vDelta, Planet.Volume);
             if (actualMove != vDelta) {
                 if (_vSpeed < 0) {
                     // if we were moving down, we are grounded now
@@ -171,12 +171,12 @@ namespace VoxelSpace {
                 // move horizontally
                 // we only do this if we aren't grounded so we dont slide around
                 var hDelta = delta - vDelta;
-                _bounds.MoveInCollisionGrid(hDelta, VoxelBody.Volume);
+                _bounds.MoveInCollisionGrid(hDelta, Planet.Volume);
             }
         }
 
         void UpdateOrientation() {
-            var gDir = VoxelBody.Gravity.GetGravityDirection(Transform.LocalPosition);
+            var gDir = Planet.Gravity.GetGravityDirection(Transform.LocalPosition);
             Orientation = (-gDir).ToAxisAlignedOrientation();;
             OrientationNormal = Orientation.ToNormal();
             _bounds.Size = Vector3.One * _playerWidth;
@@ -209,8 +209,8 @@ namespace VoxelSpace {
             IsFrozen = false;
         }
 
-        public void SetVoxelBody(VoxelBody body) {
-            VoxelBody = body;
+        public void SetPlanet(Planet planet) {
+            Planet = planet;
 
         }
     }

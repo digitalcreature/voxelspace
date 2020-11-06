@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading;
 using System.Diagnostics;
 using System.Collections;
@@ -8,10 +9,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace VoxelSpace {
 
+    using IO;
+
     /// <summary>
     /// Represents a volume of voxels as a sparse grid of chunks.
     /// </summary>
-    public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid {
+    public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid, IBinaryWritable {
 
         Dictionary<Coords, VoxelChunk> _chunks;
 
@@ -60,6 +63,20 @@ namespace VoxelSpace {
             OrientationField = orientationField;
             ChunkRegion = new Region();
             _enumerationMutex = new Mutex();
+        }
+
+        public VoxelVolume(BinaryReader reader, IVoxelOrientationField orientationField = null) {
+            Index = new VoxelTypeIndex(reader);
+            _chunks = new Dictionary<Coords, VoxelChunk>();
+            OrientationField = orientationField;
+            ChunkRegion = new Region();
+            _enumerationMutex = new Mutex();
+            int chunkCount = reader.ReadInt32();
+            for (int i = 0; i < chunkCount; i ++) {
+                var chunk = new VoxelChunk(this, reader);
+                _chunks[chunk.Coords] = chunk;
+            }
+            calculateChunkRegion();
         }
 
         /// <summary>
@@ -302,6 +319,14 @@ namespace VoxelSpace {
             }
             result = new VoxelRaycastResult();
             return false;
+        }
+
+        public void WriteBinary(BinaryWriter writer) {
+            Index.WriteBinary(writer);
+            writer.Write(ChunkCount);
+            foreach (var chunk in _chunks.Values) {
+                chunk.WriteBinary(writer);
+            }
         }
     }
 

@@ -1,11 +1,14 @@
 using System;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Runtime.InteropServices;
 
 namespace VoxelSpace {
 
-    public class VoxelChunk : IDisposable {
+    using IO;
+
+    public class VoxelChunk : IDisposable, IBinaryWritable {
 
         public const int SIZE = 32;
 
@@ -28,8 +31,25 @@ namespace VoxelSpace {
             LightData = new VoxelChunkLightData();
         }
 
+        public unsafe VoxelChunk(VoxelVolume volume, BinaryReader reader) {
+            Volume = volume;
+            Coords = new Coords(reader);
+            Index = Volume.Index;
+            VoxelsData = new UnmanagedArray3<VoxelData>();
+            for (int i = 0; i < SIZE * SIZE * SIZE; i ++) {
+                *VoxelsData[i] = new VoxelData(reader);
+            }
+        }
+
         ~VoxelChunk() {
             Dispose();
+        }
+
+        public unsafe void WriteBinary(BinaryWriter writer) {
+            Coords.WriteBinary(writer);
+            for (int i = 0; i < SIZE * SIZE * SIZE; i ++) {
+                VoxelsData[i]->WriteBinary(writer);
+            }
         }
 
         public override string ToString() {

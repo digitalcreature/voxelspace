@@ -50,7 +50,7 @@ namespace VoxelSpace {
 
             // _ui.Input.MakeActive();
             Player.Input.MakeActive();
-            Player.SetVoxelBody(Planet);
+            Player.SetPlanet(Planet);
             AddObject(Player);
         }
 
