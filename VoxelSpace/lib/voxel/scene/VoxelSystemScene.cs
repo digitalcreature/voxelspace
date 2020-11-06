@@ -1,9 +1,12 @@
+using System.IO;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 using VoxelSpace.SceneGraph;
 
 namespace VoxelSpace {
+
+    using IO;
 
     public class VoxelSystemScene : Scene {
 
@@ -12,24 +15,36 @@ namespace VoxelSpace {
 
         public Vector3 SunDirection { get; private set; }
 
-        PlanetTerrainGenerator _terrainGenerator;
+        public string SavePath { get; private set; }
+
+        VoxelChunkProducer _chunkProducer;
         VoxelVolumeLightCalculator _lightCalculator;
         VoxelVolumeMeshGenerator _meshGenerator;
 
-        public VoxelSystemScene() {
+        public VoxelSystemScene(string savePath) {
+            SavePath = savePath;
             var assets = G.Assets;
-            Planet = new Planet(64, 20);
-            _terrainGenerator = new PlanetTerrainGenerator();
-            _terrainGenerator.MaxHeight = 16;
-            _terrainGenerator.Grass = assets.GetAsset<VoxelType>("core:grass");
-            _terrainGenerator.Stone = assets.GetAsset<VoxelType>("core:stone");
-            _terrainGenerator.Dirt = assets.GetAsset<VoxelType>("core:dirt");
+            if (File.Exists(savePath)) {
+                using (var reader = BinaryFile.OpenRead(SavePath)) {
+                    Planet = new Planet(reader);
+                }
+                _chunkProducer = VoxelChunkProducer.Bind();
+            }
+            else {
+                Planet = new Planet(64, 20);
+                var terrainGenerator = new PlanetTerrainGenerator();
+                terrainGenerator.MaxHeight = 16;
+                terrainGenerator.Grass = assets.GetAsset<VoxelType>("core:grass");
+                terrainGenerator.Stone = assets.GetAsset<VoxelType>("core:stone");
+                terrainGenerator.Dirt = assets.GetAsset<VoxelType>("core:dirt");
+                _chunkProducer = terrainGenerator;
+            }
             _lightCalculator = new VoxelVolumeLightCalculator();
             _meshGenerator = new VoxelVolumeMeshGenerator();
 
             // player
             var center = new Point(G.Game.Window.ClientBounds.Width / 2, G.Game.Window.ClientBounds.Height / 2);
-            var pos = new Vector3(0, Planet.Radius + _terrainGenerator.MaxHeight, 0);
+            var pos = new Vector3(0, Planet.Radius + 16, 0);
             Player = new PlayerEntity(pos, new MouseLook(center));
             var types = new List<VoxelType>();
             types.Add(assets.GetAsset<VoxelType>("core:grass"));
@@ -38,8 +53,8 @@ namespace VoxelSpace {
             Player.PlaceableVoxelTypes = types;
             Player.Freeze();
 
-            _terrainGenerator.Start(Planet.Volume);
-            _lightCalculator.Start(_terrainGenerator);
+            _chunkProducer.Start(Planet.Volume);
+            _lightCalculator.Start(_chunkProducer);
             _meshGenerator.Start(_lightCalculator);
 
             _meshGenerator.OnComplete += Player.UnFreeze;
@@ -56,7 +71,7 @@ namespace VoxelSpace {
 
         public override void Update() {
             base.Update();
-            _terrainGenerator.Update();
+            _chunkProducer.Update();
             _lightCalculator.Update();
             _meshGenerator.Update();
             // test day/night cycle

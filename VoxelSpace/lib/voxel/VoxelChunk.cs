@@ -31,11 +31,8 @@ namespace VoxelSpace {
             LightData = new VoxelChunkLightData();
         }
 
-        public unsafe VoxelChunk(VoxelVolume volume, BinaryReader reader) {
-            Volume = volume;
-            Coords = new Coords(reader);
-            Index = Volume.Index;
-            VoxelsData = new UnmanagedArray3<VoxelData>();
+        public unsafe VoxelChunk(VoxelVolume volume, BinaryReader reader)
+            : this(volume, new Coords(reader)){ 
             for (int i = 0; i < SIZE * SIZE * SIZE; i ++) {
                 *VoxelsData[i] = new VoxelData(reader);
             }

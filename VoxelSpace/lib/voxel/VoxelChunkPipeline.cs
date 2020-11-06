@@ -53,6 +53,19 @@ namespace VoxelSpace {
             }
         }
 
+        /// <summary>
+        /// Monadic bind.
+        /// </summary>
+        /// <returns>A producer that does nothing and just passes the volume's chunks on to the next step in the pipeline. This allows an existing volume to be processed by a pipeline</returns>
+        public static VoxelChunkProducer Bind() {
+            return new BoundProducer();
+        }
+
+        class BoundProducer : VoxelChunkProducer {
+
+            protected override void Process() {}
+        }
+
     }
 
     /// <summary>

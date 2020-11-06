@@ -31,7 +31,7 @@ namespace VoxelSpace {
         }
 
         protected override void OnEnter(GameState previous) {
-            Scene = new VoxelSystemScene();
+            Scene = new VoxelSystemScene(SavePath);
             _sceneRenderer = new VoxelSystemSceneRenderer();
             var skin = G.Assets.GetAsset<Skin>("core:ui.skin");
             _hud = new HUD(1080/3, skin);
