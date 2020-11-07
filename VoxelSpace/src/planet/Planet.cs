@@ -12,6 +12,10 @@ namespace VoxelSpace {
 
         public CubicGravityField Gravity;
 
+        public Planet() : base() {
+            Gravity = new CubicGravityField();
+        }
+
         public Planet(float radius, float gravityStrength)
             : base() {
             Radius = radius;
@@ -19,10 +23,10 @@ namespace VoxelSpace {
             Volume.OrientationField = new CubicVoxelOrientationField();
         }
 
-        public Planet(BinaryReader reader) : base(reader) {
+        public override void ReadBinary(BinaryReader reader){
+            base.ReadBinary(reader);
             Radius = reader.ReadSingle();
-            Gravity = new CubicGravityField(reader);
-            Volume.OrientationField = new CubicVoxelOrientationField();
+            Gravity.ReadBinary(reader);
         }
 
         public override void WriteBinary(BinaryWriter writer) {

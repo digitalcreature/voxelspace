@@ -8,7 +8,7 @@ namespace VoxelSpace {
 
     using IO;
 
-    public class VoxelChunk : IDisposable, IBinaryWritable {
+    public class VoxelChunk : IDisposable, IBinaryReadWritable {
 
         public const int SIZE = 32;
 
@@ -17,35 +17,39 @@ namespace VoxelSpace {
         public VoxelChunkMesh Mesh { get; private set; }
 
         public IndexedVoxels Voxels { get; private set; }
-        public UnmanagedArray3<VoxelData> VoxelsData { get; private set; }
+        public UnmanagedArray3<VoxelData> VoxelData { get; private set; }
         public VoxelChunkLightData LightData { get; private set; }
 
         public VoxelTypeIndex Index { get; private set; }
+
+        public bool WasDisposed { get; private set; }
 
         public VoxelChunk(VoxelVolume volume, Coords coords) {
             Volume = volume;
             Coords = coords;
             Index = Volume.Index;
-            VoxelsData = new UnmanagedArray3<VoxelData>();
+            VoxelData = new UnmanagedArray3<VoxelData>();
             Voxels = new IndexedVoxels(this);
             LightData = new VoxelChunkLightData();
-        }
-
-        public unsafe VoxelChunk(VoxelVolume volume, BinaryReader reader)
-            : this(volume, new Coords(reader)){ 
-            for (int i = 0; i < SIZE * SIZE * SIZE; i ++) {
-                *VoxelsData[i] = new VoxelData(reader);
-            }
         }
 
         ~VoxelChunk() {
             Dispose();
         }
 
-        public unsafe void WriteBinary(BinaryWriter writer) {
-            Coords.WriteBinary(writer);
+        void CheckDisposed() {
+            if (WasDisposed) throw new ObjectDisposedException(GetType().Name);
+        }
+
+        public unsafe void ReadBinary(BinaryReader reader) {
             for (int i = 0; i < SIZE * SIZE * SIZE; i ++) {
-                VoxelsData[i]->WriteBinary(writer);
+                VoxelData[i]->ReadBinary(reader);
+            }
+        }
+
+        public unsafe void WriteBinary(BinaryWriter writer) {
+            for (int i = 0; i < SIZE * SIZE * SIZE; i ++) {
+                VoxelData[i]->WriteBinary(writer);
             }
         }
 
@@ -54,6 +58,9 @@ namespace VoxelSpace {
         }
 
         public void SetMesh(VoxelChunkMesh mesh) {
+            if (WasDisposed) {
+                mesh.Dispose();
+            }
             if (!mesh.AreBuffersReady) {
                 throw new ArgumentException($"Cannot update chunk mesh for chunk at {Coords}: Mesh buffers aren't ready!");
             }
@@ -64,10 +71,10 @@ namespace VoxelSpace {
         }
 
         public void Dispose() {
+            WasDisposed = true;
+            VoxelData.Dispose();
             Mesh?.Dispose();
             LightData?.Dispose();
-            Mesh = null;
-            LightData = null;
         }
 
         public static bool AreLocalCoordsInBounds(Coords c) {
@@ -101,7 +108,7 @@ namespace VoxelSpace {
 
         public unsafe VoxelData* GetVoxelDataIncludingNeighbors(Coords c) {
             if (AreLocalCoordsInBounds(c)) {
-                return VoxelsData[c];
+                return VoxelData[c];
             }
             else {
                 return Volume.GetVoxelData(LocalToVolumeCoords(c));
@@ -145,7 +152,7 @@ namespace VoxelSpace {
             UnmanagedArray3<VoxelData> _data;
 
             public IndexedVoxels(VoxelChunk chunk) {
-                _data = chunk.VoxelsData;
+                _data = chunk.VoxelData;
                 _index = chunk.Index;
             }
 
@@ -159,18 +166,33 @@ namespace VoxelSpace {
                 set => *_data[i, j, k] = new VoxelData(_index.Add(value.Type), value.Data);
             }
 
+
         }
 
         public unsafe class UnmanagedArray3<T> : IDisposable where T : unmanaged {
 
+            public bool WasDisposed { get; private set; }
+
             T* data;
 
-            public T* this[int x, int y, int z]
-                => &data[x + y * SIZE + z * SIZE * SIZE];
-            public T* this[Coords c]
-                => &data[c.X + c.Y * SIZE + c.Z * SIZE * SIZE];
-            public T* this[int offset]
-                => &data[offset];
+            public T* this[int x, int y, int z] {
+                get {
+                    CheckDisposed();
+                    return &data[x + y * SIZE + z * SIZE * SIZE];
+                }
+            }
+            public T* this[Coords c] {
+                get {
+                    CheckDisposed();
+                    return &data[c.X + c.Y * SIZE + c.Z * SIZE * SIZE];
+                }
+            }
+            public T* this[int offset] {
+                get {
+                    CheckDisposed();
+                    return &data[offset];
+                }
+            }
 
             public UnmanagedArray3() {
                 int size = Marshal.SizeOf<T>() * SIZE * SIZE * SIZE;
@@ -185,10 +207,15 @@ namespace VoxelSpace {
             }
 
             public void Dispose() {
+                WasDisposed = true;
                 if (data != null) {
                     Marshal.FreeHGlobal((IntPtr) data);
                     data = null;
                 }
+            }
+
+            void CheckDisposed() {
+                if (WasDisposed) throw new ObjectDisposedException(GetType().Name);
             }
 
             public static int GetIndex(int x, int y, int z) => x + y * SIZE + z * SIZE * SIZE;

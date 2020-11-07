@@ -25,10 +25,13 @@ namespace VoxelSpace {
         }
 
         void GenerateChunkMesh(object o) {
-            var chunk = (VoxelChunk) o;
-            var mesh = new VoxelChunkMesh(chunk);
-            mesh.GenerateGeometryAndLighting();
-            _dirtyMeshes.Enqueue(mesh);
+            if (!WasAborted) {
+                VoxelChunkMesh mesh = null;
+                var chunk = (VoxelChunk) o;
+                mesh = new VoxelChunkMesh(chunk);
+                mesh.GenerateGeometryAndLighting();
+                _dirtyMeshes.Enqueue(mesh);
+            }
         }
 
         public override void Update() {

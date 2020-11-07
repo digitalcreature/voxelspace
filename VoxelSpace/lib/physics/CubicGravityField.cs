@@ -5,21 +5,19 @@ using Microsoft.Xna.Framework;
 
 namespace VoxelSpace {
 
-    public class CubicGravityField : GravityField, IO.IBinaryWritable {
+    public class CubicGravityField : GravityField, IO.IBinaryReadWritable {
 
         public float Radius = 1;
 
         public float GravityStrength;
+
+        public CubicGravityField() {}
 
         public CubicGravityField(float radius, float gravityStrength) {
             Radius = radius;
             GravityStrength = gravityStrength;
         }
 
-        public CubicGravityField(BinaryReader reader) {
-            Radius = reader.ReadSingle();
-            GravityStrength = reader.ReadSingle();
-        }
 
         public override Vector3 GetGravityDirection(Vector3 p) {
             if (p.LengthSquared() < (Radius * Radius)) {
@@ -52,6 +50,11 @@ namespace VoxelSpace {
         public void WriteBinary(BinaryWriter writer) {
             writer.Write(Radius);
             writer.Write(GravityStrength);
+        }
+
+        public void ReadBinary(BinaryReader reader) {
+            Radius = reader.ReadSingle();
+            GravityStrength = reader.ReadSingle();
         }
     }
 

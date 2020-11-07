@@ -25,9 +25,7 @@ namespace VoxelSpace {
             var layout = Layout.Vertical(start, 4);
             Button(layout.Next(), "Options");
             if(Button(layout.Next(), "Save and Quit")) {
-                using (var writer = IO.BinaryFile.OpenWrite(State.SavePath)) {
-                    State.Scene.Planet.WriteBinary(writer);
-                }
+                State.Scene.Save();
                 GameState.EnterState(new MainMenuState());
             }
             layout.Next();

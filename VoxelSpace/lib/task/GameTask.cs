@@ -15,8 +15,9 @@ namespace VoxelSpace.Tasks {
 
         public bool HasStarted { get; private set; } = false;
         public bool HasCompleted { get; private set; } = false;
+        public bool WasAborted { get; private set; } = false;
 
-        public bool IsRunning => HasStarted && !HasCompleted;
+        public bool IsRunning => HasStarted && !HasCompleted && !WasAborted;
 
         ManualResetEvent _onComplete;
 
@@ -41,17 +42,29 @@ namespace VoxelSpace.Tasks {
         }
 
         public void Start() {
-            if (!HasStarted) {
+            if (!HasStarted && !WasAborted) {
                 HasStarted = true;
                 BeforeStart();
                 ThreadPool.QueueUserWorkItem(process);
             }
         }
 
+        public void Abort() {
+            WasAborted = true;
+        }
+
+        protected virtual void ExceptionCaught(Exception e) {
+            throw e;
+        }
 
         void process(object state) {
             var sw = Stopwatch.StartNew();
-            Process();
+            try {
+                Process();
+            }
+            catch (Exception e) {
+                ExceptionCaught(e);
+            }
             BeforeComplete();
             Logger.Info(this, $"Finished ({(sw.ElapsedMilliseconds / 1000f).ToString("F3")}s)");
             HasCompleted = true;

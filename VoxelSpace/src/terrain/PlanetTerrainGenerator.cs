@@ -65,10 +65,10 @@ namespace VoxelSpace {
                     for (int j = 0; j < VoxelChunk.SIZE; j ++) {
                         for (int k = 0; k < VoxelChunk.SIZE; k ++) {
                             if (IsInCave(chunk.LocalToVolumeCoords(new Coords(i, j, k)))) {
-                                *chunk.VoxelsData[i, j, k] = VoxelData.Empty;
+                                *chunk.VoxelData[i, j, k] = VoxelData.Empty;
                             }
                             else {
-                                *chunk.VoxelsData[i, j, k] = _stoneData;
+                                *chunk.VoxelData[i, j, k] = _stoneData;
                             }
                         }
                     }
@@ -80,7 +80,7 @@ namespace VoxelSpace {
                         for (int k = 0; k < VoxelChunk.SIZE; k ++) {
                             var vc = chunk.LocalToVolumeCoords(new Coords(i, j, k));
                             if (IsInCave(vc)) {
-                               * chunk.VoxelsData[i, j, k] = VoxelData.Empty;
+                               * chunk.VoxelData[i, j, k] = VoxelData.Empty;
                             }
                             else {
                                 var vpos = vc + Vector3.One * 0.5f;
@@ -108,7 +108,7 @@ namespace VoxelSpace {
                                 else {
                                     data = _stoneData;
                                 }
-                                *chunk.VoxelsData[i, j, k] = data;
+                                *chunk.VoxelData[i, j, k] = data;
                             }
                         }
                     }

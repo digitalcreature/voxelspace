@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 
 using VoxelSpace.SceneGraph;
 using VoxelSpace.Input;
+using System.IO;
 
 namespace VoxelSpace {
 
@@ -212,6 +213,16 @@ namespace VoxelSpace {
         public void SetPlanet(Planet planet) {
             Planet = planet;
 
+        }
+
+        public override void ReadBinary(BinaryReader reader) {
+            base.ReadBinary(reader);
+            MouseLook.ReadBinary(reader);
+        }
+
+        public override void WriteBinary(BinaryWriter writer) {
+            base.WriteBinary(writer);
+            MouseLook.WriteBinary(writer);
         }
     }
 

@@ -16,22 +16,24 @@ namespace VoxelSpace {
         public Vector3 SunDirection { get; private set; }
 
         public string SavePath { get; private set; }
+        string _planetPath;
+        string _playerPath;
 
         VoxelChunkProducer _chunkProducer;
         VoxelVolumeLightCalculator _lightCalculator;
         VoxelVolumeMeshGenerator _meshGenerator;
 
         public VoxelSystemScene(string savePath) {
+            _planetPath = Path.Join(savePath, "planet");
+            _playerPath = Path.Join(savePath, "player");
             SavePath = savePath;
             var assets = G.Assets;
-            if (File.Exists(savePath)) {
-                using (var reader = BinaryFile.OpenRead(SavePath)) {
-                    Planet = new Planet(reader);
-                }
+            Planet = new Planet(64, 20);
+            if (File.Exists(_planetPath)) {
+                BinaryFile.Read(_planetPath, Planet);
                 _chunkProducer = VoxelChunkProducer.Bind();
             }
             else {
-                Planet = new Planet(64, 20);
                 var terrainGenerator = new PlanetTerrainGenerator();
                 terrainGenerator.MaxHeight = 16;
                 terrainGenerator.Grass = assets.GetAsset<VoxelType>("core:grass");
@@ -51,6 +53,10 @@ namespace VoxelSpace {
             types.Add(assets.GetAsset<VoxelType>("core:stone"));
             types.Add(assets.GetAsset<VoxelType>("core:dirt"));
             Player.PlaceableVoxelTypes = types;
+
+            if (File.Exists(_playerPath)) {
+                BinaryFile.Read(_playerPath, Player);
+            }
             Player.Freeze();
 
             _chunkProducer.Start(Planet.Volume);
@@ -67,6 +73,13 @@ namespace VoxelSpace {
             Player.Input.MakeActive();
             Player.SetPlanet(Planet);
             AddObject(Player);
+        }
+
+        public void Save() {
+            if (_chunkProducer.HasCompleted) {
+                BinaryFile.Write(_planetPath, Planet);
+            }
+            BinaryFile.Write(_playerPath, Player);
         }
 
         public override void Update() {

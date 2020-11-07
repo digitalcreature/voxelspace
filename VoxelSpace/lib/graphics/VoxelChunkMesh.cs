@@ -25,9 +25,6 @@ namespace VoxelSpace {
             _vertBuffer?.Dispose();
             _lightBuffer?.Dispose();
             _trisBuffer?.Dispose();
-            _vertBuffer = null;
-            _lightBuffer = null;
-            _trisBuffer = null;
         }
 
         public void ApplyChanges() {

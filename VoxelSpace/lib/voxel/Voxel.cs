@@ -29,7 +29,7 @@ namespace VoxelSpace {
         
     }
 
-    public struct VoxelData : IO.IBinaryWritable {
+    public struct VoxelData : IO.IBinaryReadWritable {
 
         public static readonly VoxelData Empty = new VoxelData(0, 0);
 
@@ -51,14 +51,14 @@ namespace VoxelSpace {
             Data = data;
         }
 
-        public VoxelData(BinaryReader reader) {
-            TypeIndex = reader.ReadUInt16();
-            Data = reader.ReadUInt16();
-        }
-
         public void WriteBinary(BinaryWriter writer) {
             writer.Write(TypeIndex);
             writer.Write(Data);
+        }
+
+        public void ReadBinary(BinaryReader reader) {
+            TypeIndex = reader.ReadUInt16();
+            Data = reader.ReadUInt16();
         }
     }
 

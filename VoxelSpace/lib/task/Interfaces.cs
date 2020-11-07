@@ -20,6 +20,9 @@ namespace VoxelSpace.Tasks {
         bool HasCompleted { get; }
         /// <summary>Is the task currently running?</summary>
         bool IsRunning { get; }
+        /// <summary>Was this task aborted?</summary>
+        /// <value></value>
+        bool WasAborted { get; }
 
         /// <summary>
         /// How far along is this task?
@@ -41,6 +44,11 @@ namespace VoxelSpace.Tasks {
         /// Block the current thread until the task is complete.
         /// </summary>
         void Wait();
+
+        /// <summary>
+        /// Abort the task
+        /// </summary>
+        void Abort();
 
     }
 

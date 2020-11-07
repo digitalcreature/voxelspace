@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 
 namespace VoxelSpace.SceneGraph {
 
-    public class Transform {
+    using IO;
+
+    public class Transform : IBinaryReadWritable {
 
         public string Name {
             get => Owner.Name;
@@ -75,6 +78,15 @@ namespace VoxelSpace.SceneGraph {
             }
         }
 
+        public void ReadBinary(BinaryReader reader) {
+            LocalPosition.ReadBinary(reader);
+            LocalRotation.ReadBinary(reader);
+        }
+
+        public void WriteBinary(BinaryWriter writer) {
+            LocalPosition.WriteBinary(writer);
+            LocalRotation.WriteBinary(writer);
+        }
     }
 
 }

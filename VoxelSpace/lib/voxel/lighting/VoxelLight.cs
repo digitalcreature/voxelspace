@@ -113,7 +113,6 @@ namespace VoxelSpace {
                 foreach (var channel in data) {
                     channel.Dispose();
                 }
-                data = null;
             }
         }
 

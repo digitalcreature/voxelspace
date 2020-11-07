@@ -53,6 +53,10 @@ namespace VoxelSpace {
             }
         }
 
+        protected override void ExceptionCaught(Exception e) {
+            e.Filter<ObjectDisposedException>()?.Throw();
+        }
+
         /// <summary>
         /// Monadic bind.
         /// </summary>
@@ -80,6 +84,10 @@ namespace VoxelSpace {
 
         public VoxelChunkConsumer() : base() {}
 
+        protected override void ExceptionCaught(Exception e) {
+            e.Filter<ObjectDisposedException>()?.Throw();
+        }
+
     }
 
     /// <summary>
@@ -103,6 +111,11 @@ namespace VoxelSpace {
                 // handle error here
             }
         }
+
+        protected override void ExceptionCaught(Exception e) {
+            e.Filter<ObjectDisposedException>()?.Throw();
+        }
+        
     }
 
 }

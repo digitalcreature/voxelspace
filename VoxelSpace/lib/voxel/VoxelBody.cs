@@ -9,18 +9,13 @@ using VoxelSpace.SceneGraph;
 namespace VoxelSpace {
 
     // represents a physical body made of voxels, like a planet, ship, asteroid, etc
-    public class VoxelBody : SceneObject, IDisposable, IO.IBinaryWritable {
+    public class VoxelBody : SceneObject, IDisposable, IO.IBinaryReadWritable {
 
         public VoxelVolume Volume { get; private set; }
         public VoxelVolumeChangeManager ChangeManager { get; private set; }
 
         public VoxelBody() : base() {
             Volume = new VoxelVolume();
-            ChangeManager = new VoxelVolumeChangeManager(Volume);
-        }
-
-        public VoxelBody(BinaryReader reader) {
-            Volume = new VoxelVolume(reader);
             ChangeManager = new VoxelVolumeChangeManager(Volume);
         }
 
@@ -38,7 +33,13 @@ namespace VoxelSpace {
             StopThreads();
         }
 
-        public virtual void WriteBinary(BinaryWriter writer) {
+        public override void ReadBinary(BinaryReader reader) {
+            base.ReadBinary(reader);
+            Volume.ReadBinary(reader);
+        }
+
+        public override void WriteBinary(BinaryWriter writer) {
+            base.WriteBinary(writer);
             Volume.WriteBinary(writer);
         }
     }

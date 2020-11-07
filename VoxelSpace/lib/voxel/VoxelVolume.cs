@@ -14,12 +14,14 @@ namespace VoxelSpace {
     /// <summary>
     /// Represents a volume of voxels as a sparse grid of chunks.
     /// </summary>
-    public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid, IBinaryWritable {
+    public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid, IBinaryReadWritable {
 
         Dictionary<Coords, VoxelChunk> _chunks;
 
         /// <summary>The count of chunks currently in the volume</summary>
         public int ChunkCount => _chunks.Count;
+
+        public bool WasDisposed { get; private set; }
 
         public VoxelTypeIndex Index { get; private set; }
 
@@ -65,18 +67,25 @@ namespace VoxelSpace {
             _enumerationMutex = new Mutex();
         }
 
-        public VoxelVolume(BinaryReader reader, IVoxelOrientationField orientationField = null) {
-            Index = new VoxelTypeIndex(reader);
-            _chunks = new Dictionary<Coords, VoxelChunk>();
-            OrientationField = orientationField;
-            ChunkRegion = new Region();
-            _enumerationMutex = new Mutex();
+        public void ReadBinary(BinaryReader reader) {
+            Index.ReadBinary(reader);
             int chunkCount = reader.ReadInt32();
             for (int i = 0; i < chunkCount; i ++) {
-                var chunk = new VoxelChunk(this, reader);
-                _chunks[chunk.Coords] = chunk;
+                var coords = new Coords();
+                coords.ReadBinary(reader);
+                var chunk = AddChunk(coords);
+                chunk.ReadBinary(reader);
             }
             calculateChunkRegion();
+        }
+
+        public void WriteBinary(BinaryWriter writer) {
+            Index.WriteBinary(writer);
+            writer.Write(ChunkCount);
+            foreach (var chunk in _chunks.Values) {
+                chunk.Coords.WriteBinary(writer);
+                chunk.WriteBinary(writer);
+            }
         }
 
         /// <summary>
@@ -127,11 +136,11 @@ namespace VoxelSpace {
         }
 
         public void Dispose() {
+            WasDisposed = true;
             foreach (var chunk in _chunks.Values) {
                 chunk.Dispose();
             }
         }
-
         
         /// <summary>
         /// Gets the coordinates of the chunk containing a set of global coordinates.
@@ -162,7 +171,7 @@ namespace VoxelSpace {
         public unsafe VoxelData *GetVoxelData(Coords coords) {
             var chunk = GetChunkContainingGlobalCoords(coords);
             if (chunk != null) {
-                return chunk.VoxelsData[chunk.VolumeToLocalCoords(coords)];
+                return chunk.VoxelData[chunk.VolumeToLocalCoords(coords)];
             }
             else {
                 return null;
@@ -254,7 +263,7 @@ namespace VoxelSpace {
         /// <param name="hitPredicate">return true if the given voxel should constitute a "hit".</param>
         /// <param name="result">The result of the raycast.</param>
         /// <returns>true if the ray hit a voxel, false otherwise.</returns>
-        public bool Raycast(Vector3 origin, Vector3 dir, float range, Predicate<Voxel> hitPredicate, out VoxelRaycastResult result) {            
+        public bool Raycast(Vector3 origin, Vector3 dir, float range, Predicate<Voxel> hitPredicate, out VoxelRaycastResult result) {
             dir.Normalize();
             Coords current = (Coords) origin;
             var voxel = GetVoxel(current) ?? Voxel.Empty;
@@ -321,13 +330,6 @@ namespace VoxelSpace {
             return false;
         }
 
-        public void WriteBinary(BinaryWriter writer) {
-            Index.WriteBinary(writer);
-            writer.Write(ChunkCount);
-            foreach (var chunk in _chunks.Values) {
-                chunk.WriteBinary(writer);
-            }
-        }
     }
 
 }

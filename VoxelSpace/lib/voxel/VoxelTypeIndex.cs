@@ -8,7 +8,7 @@ namespace VoxelSpace {
 
     using IO;
 
-    public class VoxelTypeIndex : ICollection<VoxelType>, IBinaryWritable {
+    public class VoxelTypeIndex : ICollection<VoxelType>, IBinaryReadWritable {
 
         VoxelType[] _forward;
         Dictionary<VoxelType, ushort> _reverse;
@@ -43,7 +43,7 @@ namespace VoxelSpace {
             Clear();
         }
 
-        public VoxelTypeIndex(BinaryReader reader) : this() {
+        public void ReadBinary(BinaryReader reader) {
             Count = reader.ReadInt32();
             var assets = G.Assets;
             for (ushort i = 1; i < Count; i ++) {
