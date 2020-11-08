@@ -32,8 +32,6 @@ namespace VoxelSpace {
             ShadowMap = new ShadowMap(4096);
             ShadowMap.SetCenter(Vector3.Zero);
             ShadowMap.SetRadius(200);
-            ShadowMap.SetNearClip(-200);
-            ShadowMap.SetFarClip(200);
         }
 
         protected override void PreRender(VoxelSystemScene scene) {

@@ -73,6 +73,7 @@ namespace VoxelSpace {
             Player.Input.MakeActive();
             Player.SetPlanet(Planet);
             AddObject(Player);
+            SunDirection = -new Vector3(1, 2, 3);
         }
 
         public void Save() {
@@ -89,10 +90,11 @@ namespace VoxelSpace {
             _meshGenerator.Update();
             // test day/night cycle
             float t = (float) Time.Uptime;
-            t /= 10; // 10 seconds a day
+            t /= 30;
             t *= 2 * MathHelper.Pi;
-            // Logger.Debug(this, System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
-            SunDirection = Vector3.TransformNormal(Vector3.Forward, Matrix.CreateFromAxisAngle(Vector3.Right, t));
+            var axis = new Vector3(1, 2, 3);
+            var direction = Vector3.Forward.ProjectPlane(axis).Normalized();
+            SunDirection = Vector3.TransformNormal(direction, Matrix.CreateFromAxisAngle(axis, t));
 
         }
 

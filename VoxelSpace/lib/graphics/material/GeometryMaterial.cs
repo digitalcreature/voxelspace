@@ -53,6 +53,11 @@ namespace VoxelSpace.Graphics {
             set => this["_shadowMap"]?.SetValue(value);
         }
 
+        public float ShadowMapRadius {
+            get => this["_shadowMapRadius"].GetValueSingle();
+            set => this["_shadowMapRadius"]?.SetValue(value);
+        }
+
         public void SetRenderPass(RenderPass pass) {
             RenderPass = pass;
             if (pass == RenderPass.Shadow) {
@@ -72,6 +77,7 @@ namespace VoxelSpace.Graphics {
             ShadowMap = shadowMap.ShadowTarget;
             ShadowViewMatrix = shadowMap.ViewMatrix;
             ShadowProjectionMatrix = shadowMap.ProjectionMatrix;
+            ShadowMapRadius = shadowMap.Radius;
         }
 
    }

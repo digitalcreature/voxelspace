@@ -11,8 +11,6 @@ namespace VoxelSpace.Graphics {
         public Vector3 Center { get; private set; }
 
         public float Radius { get; private set; }
-        public float NearClip { get; private set; }
-        public float FarClip { get; private set; }
 
         public Matrix ViewMatrix { get; private set; }
         public Matrix ProjectionMatrix { get; private set; }
@@ -73,16 +71,6 @@ namespace VoxelSpace.Graphics {
             UpdateProjection();
         }
 
-        public void SetNearClip(float clip) {
-            NearClip = clip;
-            UpdateProjection();
-        }
-
-        public void SetFarClip(float clip) {
-            FarClip = clip;
-            UpdateProjection();
-        }
-
         public void SetTextureSize(int size) {
             TextureSize = size;
             UpdateTexture();
@@ -93,7 +81,7 @@ namespace VoxelSpace.Graphics {
         }
 
         void UpdateProjection() {
-            ProjectionMatrix = Matrix.CreateOrthographic(Radius * 2, Radius * 2, NearClip, FarClip);
+            ProjectionMatrix = Matrix.CreateOrthographic(Radius * 2, Radius * 2, -Radius, Radius);
         }
 
         void UpdateTexture() {

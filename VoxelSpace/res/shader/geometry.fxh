@@ -23,7 +23,19 @@ float4x4 _mat_view_shadow;
 
 Texture2D _shadowMap;
 
-float _shadowBias = 0.01;
+float _shadowMapRadius;
+float _shadowBias = 0.1;
+
+struct PositionNormal {
+    float4 position : POSITION;
+    float4 normal : NORMAL;
+};
+
+#define NORMALBIAS 0.01
+
+float4 getOffsetPosition(PositionNormal pn) {
+    return pn.position + pn.normal * NORMALBIAS;
+}
 
 float4 EncodeFloatRGBA(float v) {
     float4 kEncodeMul = float4(1.0, 255.0, 65025.0, 16581375.0);
@@ -46,10 +58,10 @@ struct v2f_shadow {
     float depth : TEXCOORD;
 };
 
-v2f_shadow vert_shadow(float4 position : POSITION) {
+v2f_shadow vert_shadow(PositionNormal pn) {
     v2f_shadow v;
-    v.position = mul(mul(mul(position, _mat_model), _mat_view_shadow), _mat_proj_shadow);
-    v.depth = v.position.z;
+    v.position = mul(mul(mul(pn.position, _mat_model), _mat_view_shadow), _mat_proj_shadow);
+    v.depth = 1 - v.position.z;
     return v;
 }
 
@@ -61,19 +73,19 @@ float4 frag_shadow(v2f_shadow v) : COLOR {
 //////////////////
 
 
-float3 getShadowData(float4 position) {
-    float4 pos = mul(mul(mul(position, _mat_model), _mat_view_shadow), _mat_proj_shadow);
+float3 getShadowData(PositionNormal pn) {
+    float4 pos = mul(mul(mul(pn.position, _mat_model), _mat_view_shadow), _mat_proj_shadow);
     float3 data;
     data.x = pos.x / 2 + 0.5;
     data.y = -pos.y / 2 + 0.5;
-    data.z = pos.z;
+    data.z = 1 - pos.z;
     return data;
 }
 
 #ifdef NOSHADOW
 
 #define SHADOWDATA(semantic)
-#define TRANSFERSHADOW(v, position) 0
+#define TRANSFERSHADOW(v, pn) 0
 #define GETSHADOW(v) 1
 
 #else
@@ -81,15 +93,41 @@ float3 getShadowData(float4 position) {
 // element for v2f struct. semantics left up to user
 #define SHADOWDATA(semantic) float3 shadow_data : semantic;
 
-#define TRANSFERSHADOW(v, position) v.shadow_data = getShadowData(position)
+#define TRANSFERSHADOW(v, pn) v.shadow_data = getShadowData(pn)
 
-#define GETSHADOW(v) getShadowStrength(v.shadow_data)
+#define GETSHADOW(v) getBlurredShadowStrength(v.shadow_data)
 
 #endif
 
-float getShadowStrength(float3 data) {
-    float decodedDepth = DecodeFloatRGBA(_shadowMap.Sample(LinearClamp, data.xy));
-    return decodedDepth > data.z - _shadowBias;
+#define BLURDIST 3
+
+float getShadowStrength(float2 uv, float depth);
+
+float getBlurredShadowStrength(float3 data) {
+    float2 uv = data.xy;
+    float depth = data.z;
+    // float strength = 0;
+    // float range = 2 * _shadowMapRadius;
+    // strength += getShadowStrength(uv + float2(-1, -1) * BLURDIST / range, depth);
+    // strength += getShadowStrength(uv + float2( 0, -1) * BLURDIST / range, depth);
+    // strength += getShadowStrength(uv + float2(+1, -1) * BLURDIST / range, depth);
+    // strength += getShadowStrength(uv + float2(-1,  0) * BLURDIST / range, depth);
+    // strength += getShadowStrength(uv + float2( 0,  0) * BLURDIST / range, depth);
+    // strength += getShadowStrength(uv + float2(+1,  0) * BLURDIST / range, depth);
+    // strength += getShadowStrength(uv + float2(-1, +1) * BLURDIST / range, depth);
+    // strength += getShadowStrength(uv + float2( 0, +1) * BLURDIST / range, depth);
+    // strength += getShadowStrength(uv + float2(+1, +1) * BLURDIST / range, depth);
+    // return strength / 9;
+    return getShadowStrength(uv, depth) * .5 + .5;
+}
+
+float getShadowStrength(float2 uv, float depth) {
+    float decodedDepth = DecodeFloatRGBA(_shadowMap.Sample(LinearClamp, uv));
+    float range = 2 * _shadowMapRadius;
+    decodedDepth *= range;
+    depth *= range;
+    float diff = depth - decodedDepth + _shadowBias;
+    return smoothstep(-1, 0, diff);
 }
 
 technique CastShadow {
