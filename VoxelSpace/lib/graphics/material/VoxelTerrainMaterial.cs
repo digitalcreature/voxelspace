@@ -9,10 +9,7 @@ namespace VoxelSpace.Graphics {
 
         protected override string _effectResourceName => "@shader/terrain";
 
-        public Texture2D TextureAtlas {
-            get => this["_tex_atlas"].GetValueTexture2D();
-            set => this["_tex_atlas"].SetValue(value);
-        }
+        public VoxelTerrainMaterial() : base("Geometry") {}
 
         public Vector3 SunDirection {
             get => this["sunDirection"].GetValueVector3();

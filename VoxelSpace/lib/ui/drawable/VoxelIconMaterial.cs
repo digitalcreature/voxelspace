@@ -11,6 +11,8 @@ namespace VoxelSpace.UI {
 
         protected override string _effectResourceName => "@shader/ui/voxel";
 
+        public VoxelIconMaterial() : base("Geometry") {}
+
         public Texture2D TextureAtlas {
             get => this["_tex_atlas"].GetValueTexture2D();
             set => this["_tex_atlas"].SetValue(value);

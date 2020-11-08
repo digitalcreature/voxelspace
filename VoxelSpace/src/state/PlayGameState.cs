@@ -74,7 +74,6 @@ namespace VoxelSpace {
 
         public override void Draw() {
             var graphics = G.Graphics;
-            graphics.Clear(Color.CornflowerBlue);
             _sceneRenderer?.Render(Scene);
             _hud.Draw();
             if (_isPaused) {

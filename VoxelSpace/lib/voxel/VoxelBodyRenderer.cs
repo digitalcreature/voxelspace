@@ -6,17 +6,11 @@ using VoxelSpace.Graphics;
 
 namespace VoxelSpace.SceneGraph {
 
-    public class VoxelBodyRenderer : Renderer<VoxelBody> {
-        
-        public VoxelTerrainMaterial Material { get; private set; }
+    public class VoxelBodyRenderer : GeometryRenderer<VoxelBody, VoxelTerrainMaterial> {
 
-        public VoxelBodyRenderer(VoxelTerrainMaterial material) {
-            Material = material;
-        }
+        public VoxelBodyRenderer(VoxelTerrainMaterial material) : base(material) {}
 
-        public override void Render(VoxelBody body, Matrix projection, Matrix view) {
-            Material.ProjectionMatrix = projection;
-            Material.ViewMatrix = view;
+        protected override void OnRender(VoxelBody body, Matrix modelMat, RenderPass pass) {
             body.ChangeManager.UpdateChunkMeshes();
             body.Volume.StartThreadsafeEnumeration();
             foreach (var chunk in body.Volume) {
