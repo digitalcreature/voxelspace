@@ -4,15 +4,6 @@ float3 sunDirection;
 float diffuseIntensity;
 float ambientIntensity;
 
-uniform texture _tex_atlas;
-sampler2D textureAtlas = sampler_state {
-    Texture = (_tex_atlas);
-    MagFilter = Point;
-    MinFilter = Point;
-    AddressU = Clamp;
-    AddressV = Clamp;
-};
-
 struct a2v {
     float4 position : POSITION;
     float4 normal : NORMAL;
@@ -38,7 +29,7 @@ v2f vert(a2v a) {
 
 
 float4 frag(v2f v) : COLOR {
-    float4 color = tex2D(textureAtlas, v.uv);
+    float4 color = _mainTex.Sample(PointClamped, v.uv);
     clip(color.a - 0.5);
     return float4(v.light, 1) * color;
 }

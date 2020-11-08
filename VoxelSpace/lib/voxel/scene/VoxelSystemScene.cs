@@ -89,12 +89,12 @@ namespace VoxelSpace {
             _lightCalculator.Update();
             _meshGenerator.Update();
             // test day/night cycle
-            float t = (float) Time.Uptime;
-            t /= 30;
-            t *= 2 * MathHelper.Pi;
-            var axis = new Vector3(1, 2, 3);
-            var direction = Vector3.Forward.ProjectPlane(axis).Normalized();
-            SunDirection = Vector3.TransformNormal(direction, Matrix.CreateFromAxisAngle(axis, t));
+            // float t = (float) Time.Uptime;
+            // t /= 30;
+            // t *= 2 * MathHelper.Pi;
+            // var axis = new Vector3(1, 2, 3);
+            // var direction = Vector3.Forward.ProjectPlane(axis).Normalized();
+            // SunDirection = Vector3.TransformNormal(direction, Matrix.CreateFromAxisAngle(axis, t));
 
         }
 

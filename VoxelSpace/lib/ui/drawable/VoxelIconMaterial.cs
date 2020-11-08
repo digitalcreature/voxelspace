@@ -13,11 +13,6 @@ namespace VoxelSpace.UI {
 
         public VoxelIconMaterial() : base("Geometry") {}
 
-        public Texture2D TextureAtlas {
-            get => this["_tex_atlas"].GetValueTexture2D();
-            set => this["_tex_atlas"].SetValue(value);
-        }
-
         public Vector3 SunDirection {
             get => this["sunDirection"].GetValueVector3();
             set => this["sunDirection"].SetValue(value);

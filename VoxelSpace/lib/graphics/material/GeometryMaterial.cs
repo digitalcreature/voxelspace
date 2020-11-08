@@ -16,6 +16,7 @@ namespace VoxelSpace.Graphics {
         public GeometryMaterial(string geometryTechniqueName) : base() {
             ShadowTechnique = Effect.Techniques["CastShadow"];
             GeometryTechnique = Effect.Techniques[geometryTechniqueName];
+            SetRenderPass(RenderPass.Geometry);
         }
 
         public Matrix ModelMatrix {
@@ -35,7 +36,7 @@ namespace VoxelSpace.Graphics {
 
         public Texture2D MainTexture {
             get => this["_mainTex"].GetValueTexture2D();
-            set => this["_mainTex"].SetValue(value);
+            set => this["_mainTex"]?.SetValue(value);
         }
 
         public Matrix ShadowViewMatrix {

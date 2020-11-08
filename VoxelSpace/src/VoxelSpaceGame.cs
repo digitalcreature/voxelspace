@@ -55,7 +55,7 @@ namespace VoxelSpace {
             AssetManager.CreateVoxelTextureAtlas();
 
             var voxelIconMaterial = new UI.VoxelIconMaterial();
-            voxelIconMaterial.TextureAtlas = G.Assets.VoxelTextureAtlas.AtlasTexture;
+            voxelIconMaterial.MainTexture = G.Assets.VoxelTextureAtlas.AtlasTexture;
             voxelIconMaterial.DiffuseIntensity = 0.1f;
             voxelIconMaterial.AmbientIntensity = 0.8f;
             voxelIconMaterial.SunDirection = -new Vector3(2, 3, 1).Normalized();
