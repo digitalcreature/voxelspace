@@ -23,9 +23,14 @@ namespace VoxelSpace {
         }
 
         public bool IsEmpty => Type == null;
-        public bool IsMeshable => Type?.IsMeshable ?? false;
         public bool IsSolid => Type?.IsSolid ?? false;
         public bool IsOpaque => Type?.IsOpaque ?? false;
+
+        public bool CanCreateFace(Voxel neighbor) {
+            if (Type == null) return false;
+            return Type.CanCreateFace(neighbor.Type);
+        }
+
         
     }
 

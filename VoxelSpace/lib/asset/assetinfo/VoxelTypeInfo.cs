@@ -9,11 +9,13 @@ namespace VoxelSpace.Assets {
         bool _isSolid;
         bool _isOpaque;
         IVoxelSkin _skin;
+        VoxelFaceMode _faceMode;
         byte? _pointLightLevel;
 
         public VoxelTypeInfo(string name) : base(name) {
             _isSolid = true;
             _isOpaque = true;
+            _faceMode = VoxelFaceMode.Opaque;
             _pointLightLevel = null;
         }
 
@@ -29,6 +31,11 @@ namespace VoxelSpace.Assets {
 
         public VoxelTypeInfo Skin(IVoxelSkin skin) {
             _skin = skin;
+            return this;
+        }
+
+        public VoxelTypeInfo FaceMode(VoxelFaceMode mode) {
+            _faceMode = mode;
             return this;
         }
 
@@ -48,7 +55,7 @@ namespace VoxelSpace.Assets {
         }
 
         protected override VoxelType Create(){
-            return new VoxelType(QualifiedName, _isSolid, _isOpaque, _skin, _pointLightLevel);
+            return new VoxelType(QualifiedName, _isSolid, _isOpaque, _skin, _faceMode, _pointLightLevel);
         }
     }
 

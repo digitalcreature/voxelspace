@@ -21,11 +21,11 @@ namespace VoxelSpace {
                 for (int j = 0; j < size; j ++) {
                     for (int k = 0; k < size; k ++) {
                         var voxel = Chunk.Voxels[i, j, k];
-                        if (voxel.IsMeshable) {
+                        if (!voxel.IsEmpty) {
                             var coords = new Coords(i, j, k);
                             var orientation = Chunk.Volume.GetVoxelOrientation(Chunk.LocalToVolumeCoords(coords));
                             // -x face
-                            if (!Chunk.GetVoxelIncludingNeighbors(i - 1, j, k).IsMeshable) {
+                            if (voxel.CanCreateFace(Chunk.GetVoxelIncludingNeighbors(i - 1, j, k))) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -40,7 +40,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +x face
-                            if (!Chunk.GetVoxelIncludingNeighbors(i + 1, j, k).IsMeshable) {
+                            if (voxel.CanCreateFace(Chunk.GetVoxelIncludingNeighbors(i + 1, j, k))) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -55,7 +55,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // -y face
-                            if (!Chunk.GetVoxelIncludingNeighbors(i, j - 1, k).IsMeshable) {
+                            if (voxel.CanCreateFace(Chunk.GetVoxelIncludingNeighbors(i, j - 1, k))) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -70,7 +70,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +y face
-                            if (!Chunk.GetVoxelIncludingNeighbors(i, j + 1, k).IsMeshable) {
+                            if (voxel.CanCreateFace(Chunk.GetVoxelIncludingNeighbors(i, j + 1, k))) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -85,7 +85,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // -z face
-                            if (!Chunk.GetVoxelIncludingNeighbors(i, j, k - 1).IsMeshable) {
+                            if (voxel.CanCreateFace(Chunk.GetVoxelIncludingNeighbors(i, j, k - 1))) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,
@@ -100,7 +100,7 @@ namespace VoxelSpace {
                                 );
                             }
                             // +z face
-                            if (!Chunk.GetVoxelIncludingNeighbors(i, j, k + 1).IsMeshable) {
+                            if (voxel.CanCreateFace(Chunk.GetVoxelIncludingNeighbors(i, j, k + 1))) {
                                 AddVoxelFace(
                                     coords,
                                     voxel,

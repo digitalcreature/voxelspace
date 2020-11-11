@@ -85,7 +85,13 @@ namespace VoxelSpace.Assets {
             Add(new VoxelTypeInfo("grass").TBSCSkin("grassT", "dirtTB", "grassS", "grassC"));
             Add(new VoxelTypeInfo("dirt").TBSCSkin("dirtTB", "dirtTB", "dirtS", "dirtC"));
             Add(new VoxelTypeInfo("stone").TBSCSkin("stoneTB", "stoneTB", "stoneS", "stoneC"));
-            Add(new VoxelTypeInfo("glow").SingleSkin("glow").PointLight());
+            Add(new VoxelTypeInfo("glow").SingleSkin("glow")
+                .PointLight()
+            );
+            Add(new VoxelTypeInfo("leaves").SingleSkin("leaves")
+                .FaceMode(VoxelFaceMode.TransparentInner)
+                .IsOpaque(false)
+            );
         }
     }
 
