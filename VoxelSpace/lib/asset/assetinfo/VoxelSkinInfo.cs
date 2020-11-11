@@ -51,7 +51,7 @@ namespace VoxelSpace.Assets {
         }
     }
 
-    public class  SingleVoxelSkinInfo : VoxelSkinInfo {
+    public class SingleVoxelSkinInfo : VoxelSkinInfo {
 
         string _texture;
 
@@ -66,4 +66,27 @@ namespace VoxelSpace.Assets {
         }
 
     }
+
+    public class ColumnVoxelSkinInfo : VoxelSkinInfo {
+
+        string _top;
+        string _bottom;
+        string _side;
+
+        public ColumnVoxelSkinInfo(string name, string top, string bottom, string side) : base(name) {
+            _top = top;
+            _bottom = bottom;
+            _side = side;
+        }
+
+        protected override IVoxelSkin Create() {
+            return new ColumnVoxelSkin(
+                ResolveOrCreateTexture(_top),
+                ResolveOrCreateTexture(_bottom),
+                ResolveOrCreateTexture(_side)
+            );
+        }
+    }
+
+    
 }

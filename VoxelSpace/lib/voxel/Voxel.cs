@@ -26,6 +26,8 @@ namespace VoxelSpace {
         public bool IsSolid => Type?.IsSolid ?? false;
         public bool IsOpaque => Type?.IsOpaque ?? false;
 
+        public byte PointLightLevel => Type?.PointLightLevel ?? 0;
+
         public bool CanCreateFace(Voxel neighbor) {
             if (Type == null) return false;
             return Type.CanCreateFace(neighbor.Type);

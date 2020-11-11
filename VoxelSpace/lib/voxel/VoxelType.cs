@@ -12,18 +12,20 @@ namespace VoxelSpace {
         public bool IsOpaque { get; private set; }    // temporary. will change when we add transparency
 
         public VoxelFaceMode FaceMode { get; private set; }
+        public VoxelInitialDataMode InitialDataMode { get; private set; }
 
         public byte? PointLightLevel { get; private set; }
 
         public IVoxelSkin Skin { get; private set; }
         public UI.VoxelIconMesh VoxelIconMesh { get; private set; }
 
-        public VoxelType(string id, bool isSolid, bool isOpaque, IVoxelSkin skin, VoxelFaceMode faceMode, byte? pointLightLevel = null) {
+        public VoxelType(string id, bool isSolid, bool isOpaque, IVoxelSkin skin, VoxelFaceMode faceMode, VoxelInitialDataMode initialDataMode, byte? pointLightLevel = null) {
             Identifier = id;
             Skin = skin;
             IsSolid = isSolid;
             IsOpaque = isOpaque;
             FaceMode = faceMode;
+            InitialDataMode = initialDataMode;
             PointLightLevel = pointLightLevel;
         }
 
@@ -48,6 +50,18 @@ namespace VoxelSpace {
             }
         }
 
+        public Voxel CreateVoxel(VoxelRaycastResult result) {
+            ushort data = 0;
+            switch (InitialDataMode) {
+                case VoxelInitialDataMode.None:
+                    break;
+                case VoxelInitialDataMode.NormalOrientation:
+                    data = (ushort) result.Normal.ToOrientation();
+                    break;
+            }
+            return new Voxel(this, data);
+        }
+
 
     }
 
@@ -55,5 +69,10 @@ namespace VoxelSpace {
         Opaque,
         Transparent,
         TransparentInner
+    }
+
+    public enum VoxelInitialDataMode {
+        None,
+        NormalOrientation
     }
 }

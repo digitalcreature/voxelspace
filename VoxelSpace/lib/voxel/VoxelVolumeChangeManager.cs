@@ -41,10 +41,10 @@ namespace VoxelSpace {
             _changeRequested = new AutoResetEvent(false);
         }
 
-        public void RequestSingleChange(Coords volumeCoords, VoxelType type) {
+        public void RequestSingleChange(Coords volumeCoords, Voxel voxel) {
             _changeRequests.Enqueue(new VoxelChangeRequest(){
                 Coords = volumeCoords,
-                VoxelType = type
+                Voxel = voxel
             });
             _changeRequested.Set();
         }
@@ -94,14 +94,14 @@ namespace VoxelSpace {
                     if (chunk != null) {
                         var localCoords = chunk.VolumeToLocalCoords(request.Coords);
                         var oldOpacity = chunk.Voxels[localCoords].IsOpaque;
-                        var type = request.VoxelType;
-                        var newOpacity = type?.IsOpaque ?? false;
+                        var voxel = request.Voxel;
+                        var newOpacity = voxel.IsOpaque;
                         var pointLight = chunk.LightData[VoxelLightChannel.Point][localCoords];
-                        var typePointLight = type?.PointLightLevel ?? 0;
+                        var typePointLight = voxel.PointLightLevel;
                         if (typePointLight > *pointLight) {
                             propagator.PointPropagationChannel.QueueForPropagation(chunk, localCoords, typePointLight);
                         }
-                        if (type == null) {
+                        if (voxel.IsEmpty) {
                             propagator.PointPropagationChannel.QueueForDepropagation(chunk, localCoords);
                         }
                         if (oldOpacity != newOpacity) {
@@ -112,7 +112,7 @@ namespace VoxelSpace {
                                 propagator.QueueNeighborsForPropagation(chunk, localCoords);
                             }
                         }
-                        chunk.Voxels[localCoords] = new Voxel(request.VoxelType);
+                        chunk.Voxels[localCoords] = voxel;
                         chunksToRemesh.Add(chunk);
                         if (localCoords.X == 0) {
                             var neighbor = Volume[chunk.Coords + new Coords(-1, 0, 0)];
@@ -172,7 +172,7 @@ namespace VoxelSpace {
         struct VoxelChangeRequest {
 
             public Coords Coords;
-            public VoxelType VoxelType;
+            public Voxel Voxel;
 
         }
 

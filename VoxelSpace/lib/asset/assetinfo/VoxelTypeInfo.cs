@@ -10,6 +10,7 @@ namespace VoxelSpace.Assets {
         bool _isOpaque;
         IVoxelSkin _skin;
         VoxelFaceMode _faceMode;
+        VoxelInitialDataMode _initialDataMode;
         byte? _pointLightLevel;
 
         public VoxelTypeInfo(string name) : base(name) {
@@ -17,6 +18,7 @@ namespace VoxelSpace.Assets {
             _isOpaque = true;
             _faceMode = VoxelFaceMode.Opaque;
             _pointLightLevel = null;
+            _initialDataMode = VoxelInitialDataMode.None;
         }
 
         public VoxelTypeInfo IsSolid(bool isSolid) {
@@ -39,6 +41,12 @@ namespace VoxelSpace.Assets {
             return this;
         }
 
+        public VoxelTypeInfo InitialDataMode(VoxelInitialDataMode mode) {
+            _initialDataMode = mode;
+            return this;
+        }
+
+
         public VoxelTypeInfo Skin(string name) => Skin(Module.ResolveAsset<IVoxelSkin>(name));
         public VoxelTypeInfo Skin(VoxelSkinInfo skinInfo) => Skin(Module.Add(skinInfo));
 
@@ -48,6 +56,10 @@ namespace VoxelSpace.Assets {
         public VoxelTypeInfo SingleSkin(string texture)
             => Skin(new SingleVoxelSkinInfo(Name, texture));
 
+        public VoxelTypeInfo ColumnSkin(string top, string bottom, string side)
+            => InitialDataMode(VoxelInitialDataMode.NormalOrientation)
+                .Skin(new ColumnVoxelSkinInfo(Name, top, bottom, side));
+
         public VoxelTypeInfo PointLight(byte level = VoxelLight.MAX_LIGHT) {
             _pointLightLevel = level;
             _isOpaque = false;
@@ -55,7 +67,7 @@ namespace VoxelSpace.Assets {
         }
 
         protected override VoxelType Create(){
-            return new VoxelType(QualifiedName, _isSolid, _isOpaque, _skin, _faceMode, _pointLightLevel);
+            return new VoxelType(QualifiedName, _isSolid, _isOpaque, _skin, _faceMode, _initialDataMode, _pointLightLevel);
         }
     }
 

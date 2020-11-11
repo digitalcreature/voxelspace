@@ -92,6 +92,7 @@ namespace VoxelSpace.Assets {
                 .FaceMode(VoxelFaceMode.TransparentInner)
                 .IsOpaque(false)
             );
+            Add(new VoxelTypeInfo("log").ColumnSkin("logTB", "logTB", "logS"));
         }
     }
 

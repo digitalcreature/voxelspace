@@ -140,12 +140,12 @@ namespace VoxelSpace {
                 IsAimValid = true;
                 AimedVoxel = result;
                 if (Input.WasMouseButtonPressed(MouseButton.Left)) {
-                    Planet.ChangeManager.RequestSingleChange(AimedVoxel.Coords, null);
+                    Planet.ChangeManager.RequestSingleChange(AimedVoxel.Coords, Voxel.Empty);
                 }
                 else if (Input.WasMouseButtonPressed(MouseButton.Right) && AimedVoxel.Normal != Vector3.Zero) {
                     if (VoxelTypeToPlace != null) {
                         var coords = AimedVoxel.Coords + (Coords) AimedVoxel.Normal;
-                        Planet.ChangeManager.RequestSingleChange(coords, VoxelTypeToPlace);
+                        Planet.ChangeManager.RequestSingleChange(coords, VoxelTypeToPlace.CreateVoxel(result));
                     }
                 }
             }

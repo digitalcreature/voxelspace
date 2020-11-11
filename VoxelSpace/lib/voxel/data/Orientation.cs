@@ -16,6 +16,10 @@ namespace VoxelSpace {
             return (Orientation) ((p << 1) | (n >> 1));
         }
 
+        public static bool IsParallel(this Orientation a, Orientation b) {
+            return a == b || a == b.Inverse();
+        }
+
         public static bool IsAxisAligned(this Orientation orientation) {
             switch (orientation) {
                 case Orientation.Zero: return true;
