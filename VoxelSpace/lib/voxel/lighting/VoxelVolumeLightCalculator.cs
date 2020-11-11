@@ -17,11 +17,18 @@ namespace VoxelSpace {
         protected override void Process() {
             Input.Wait();
             var propagator = new VoxelLightPropagator(Volume);
-            Parallel.For(0, 6, (i) => CalculateSunlight(Volume, i, propagator[i]));
+            Parallel.For(0, 7, (i) => {
+                if (i < 6) {
+                    CalculateSunlight(Volume, i, propagator[i]);
+                }
+                else {
+                    CalculatePoint(Volume, propagator[i]);
+                }
+            });
         }
 
         // seeds sunlight over an entire volume, queueing nodes for propogation
-        unsafe void CalculateSunlight(VoxelVolume volume, int channel, VoxelLightPropagator.IChannel propagationChannel) {
+        unsafe void CalculateSunlight(VoxelVolume volume, int channel, VoxelLightPropagator.ChannelPropagator channelProp) {
             var cRegion = volume.ChunkRegion;
             int axis = channel % 3; // x = 0, y = 1, z = 2
             var neg = channel >= 3;
@@ -61,7 +68,7 @@ namespace VoxelSpace {
                                     (&lCoords.X)[ai] = la;
                                     (&lCoords.X)[bi] = lb;
                                     *chunk.LightData[channel][lCoords] = VoxelLight.MAX_LIGHT;
-                                    propagationChannel.QueueForPropagation(chunk, lCoords);
+                                    channelProp.QueueForPropagation(chunk, lCoords);
                                 }
                             }
                             break;
@@ -69,7 +76,24 @@ namespace VoxelSpace {
                     }
                 }
             }
-            propagationChannel.PropagateSunlight();
+            channelProp.Propagate();
+        }
+
+        unsafe void CalculatePoint(VoxelVolume volume, VoxelLightPropagator.ChannelPropagator channelProp) {
+            Parallel.ForEach(volume, (chunk) => {
+                Coords c = new Coords(0, 0, 0);
+                for (c.X = 0; c.X < VoxelChunk.SIZE; c.X ++) {
+                    for (c.Y = 0; c.Y < VoxelChunk.SIZE; c.Y ++) {
+                        for (c.Z = 0; c.Z < VoxelChunk.SIZE; c.Z ++) {
+                            var pointLevel = chunk.Voxels[c].Type?.PointLightLevel;
+                            if (pointLevel is byte level) {
+                                channelProp.QueueForPropagation(chunk, c, level);
+                            }
+                        }
+                    }
+                }
+            });
+            channelProp.Propagate();
         }
 
     }

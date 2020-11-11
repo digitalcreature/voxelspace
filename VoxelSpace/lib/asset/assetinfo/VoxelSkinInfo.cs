@@ -50,4 +50,20 @@ namespace VoxelSpace.Assets {
             );
         }
     }
+
+    public class  SingleVoxelSkinInfo : VoxelSkinInfo {
+
+        string _texture;
+
+        public SingleVoxelSkinInfo(string name, string texture) : base(name) {
+            _texture = texture;
+        }
+
+        protected override IVoxelSkin Create(){
+            return new SingleVoxelSkin(
+                ResolveOrCreateTexture(_texture)
+            );
+        }
+
+    }
 }

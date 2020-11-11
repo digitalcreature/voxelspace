@@ -18,6 +18,14 @@ SamplerState LinearClamp {
     AddressV = Clamp;
 };
 
+SamplerState ShadowMapSample {
+    MinFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Border;
+    AddressV = Border;
+    BorderColor = 0x00000000;
+};
+
 float4x4 _mat_proj_shadow;
 float4x4 _mat_view_shadow;
 
@@ -99,7 +107,7 @@ float3 getShadowData(PositionNormal pn) {
 
 #endif
 
-#define BLURDIST 3
+#define BLURDIST 0.01
 
 float getShadowStrength(float2 uv, float depth);
 
@@ -122,12 +130,13 @@ float getBlurredShadowStrength(float3 data) {
 }
 
 float getShadowStrength(float2 uv, float depth) {
-    float decodedDepth = DecodeFloatRGBA(_shadowMap.Sample(LinearClamp, uv));
+    float decodedDepth = DecodeFloatRGBA(_shadowMap.Sample(ShadowMapSample, uv));
+    if (depth > 1 || depth < 0) return 1;
     float range = 2 * _shadowMapRadius;
     decodedDepth *= range;
     depth *= range;
     float diff = depth - decodedDepth + _shadowBias;
-    return smoothstep(-1, 0, diff);
+    return smoothstep(0, _shadowBias, diff);
 }
 
 technique CastShadow {

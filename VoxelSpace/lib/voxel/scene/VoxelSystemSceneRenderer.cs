@@ -37,6 +37,9 @@ namespace VoxelSpace {
         protected override void PreRender(VoxelSystemScene scene) {
             Camera.ViewMatrix = scene.Player.ViewMatrix;
             ShadowMap.SetLightDirection(scene.SunDirection);
+            var center = scene.Player.Transform.WorldPosition;
+            center.Floor();
+            ShadowMap.SetCenter(center);
             VoxelBodyRenderer.SetCamera(Camera);
             VoxelBodyRenderer.SetShadowMap(ShadowMap);
         }

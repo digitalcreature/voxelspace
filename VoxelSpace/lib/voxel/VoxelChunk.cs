@@ -11,6 +11,7 @@ namespace VoxelSpace {
     public class VoxelChunk : IDisposable, IBinaryReadWritable {
 
         public const int SIZE = 32;
+        public const int VOXEL_COUNT = SIZE * SIZE * SIZE;
 
         public VoxelVolume Volume { get; private set; }
         public Coords Coords { get; private set; }

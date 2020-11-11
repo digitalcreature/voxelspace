@@ -79,7 +79,7 @@ namespace VoxelSpace {
             }
         }
 
-        void WorkerThread() {
+        unsafe void WorkerThread() {
             var requests = new Stack<VoxelChangeRequest>();
             var chunksToRemesh = new HashSet<VoxelChunk>();
             var propagator = new VoxelLightPropagator(Volume);
@@ -94,7 +94,16 @@ namespace VoxelSpace {
                     if (chunk != null) {
                         var localCoords = chunk.VolumeToLocalCoords(request.Coords);
                         var oldOpacity = chunk.Voxels[localCoords].IsOpaque;
-                        var newOpacity = request.VoxelType?.IsOpaque ?? false;
+                        var type = request.VoxelType;
+                        var newOpacity = type?.IsOpaque ?? false;
+                        var pointLight = chunk.LightData[VoxelLightChannel.Point][localCoords];
+                        var typePointLight = type?.PointLightLevel ?? 0;
+                        if (typePointLight > *pointLight) {
+                            propagator.PointPropagationChannel.QueueForPropagation(chunk, localCoords, typePointLight);
+                        }
+                        if (type == null) {
+                            propagator.PointPropagationChannel.QueueForDepropagation(chunk, localCoords);
+                        }
                         if (oldOpacity != newOpacity) {
                             if (newOpacity) {
                                 propagator.QueueForDepropagation(chunk, localCoords);

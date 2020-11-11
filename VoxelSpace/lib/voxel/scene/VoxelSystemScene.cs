@@ -52,6 +52,7 @@ namespace VoxelSpace {
             types.Add(assets.GetAsset<VoxelType>("core:grass"));
             types.Add(assets.GetAsset<VoxelType>("core:stone"));
             types.Add(assets.GetAsset<VoxelType>("core:dirt"));
+            types.Add(assets.GetAsset<VoxelType>("core:glow"));
             Player.PlaceableVoxelTypes = types;
 
             if (File.Exists(_playerPath)) {

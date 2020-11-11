@@ -10,7 +10,7 @@ namespace VoxelSpace {
         /// <summary>
         /// The total number of channels. See <see cref="VoxelLightChannel"/>
         /// </summary>
-        public const int CHANNEL_COUNT = 6; //7; // we are only concerned with sunlight rn
+        public const int CHANNEL_COUNT = 7;
         
         /// <summary>
         /// The amount by which to decrement light during propagation.

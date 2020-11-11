@@ -19,8 +19,9 @@ struct v2f {
     float4 position : POSITION;
     float2 uv : TEXCOORD0;
     float3 light : TEXCOORD1;
-    float ao : TEXCOORD2;
-    SHADOWDATA(TEXCOORD3)
+    float pointLight : TEXCOORD2;
+    float ao : TEXCOORD3;
+    SHADOWDATA(TEXCOORD4)
 };
 
 
@@ -47,7 +48,8 @@ v2f vert(PositionNormal pn, a2v a) {
     float t = sunLight - starLight;
     // t = (t + 2) / 4;
     t = clamp(t + .5, 0, 1);
-    o.light *= lerp(starlightColor, sunlightColor, t) * averageSkyLight; //clamp(sunLight + a.lightPoint, 0, 1);
+    o.light *= lerp(starlightColor, sunlightColor, t) * averageSkyLight;
+    o.pointLight = a.lightPoint;
     return o;
 }
 
@@ -56,7 +58,8 @@ float4 frag(v2f v) : COLOR {
     float4 color = _mainTex.Sample(PointClamped, v.uv);
     float shadow = GETSHADOW(v);
     clip(color.a - 0.5);
-    return float4(v.light * v.ao * color.xyz * shadow, 1) ;
+    color = float4(clamp((v.light * shadow) + v.pointLight, 0, 1) * color.xyz * v.ao, 1); 
+    return color;
 }
 
 technique Geometry {

@@ -22,7 +22,7 @@ namespace VoxelSpace.SceneGraph {
         public Vector3 LocalPosition;
         public Quaternion LocalRotation;
 
-        public Vector3 WorldPosition => Vector3.Transform(LocalPosition, LocalToWorld);
+        public Vector3 WorldPosition => Vector3.Transform(Vector3.Zero, LocalToWorld);
         public Quaternion WorldRotation => LocalRotation * Quaternion.CreateFromRotationMatrix(LocalToWorld);
 
         public Matrix LocalToWorld => Parent != null ? LocalToParent * Parent.LocalToParent : LocalToParent;
