@@ -15,7 +15,8 @@ namespace VoxelSpace.UI {
             * Matrix.CreateRotationX(MathHelper.ToRadians(30))
             * Matrix.CreateScale(1 / MathF.Sqrt(2));
 
-        public VoxelType VoxelType { get; private set; }
+        public VoxelType VoxelType => Voxel.Type;
+        public Voxel Voxel { get; private set; }
 
         public VoxelIconMaterial Material { get; private set; }
 
@@ -26,8 +27,8 @@ namespace VoxelSpace.UI {
         static int[] _tris = new int[36];
 
 
-        public VoxelIconMesh(VoxelType type, VoxelIconMaterial material) {
-            VoxelType = type;
+        public VoxelIconMesh(Voxel voxel, VoxelIconMaterial material) {
+            Voxel = voxel;
             Material = material;
             _vertBuffer = new VertexBuffer(G.Graphics, Vertex.declaration, 24, BufferUsage.None);
             _trisBuffer = new IndexBuffer(G.Graphics, IndexElementSize.ThirtyTwoBits, 36, BufferUsage.None);
@@ -38,12 +39,11 @@ namespace VoxelSpace.UI {
             int v = 0;
             int t = 0;
             var (i, j, k) = (-0.5f, -0.5f, -0.5f);
-            var voxel = new Voxel(VoxelType);
             var orientation = Orientation.Yp;
             // -x face;
             addVoxelFace(
                 ref v, ref t,
-                voxel,
+                Voxel,
                 orientation,
                 new Vector3(i, j + 1, k),
                 new Vector3(i, j + 1, k + 1),
@@ -56,7 +56,7 @@ namespace VoxelSpace.UI {
             // +x face
             addVoxelFace(
                 ref v, ref t,
-                voxel,
+                Voxel,
                 orientation,
                 new Vector3(i + 1, j + 1, k + 1),
                 new Vector3(i + 1, j + 1, k),
@@ -69,7 +69,7 @@ namespace VoxelSpace.UI {
             // -y face
             addVoxelFace(
                 ref v, ref t,
-                voxel,
+                Voxel,
                 orientation,
                 new Vector3(i + 1, j, k),
                 new Vector3(i, j, k),
@@ -82,7 +82,7 @@ namespace VoxelSpace.UI {
             // +y face
             addVoxelFace(
                 ref v, ref t,
-                voxel,
+                Voxel,
                 orientation,
                 new Vector3(i, j + 1, k),
                 new Vector3(i + 1, j + 1, k),
@@ -95,7 +95,7 @@ namespace VoxelSpace.UI {
             // -z face
             addVoxelFace(
                 ref v, ref t,
-                voxel,
+                Voxel,
                 orientation,
                 new Vector3(i + 1, j + 1, k),
                 new Vector3(i, j + 1, k),
@@ -108,7 +108,7 @@ namespace VoxelSpace.UI {
             // +z face
             addVoxelFace(
                 ref v, ref t,
-                voxel,
+                Voxel,
                 orientation,
                 new Vector3(i, j + 1, k + 1),
                 new Vector3(i + 1, j + 1, k + 1),

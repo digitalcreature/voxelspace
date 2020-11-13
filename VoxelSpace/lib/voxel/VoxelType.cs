@@ -30,7 +30,16 @@ namespace VoxelSpace {
         }
 
         public void CreateVoxelIconMesh(UI.VoxelIconMaterial material) {
-            VoxelIconMesh = new UI.VoxelIconMesh(this, material);
+            var voxel = new Voxel(this);
+            switch (InitialDataMode) {
+                case VoxelInitialDataMode.None:
+                    voxel.Data = 0;
+                    break;
+                case VoxelInitialDataMode.NormalOrientation:
+                    voxel.Data = (ushort) Orientation.Yp;
+                    break;
+            }
+            VoxelIconMesh = new UI.VoxelIconMesh(voxel, material);
         }
 
         public bool CanCreateFace(VoxelType neighbor) {
