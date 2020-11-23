@@ -15,7 +15,7 @@ namespace VoxelSpace {
         public VoxelVolumeChangeManager ChangeManager { get; private set; }
 
         public VoxelBody() : base() {
-            Volume = new VoxelVolume();
+            Volume = new VoxelVolume(this);
             ChangeManager = new VoxelVolumeChangeManager(Volume);
         }
 

@@ -43,14 +43,99 @@ namespace VoxelSpace {
         }
 
         public unsafe void ReadBinary(BinaryReader reader) {
-            for (int i = 0; i < SIZE * SIZE * SIZE; i ++) {
-                VoxelData[i]->ReadBinary(reader);
+            var curr = VoxelData[0];
+            var end = curr + SIZE * SIZE * SIZE;
+            while (curr < end) {
+                ushort header = reader.ReadUInt16();
+                if (header == 0) {
+                    // read data packet
+                    ushort data = reader.ReadUInt16();
+                    while (data != 0xFFFF) {
+                        curr->TypeIndex = data;
+                        data = reader.ReadUInt16();
+                        curr ++;
+                    }
+                }
+                else {
+                    // read rle packet
+                    ushort type = reader.ReadUInt16();
+                    for (int i = 0; i < header; i ++) {
+                        curr->TypeIndex = type;
+                        curr ++;
+                    }
+                }
+            }
+            curr = VoxelData[0];
+            while (curr < end) {
+                var zcount = reader.ReadUInt16();
+                while (zcount > 0) {
+                    curr->Data = 0;
+                    curr ++;
+                    zcount --;
+                }
+                if (curr < end) {
+                    ushort data = reader.ReadUInt16();
+                    while (curr < end && data != 0) {
+                        curr->Data = data;
+                        curr ++;
+                        data = reader.ReadUInt16();
+                    }
+                }
             }
         }
 
         public unsafe void WriteBinary(BinaryWriter writer) {
-            for (int i = 0; i < SIZE * SIZE * SIZE; i ++) {
-                VoxelData[i]->WriteBinary(writer);
+            var curr = VoxelData[0];
+            var end = curr + SIZE * SIZE * SIZE;
+            // write type info
+            while (curr < end) {
+                var next = curr + 1;
+                if (next == end) {
+                    // if this is the last voxel, just emit an RLE of length 1
+                    writer.Write((ushort) 1);
+                    writer.Write((ushort) curr->TypeIndex);
+                    break;
+                }
+                if (next->TypeIndex == curr -> TypeIndex) {
+                    // if the next one is the same, emit an RLE
+                    var index = curr->TypeIndex;
+                    int count = 0;
+                    while (curr->TypeIndex == index && curr < end) {
+                        count ++;
+                        curr ++;
+                    }
+                    writer.Write((ushort) count);
+                    writer.Write((ushort) index);
+                }
+                else {
+                    // if the next one is different, emit data until the next one matches
+                    writer.Write((ushort) 0);
+                    writer.Write(curr->TypeIndex);
+                    while (curr->TypeIndex != next->TypeIndex && next < end) {
+                        writer.Write(next->TypeIndex);
+                        curr ++;
+                        next ++;
+                    }
+                    curr = next;
+                    writer.Write((ushort) 0xFFFF);
+                }
+            }
+            // write data
+            curr = VoxelData[0];
+            while (curr < end) {
+                ushort count = 0;
+                while (curr->Data == 0 && curr < end) {
+                    count ++;
+                    curr ++;
+                }
+                writer.Write(count);
+                if (curr < end) {
+                    while (curr->Data != 0 && curr < end) {
+                        writer.Write(curr->Data);
+                        curr ++;
+                    }
+                    writer.Write((ushort) 0);
+                }
             }
         }
 

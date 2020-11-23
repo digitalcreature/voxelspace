@@ -16,6 +16,8 @@ namespace VoxelSpace {
     /// </summary>
     public class VoxelVolume : IDisposable, IEnumerable<VoxelChunk>, ICollisionGrid, IBinaryReadWritable {
 
+        public VoxelBody Body { get; private set; }
+
         Dictionary<Coords, VoxelChunk> _chunks;
 
         /// <summary>The count of chunks currently in the volume</summary>
@@ -59,7 +61,8 @@ namespace VoxelSpace {
 
         Mutex _enumerationMutex;
 
-        public VoxelVolume(IVoxelOrientationField orientationField = null) {
+        public VoxelVolume(VoxelBody body, IVoxelOrientationField orientationField = null) {
+            Body = body;
             Index = new VoxelTypeIndex();
             _chunks = new Dictionary<Coords, VoxelChunk>();
             OrientationField = orientationField;
