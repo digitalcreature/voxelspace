@@ -118,7 +118,7 @@ namespace VoxelSpace {
                             var neighbor = Volume[chunk.Coords + new Coords(-1, 0, 0)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
-                        if (localCoords.X == VoxelChunk.SIZE - 1) {
+                        else if (localCoords.X == VoxelChunk.SIZE - 1) {
                             var neighbor = Volume[chunk.Coords + new Coords(1, 0, 0)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
@@ -126,7 +126,7 @@ namespace VoxelSpace {
                             var neighbor = Volume[chunk.Coords + new Coords(0, -1, 0)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
-                        if (localCoords.Y == VoxelChunk.SIZE - 1) {
+                        else if (localCoords.Y == VoxelChunk.SIZE - 1) {
                             var neighbor = Volume[chunk.Coords + new Coords(0, 1, 0)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
@@ -134,7 +134,7 @@ namespace VoxelSpace {
                             var neighbor = Volume[chunk.Coords + new Coords(0, 0, -1)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }
-                        if (localCoords.Z == VoxelChunk.SIZE - 1) {
+                        else if (localCoords.Z == VoxelChunk.SIZE - 1) {
                             var neighbor = Volume[chunk.Coords + new Coords(0, 0, 1)];
                             if (neighbor is VoxelChunk neighborChunk) chunksToRemesh.Add(neighborChunk);
                         }

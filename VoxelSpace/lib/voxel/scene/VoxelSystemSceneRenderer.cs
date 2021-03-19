@@ -29,9 +29,9 @@ namespace VoxelSpace {
             _selectionWireframe = new SelectionWireframe(new BasicEffect(G.Graphics));
             _selectionWireframe.Effect.DiffuseColor = Vector3.Zero;
             _selectionWireframe.Effect.Projection = Camera.ProjectionMatrix;
-            ShadowMap = new ShadowMap(4096);
+            ShadowMap = new ShadowMap(4096 * 4);
             ShadowMap.SetCenter(Vector3.Zero);
-            ShadowMap.SetRadius(200);
+            ShadowMap.SetRadius(100);
         }
 
         protected override void PreRender(VoxelSystemScene scene) {
